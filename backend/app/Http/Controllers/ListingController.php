@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreListingRequest;
+use App\Http\Requests\UpdateListingRequest;
 use App\Models\Listing;
 use App\Models\ListingPriceHistory;
 use Illuminate\Http\JsonResponse;
@@ -77,7 +79,7 @@ class ListingController extends Controller
      * POST /api/listings
      * Body: { "category_id": 1, "title": "...", "description": "...", "unit": "kg", "price_per_unit": 50.00, "quantity_available": 100 }
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreListingRequest $request): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -88,14 +90,7 @@ class ListingController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'category_id'        => ['nullable', 'integer', 'exists:categories,id'],
-            'title'              => ['required', 'string', 'max:255'],
-            'description'        => ['nullable', 'string', 'max:2000'],
-            'unit'               => ['required', 'string', 'in:kg,quintal,ton,piece,liter,dozen'],
-            'price_per_unit'     => ['required', 'numeric', 'min:0.01'],
-            'quantity_available' => ['required', 'numeric', 'min:0'],
-        ]);
+        $validated = $request->validated();
 
         $listing = DB::transaction(function () use ($validated, $user) {
             $listing = Listing::create([
@@ -131,7 +126,7 @@ class ListingController extends Controller
      * PUT /api/listings/{id}
      * Body: { "title": "...", "price_per_unit": 60.00, "quantity_available": 80, ... }
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateListingRequest $request, int $id): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -150,15 +145,7 @@ class ListingController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'category_id'        => ['sometimes', 'nullable', 'integer', 'exists:categories,id'],
-            'title'              => ['sometimes', 'string', 'max:255'],
-            'description'        => ['sometimes', 'nullable', 'string', 'max:2000'],
-            'unit'               => ['sometimes', 'string', 'in:kg,quintal,ton,piece,liter,dozen'],
-            'price_per_unit'     => ['sometimes', 'numeric', 'min:0.01'],
-            'quantity_available' => ['sometimes', 'numeric', 'min:0'],
-            'status'             => ['sometimes', 'string', 'in:active,inactive'],
-        ]);
+        $validated = $request->validated();
 
         DB::transaction(function () use ($listing, $validated, $user) {
             // Track price change in history when price_per_unit is updated.
