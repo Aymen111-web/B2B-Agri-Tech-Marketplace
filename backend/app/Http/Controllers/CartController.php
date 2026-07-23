@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCartItemRequest;
+use App\Http\Requests\UpdateCartItemRequest;
 use App\Models\CartItem;
 use App\Models\Listing;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
@@ -42,7 +43,7 @@ class CartController extends Controller
      * POST /api/cart
      * Body: { "listing_id": 1, "quantity": 10.5 }
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreCartItemRequest $request): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -53,10 +54,7 @@ class CartController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'listing_id' => ['required', 'integer', 'exists:listings,id'],
-            'quantity'   => ['required', 'numeric', 'min:0.001'],
-        ]);
+        $validated = $request->validated();
 
         $listing = Listing::findOrFail($validated['listing_id']);
 
@@ -110,7 +108,7 @@ class CartController extends Controller
      * PUT /api/cart/{id}
      * Body: { "quantity": 5 }
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(UpdateCartItemRequest $request, int $id): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -129,9 +127,7 @@ class CartController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'quantity' => ['required', 'numeric', 'min:0.001'],
-        ]);
+        $validated = $request->validated();
 
         $listing = $cartItem->listing;
 
