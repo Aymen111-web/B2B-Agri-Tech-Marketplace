@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapabilityApplicationController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 ///// Authcontroller //////////////
@@ -55,5 +56,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/cart/{id}',     [CartController::class, 'update']);
     Route::delete('/cart/clear', [CartController::class, 'clear']);
     Route::delete('/cart/{id}',  [CartController::class, 'destroy']);
+});
+
+////// Orders — Buyer (authenticated, requires buyer capability) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/orders',              [OrderController::class, 'index']);
+    Route::get('/orders/{id}',         [OrderController::class, 'show']);
+    Route::post('/orders/checkout',    [OrderController::class, 'checkout']);
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 });
 
