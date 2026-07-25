@@ -6,6 +6,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderFulfillmentController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 ///// Authcontroller //////////////
@@ -76,4 +77,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/fulfillments/{id}/accept',   [OrderFulfillmentController::class, 'accept']);
     Route::post('/fulfillments/{id}/reject',   [OrderFulfillmentController::class, 'reject']);
     Route::post('/fulfillments/{id}/complete', [OrderFulfillmentController::class, 'complete']);
+});
+
+////// Payments — Buyer (authenticated, requires buyer capability) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/orders/{id}/pay',     [PaymentController::class, 'initiate']);
+    Route::get('/orders/{id}/payment',  [PaymentController::class, 'show']);
 });
