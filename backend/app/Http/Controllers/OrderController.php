@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListOrdersRequest;
 use App\Models\CartItem;
 use App\Models\Listing;
 use App\Models\Order;
@@ -19,7 +20,7 @@ class OrderController extends Controller
      *
      * GET /api/orders?status=pending_payment&per_page=15
      */
-    public function index(): JsonResponse
+    public function index(ListOrdersRequest $request): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -30,13 +31,15 @@ class OrderController extends Controller
             ], 403);
         }
 
+        $validated = $request->validated();
+
         $orders = $user->orders()
             ->with(['fulfillments:id,order_id,farmer_id,status,subtotal_amount', 'payment:id,order_id,status'])
-            ->when(request()->filled('status'), function ($query) {
-                $query->where('status', request()->input('status'));
+            ->when(isset($validated['status']), function ($query) use ($validated) {
+                $query->where('status', $validated['status']);
             })
             ->orderByDesc('placed_at')
-            ->paginate(request()->input('per_page', 20));
+            ->paginate($validated['per_page'] ?? 20);
 
         return response()->json($orders);
     }
