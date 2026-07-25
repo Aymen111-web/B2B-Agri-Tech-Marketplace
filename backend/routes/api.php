@@ -5,6 +5,7 @@ use App\Http\Controllers\CapabilityApplicationController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderFulfillmentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 ///// Authcontroller //////////////
@@ -67,3 +68,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 });
 
+////// Fulfillments — Farmer (authenticated, requires farmer capability) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/fulfillments',                [OrderFulfillmentController::class, 'index']);
+    Route::get('/fulfillments/{id}',           [OrderFulfillmentController::class, 'show']);
+    Route::post('/fulfillments/{id}/accept',   [OrderFulfillmentController::class, 'accept']);
+    Route::post('/fulfillments/{id}/reject',   [OrderFulfillmentController::class, 'reject']);
+    Route::post('/fulfillments/{id}/complete', [OrderFulfillmentController::class, 'complete']);
+});
