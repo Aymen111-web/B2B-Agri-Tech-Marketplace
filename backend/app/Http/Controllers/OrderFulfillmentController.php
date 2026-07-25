@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListFulfillmentsRequest;
+use App\Http\Requests\RejectFulfillmentRequest;
 use App\Models\Listing;
 use App\Models\Order;
 use App\Models\OrderFulfillment;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +18,7 @@ class OrderFulfillmentController extends Controller
      *
      * GET /api/fulfillments?status=pending&per_page=15
      */
-    public function index(Request $request): JsonResponse
+    public function index(ListFulfillmentsRequest $request): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -28,10 +29,7 @@ class OrderFulfillmentController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'status'   => ['sometimes', 'string', 'in:pending,accepted,rejected,completed,cancelled'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
-        ]);
+        $validated = $request->validated();
 
         $fulfillments = $user->orderFulfillments()
             ->with([
@@ -39,11 +37,11 @@ class OrderFulfillmentController extends Controller
                 'order.buyer:id,first_name,second_name',
                 'items.listing:id,title,unit',
             ])
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->input('status'));
+            ->when(isset($validated['status']), function ($query) use ($validated) {
+                $query->where('status', $validated['status']);
             })
             ->orderByDesc('created_at')
-            ->paginate($request->input('per_page', 20));
+            ->paginate($validated['per_page'] ?? 20);
 
         return response()->json($fulfillments);
     }
@@ -138,7 +136,7 @@ class OrderFulfillmentController extends Controller
      * When a farmer rejects a fulfillment the reserved quantities for their
      * items are returned to available stock.
      */
-    public function reject(Request $request, int $id): JsonResponse
+    public function reject(RejectFulfillmentRequest $request, int $id): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -149,9 +147,7 @@ class OrderFulfillmentController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'farmer_notes' => ['sometimes', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
 
         $fulfillment = OrderFulfillment::findOrFail($id);
 
@@ -167,7 +163,7 @@ class OrderFulfillmentController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($fulfillment, $request) {
+        DB::transaction(function () use ($fulfillment, $validated) {
             // Release reserved stock for every item in this fulfillment.
             $items = $fulfillment->items()->get();
 
@@ -184,7 +180,7 @@ class OrderFulfillmentController extends Controller
 
             $fulfillment->update([
                 'status'       => 'rejected',
-                'farmer_notes' => $request->input('farmer_notes'),
+                'farmer_notes' => $validated['farmer_notes'] ?? null,
                 'rejected_at'  => now(),
             ]);
         });
