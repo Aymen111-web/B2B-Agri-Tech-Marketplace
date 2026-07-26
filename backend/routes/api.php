@@ -8,6 +8,7 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderFulfillmentController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PaymentExceptionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 ///// Authcontroller //////////////
@@ -90,3 +91,21 @@ Route::middleware('auth:sanctum')->group(function () {
 ////// Chapa Webhook (public — no auth, verified by signature) /////
 
 Route::post('/payments/webhook', [ChapaWebhookController::class, 'handle']);
+
+////// Payment Exceptions — Authenticated users (buyer/farmer) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/payment-exceptions',         [PaymentExceptionController::class, 'store']);
+    Route::get('/payment-exceptions/my',       [PaymentExceptionController::class, 'my']);
+    Route::get('/payment-exceptions/{id}',     [PaymentExceptionController::class, 'show']);
+});
+
+////// Admin — Payment Exceptions /////
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::get('/payment-exceptions',                    [PaymentExceptionController::class, 'index']);
+    Route::post('/payment-exceptions/{id}/investigate',  [PaymentExceptionController::class, 'investigate']);
+    Route::post('/payment-exceptions/{id}/resolve',      [PaymentExceptionController::class, 'resolve']);
+    Route::post('/payment-exceptions/{id}/reject',       [PaymentExceptionController::class, 'reject']);
+});
+
