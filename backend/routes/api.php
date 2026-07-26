@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapabilityApplicationController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\ChapaWebhookController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderFulfillmentController;
@@ -85,3 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{id}/pay',     [PaymentController::class, 'initiate']);
     Route::get('/orders/{id}/payment',  [PaymentController::class, 'show']);
 });
+
+////// Chapa Webhook (public — no auth, verified by signature) /////
+
+Route::post('/payments/webhook', [ChapaWebhookController::class, 'handle']);
