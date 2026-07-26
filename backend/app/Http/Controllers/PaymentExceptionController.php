@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListPaymentExceptionsRequest;
+use App\Http\Requests\ResolvePaymentExceptionRequest;
+use App\Http\Requests\StorePaymentExceptionRequest;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PaymentExceptionController extends Controller
@@ -24,16 +26,12 @@ class PaymentExceptionController extends Controller
      * Any authenticated user who is part of the order (buyer or farmer)
      * can raise an exception against a payment.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StorePaymentExceptionRequest $request): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $validated = $request->validate([
-            'payment_id'  => ['required', 'integer', 'exists:payments,id'],
-            'type'        => ['required', 'string', 'in:dispute,mismatch,failed_payment_review,refund_request,other'],
-            'description' => ['required', 'string', 'max:2000'],
-        ]);
+        $validated = $request->validated();
 
         $payment = Payment::with('order')->findOrFail($validated['payment_id']);
         $order   = $payment->order;
@@ -87,26 +85,23 @@ class PaymentExceptionController extends Controller
      *
      * GET /api/payment-exceptions/my?status=open&per_page=20
      */
-    public function my(Request $request): JsonResponse
+    public function my(ListPaymentExceptionsRequest $request): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $request->validate([
-            'status'   => ['sometimes', 'string', 'in:open,investigating,resolved,rejected'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-        ]);
+        $validated = $request->validated();
 
         $exceptions = PaymentException::where('raised_by', $user->id)
             ->with([
                 'payment:id,chapa_tx_ref,amount,currency,status',
                 'order:id,order_number,status',
             ])
-            ->when($request->has('status'), function ($query) use ($request) {
-                $query->where('status', $request->input('status'));
+            ->when(isset($validated['status']), function ($query) use ($validated) {
+                $query->where('status', $validated['status']);
             })
             ->orderByDesc('created_at')
-            ->paginate($request->input('per_page', 20));
+            ->paginate($validated['per_page'] ?? 20);
 
         return response()->json($exceptions);
     }
@@ -145,7 +140,7 @@ class PaymentExceptionController extends Controller
      *
      * GET /api/admin/payment-exceptions?status=open&type=dispute&per_page=20
      */
-    public function index(Request $request): JsonResponse
+    public function index(ListPaymentExceptionsRequest $request): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -156,11 +151,7 @@ class PaymentExceptionController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'status'   => ['sometimes', 'string', 'in:open,investigating,resolved,rejected'],
-            'type'     => ['sometimes', 'string', 'in:dispute,mismatch,failed_payment_review,refund_request,other'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-        ]);
+        $validated = $request->validated();
 
         $query = PaymentException::with([
             'payment:id,chapa_tx_ref,amount,currency,status',
@@ -168,16 +159,16 @@ class PaymentExceptionController extends Controller
             'raisedBy:id,first_name,second_name,phone',
         ]);
 
-        if ($request->has('status')) {
-            $query->where('status', $request->input('status'));
+        if (isset($validated['status'])) {
+            $query->where('status', $validated['status']);
         }
 
-        if ($request->has('type')) {
-            $query->where('type', $request->input('type'));
+        if (isset($validated['type'])) {
+            $query->where('type', $validated['type']);
         }
 
         $exceptions = $query->orderByDesc('created_at')
-            ->paginate($request->input('per_page', 20));
+            ->paginate($validated['per_page'] ?? 20);
 
         return response()->json($exceptions);
     }
@@ -230,7 +221,7 @@ class PaymentExceptionController extends Controller
      * Any refund/reversal must go through the Chapa API, and the resulting
      * webhook event will handle the payment status transition.
      */
-    public function resolve(Request $request, int $id): JsonResponse
+    public function resolve(ResolvePaymentExceptionRequest $request, int $id): JsonResponse
     {
         /** @var \App\Models\User $user */
         $admin = Auth::user();
@@ -241,9 +232,7 @@ class PaymentExceptionController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'resolution_notes' => ['required', 'string', 'max:2000'],
-        ]);
+        $validated = $request->validated();
 
         $exception = PaymentException::findOrFail($id);
 
@@ -277,7 +266,7 @@ class PaymentExceptionController extends Controller
      * POST /api/admin/payment-exceptions/{id}/reject
      * Body: { "resolution_notes": "No evidence of mismatch found." }
      */
-    public function reject(Request $request, int $id): JsonResponse
+    public function reject(ResolvePaymentExceptionRequest $request, int $id): JsonResponse
     {
         /** @var \App\Models\User $user */
         $admin = Auth::user();
@@ -288,9 +277,7 @@ class PaymentExceptionController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'resolution_notes' => ['required', 'string', 'max:2000'],
-        ]);
+        $validated = $request->validated();
 
         $exception = PaymentException::findOrFail($id);
 
