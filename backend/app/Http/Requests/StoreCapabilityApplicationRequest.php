@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RequestOtpRequest extends FormRequest
+class StoreCapabilityApplicationRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,7 +17,9 @@ class RequestOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'regex:/^\+251[0-9]{9}$/'],
+            'capability_type'        => ['required', 'string', 'in:farmer,buyer'],
+            'supporting_documents'   => ['nullable', 'array'],
+            'supporting_documents.*' => ['string'],
         ];
     }
 
@@ -27,7 +29,7 @@ class RequestOtpRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.regex' => 'Phone must be in +251XXXXXXXXX format.',
+            'capability_type.in' => 'Capability type must be either farmer or buyer.',
         ];
     }
 }

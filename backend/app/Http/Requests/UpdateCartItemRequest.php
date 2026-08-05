@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RequestOtpRequest extends FormRequest
+class UpdateCartItemRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,7 +17,7 @@ class RequestOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'regex:/^\+251[0-9]{9}$/'],
+            'quantity' => ['required', 'numeric', 'min:0.001'],
         ];
     }
 
@@ -27,7 +27,7 @@ class RequestOtpRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.regex' => 'Phone must be in +251XXXXXXXXX format.',
+            'quantity.min' => 'Quantity must be at least 0.001.',
         ];
     }
 }

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RequestOtpRequest extends FormRequest
+class RejectFulfillmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,7 +17,7 @@ class RequestOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'regex:/^\+251[0-9]{9}$/'],
+            'farmer_notes' => ['sometimes', 'string', 'max:1000'],
         ];
     }
 
@@ -27,7 +27,7 @@ class RequestOtpRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.regex' => 'Phone must be in +251XXXXXXXXX format.',
+            'farmer_notes.max' => 'Rejection notes must not exceed 1000 characters.',
         ];
     }
 }
