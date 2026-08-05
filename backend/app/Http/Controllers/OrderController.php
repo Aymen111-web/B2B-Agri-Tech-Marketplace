@@ -2,146 +2,308 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListOrdersRequest;
+use App\Models\CartItem;
+use App\Models\Listing;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\OrderFulfillment;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use App\Models\OrderItem;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
     /**
-     * Get all orders for authenticated buyer.
+     * List the authenticated buyer's orders.
+     *
+     * GET /api/orders?status=pending_payment&per_page=15
      */
-    public function index(Request $request): Response
+    public function index(ListOrdersRequest $request): JsonResponse
     {
-        $user = auth()->user();
-        
-        $query = Order::where('buyer_id', $user->id)
-            ->with(['fulfillments', 'items', 'payment']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
+        if (! $this->hasActiveBuyerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active buyer capability to view orders.',
+            ], 403);
         }
 
-        $orders = $query->orderBy('placed_at', 'desc')->paginate(15);
-        return response($orders);
+        $validated = $request->validated();
+
+        $orders = $user->orders()
+            ->with(['fulfillments:id,order_id,farmer_id,status,subtotal_amount', 'payment:id,order_id,status'])
+            ->when(isset($validated['status']), function ($query) use ($validated) {
+                $query->where('status', $validated['status']);
+            })
+            ->orderByDesc('placed_at')
+            ->paginate($validated['per_page'] ?? 20);
+
+        return response()->json($orders);
     }
 
     /**
-     * Display a specific order.
+     * Show a single order with full details.
+     *
+     * GET /api/orders/{id}
      */
-    public function show(Order $order): Response
+    public function show(int $id): JsonResponse
     {
-        $this->authorize('view', $order);
-        
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (! $this->hasActiveBuyerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active buyer capability to view orders.',
+            ], 403);
+        }
+
+        $order = Order::with([
+            'items.listing:id,farmer_id,title,unit',
+            'fulfillments.farmer:id,first_name,second_name',
+            'fulfillments.items.listing:id,title,unit',
+            'payment:id,order_id,status,amount,currency,confirmed_at',
+        ])->findOrFail($id);
+
+        if ($order->buyer_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to view this order.',
+            ], 403);
+        }
+
+        return response()->json([
+            'order' => $order,
+        ]);
+    }
+
+    /**
+     * Checkout: convert the buyer's cart into a new order with concurrency-safe
+     * stock reservation.
+     *
+     * POST /api/orders/checkout
+     *
+     * This method:
+     * 1. Validates the buyer has an active buyer capability.
+     * 2. Loads all cart items and their listings.
+     * 3. Inside a DB transaction with row-level locks on listings:
+     *    a. Re-validates stock availability and listing status.
+     *    b. Reserves stock (decrement quantity_available, increment quantity_reserved).
+     *    c. Creates the Order, per-farmer OrderFulfillments, and OrderItems.
+     * 4. Clears the buyer's cart on success.
+     */
+    public function checkout(): JsonResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (! $this->hasActiveBuyerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active buyer capability to place orders.',
+            ], 403);
+        }
+
+        // Load cart items with their listings eagerly.
+        $cartItems = $user->cartItems()->with('listing')->get();
+
+        if ($cartItems->isEmpty()) {
+            return response()->json([
+                'message' => 'Your cart is empty.',
+            ], 422);
+        }
+
+        // Group cart items by farmer (listing owner) for per-farmer fulfillments.
+        $grouped = $cartItems->groupBy(fn (CartItem $item) => $item->listing->farmer_id);
+
+        // Prevent self-ordering: this should have been blocked at the cart level,
+        // but enforce it here as a safety net.
+        if ($grouped->has($user->id)) {
+            return response()->json([
+                'message' => 'You cannot order from your own listings. Please remove them from your cart.',
+            ], 403);
+        }
+
+        try {
+            $order = DB::transaction(function () use ($user, $cartItems, $grouped) {
+                // Collect all listing IDs for a single locked query.
+                $listingIds = $cartItems->pluck('listing_id')->unique()->toArray();
+
+                // Lock the rows to prevent concurrent checkouts from over-selling.
+                $listings = Listing::whereIn('id', $listingIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                // Re-validate every cart item against the locked listing state.
+                foreach ($cartItems as $cartItem) {
+                    $listing = $listings->get($cartItem->listing_id);
+
+                    if (! $listing || $listing->status !== 'active') {
+                        throw new \RuntimeException(
+                            "Listing \"{$cartItem->listing->title}\" is no longer active."
+                        );
+                    }
+
+                    if ((float) $cartItem->quantity > (float) $listing->quantity_available) {
+                        throw new \RuntimeException(
+                            "Insufficient stock for \"{$listing->title}\". Available: {$listing->quantity_available}, requested: {$cartItem->quantity}."
+                        );
+                    }
+                }
+
+                // Calculate total order amount.
+                $totalAmount = $cartItems->sum(function (CartItem $item) use ($listings) {
+                    $listing = $listings->get($item->listing_id);
+
+                    return (float) $item->quantity * (float) $listing->price_per_unit;
+                });
+
+                // Create the order.
+                $order = Order::create([
+                    'order_number' => 'ORD-' . date('Y') . '-' . strtoupper(Str::random(8)),
+                    'buyer_id'     => $user->id,
+                    'status'       => 'pending_payment',
+                    'total_amount' => round($totalAmount, 2),
+                    'currency'     => 'ETB',
+                    'placed_at'    => now(),
+                ]);
+
+                // Create per-farmer fulfillments and order items.
+                foreach ($grouped as $farmerId => $farmerCartItems) {
+                    $fulfillmentSubtotal = 0;
+
+                    $fulfillment = OrderFulfillment::create([
+                        'order_id'        => $order->id,
+                        'farmer_id'       => $farmerId,
+                        'status'          => 'pending',
+                        'subtotal_amount' => 0, // Computed below.
+                    ]);
+
+                    foreach ($farmerCartItems as $cartItem) {
+                        $listing  = $listings->get($cartItem->listing_id);
+                        $unitPrice = (float) $listing->price_per_unit;
+                        $quantity  = (float) $cartItem->quantity;
+                        $subtotal  = round($unitPrice * $quantity, 2);
+
+                        OrderItem::create([
+                            'order_id'             => $order->id,
+                            'order_fulfillment_id' => $fulfillment->id,
+                            'listing_id'           => $cartItem->listing_id,
+                            'quantity'             => $quantity,
+                            'unit_price'           => $unitPrice,
+                            'subtotal'             => $subtotal,
+                        ]);
+
+                        // Reserve stock on the listing.
+                        $listing->decrement('quantity_available', $quantity);
+                        $listing->increment('quantity_reserved', $quantity);
+
+                        $fulfillmentSubtotal += $subtotal;
+                    }
+
+                    // Update the fulfillment subtotal now that all items are created.
+                    $fulfillment->update([
+                        'subtotal_amount' => round($fulfillmentSubtotal, 2),
+                    ]);
+                }
+
+                return $order;
+            });
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+
+        // Clear the buyer's cart after successful order creation.
+        $user->cartItems()->delete();
+
+        // Load relationships for the response.
         $order->load([
-            'buyer',
-            'fulfillments' => function ($query) {
-                $query->with(['farmer', 'items.listing']);
-            },
-            'items',
-            'payment',
-        ]);
-        
-        return response($order);
-    }
-
-    /**
-     * Create a new order from cart (checkout).
-     * Handled by OrderService/CheckoutService in practice.
-     */
-    public function store(Request $request): Response
-    {
-        return response(['error' => 'Use checkout endpoint'], 400);
-    }
-
-    /**
-     * Update order status (via payment/fulfillment events).
-     */
-    public function update(Request $request, Order $order): Response
-    {
-        $this->authorize('update', $order);
-
-        $validated = $request->validate([
-            'status' => 'sometimes|in:pending_payment,payment_confirmed,processing,partially_fulfilled,completed,cancelled',
+            'items.listing:id,title,unit',
+            'fulfillments.farmer:id,first_name,second_name',
+            'payment:id,order_id,status',
         ]);
 
-        $order->update($validated);
-        return response($order);
+        return response()->json([
+            'message' => 'Order placed successfully.',
+            'order'   => $order,
+        ], 201);
     }
 
     /**
-     * Cancel an order (buyer only, before payment confirmed).
+     * Cancel a pending-payment order and release reserved stock.
+     *
+     * POST /api/orders/{id}/cancel
+     *
+     * Only orders in "pending_payment" status may be cancelled by the buyer.
      */
-    public function cancel(Order $order): Response
+    public function cancel(int $id): JsonResponse
     {
-        $this->authorize('cancel', $order);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (! $this->hasActiveBuyerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active buyer capability to cancel orders.',
+            ], 403);
+        }
+
+        $order = Order::findOrFail($id);
+
+        if ($order->buyer_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to cancel this order.',
+            ], 403);
+        }
 
         if ($order->status !== 'pending_payment') {
-            return response(['error' => 'Cannot cancel order in ' . $order->status . ' state'], 422);
+            return response()->json([
+                'message' => 'Only orders with pending payment can be cancelled.',
+            ], 422);
         }
 
-        $order->update(['status' => 'cancelled']);
-        return response(['message' => 'Order cancelled'], 200);
+        DB::transaction(function () use ($order) {
+            // Load order items to release reserved stock.
+            $orderItems = $order->items()->with('listing')->get();
+
+            foreach ($orderItems as $orderItem) {
+                $listing = Listing::where('id', $orderItem->listing_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($listing) {
+                    $listing->increment('quantity_available', (float) $orderItem->quantity);
+                    $listing->decrement('quantity_reserved', (float) $orderItem->quantity);
+                }
+            }
+
+            // Cancel all fulfillments.
+            $order->fulfillments()->update([
+                'status' => 'cancelled',
+            ]);
+
+            // Cancel the order itself.
+            $order->update([
+                'status' => 'cancelled',
+            ]);
+        });
+
+        return response()->json([
+            'message' => 'Order cancelled and reserved stock released.',
+            'order'   => $order->fresh(['fulfillments:id,order_id,status', 'payment:id,order_id,status']),
+        ]);
     }
 
     /**
-     * Get order fulfillments (breakdown by farmer).
+     * Check whether the given user has an active buyer capability.
      */
-    public function fulfillments(Order $order): Response
+    private function hasActiveBuyerCapability(\App\Models\User $user): bool
     {
-        $this->authorize('view', $order);
-        
-        $fulfillments = $order->fulfillments()
-            ->with(['farmer', 'items.listing'])
-            ->get();
-        
-        return response($fulfillments);
-    }
-
-    /**
-     * Get order items (all line items).
-     */
-    public function items(Order $order): Response
-    {
-        $this->authorize('view', $order);
-        
-        $items = $order->items()
-            ->with(['listing', 'fulfillment.farmer'])
-            ->get();
-        
-        return response($items);
-    }
-
-    /**
-     * Get payment info for order.
-     */
-    public function payment(Order $order): Response
-    {
-        $this->authorize('view', $order);
-        
-        $payment = $order->payment;
-        
-        if (!$payment) {
-            return response(['error' => 'No payment found'], 404);
-        }
-
-        return response($payment);
-    }
-
-    /**
-     * Get buyer's order history.
-     */
-    public function history(Request $request): Response
-    {
-        $user = auth()->user();
-        
-        $orders = Order::where('buyer_id', $user->id)
-            ->with(['fulfillments', 'payment'])
-            ->orderBy('placed_at', 'desc')
-            ->paginate(20);
-        
-        return response($orders);
+        return $user->capabilities()
+            ->where('capability_type', 'buyer')
+            ->where('status', 'active')
+            ->exists();
     }
 }

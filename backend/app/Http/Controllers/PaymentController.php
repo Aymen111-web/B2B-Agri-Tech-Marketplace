@@ -2,214 +2,177 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payment;
 use App\Models\Order;
-use App\Models\PaymentException;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use App\Models\Payment;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
     /**
-     * Get payment for an order.
+     * Initiate payment for a pending order via Chapa hosted checkout.
+     *
+     * POST /api/orders/{id}/pay
+     *
+     * Creates a Payment record, calls Chapa's transaction/initialize endpoint,
+     * and returns the hosted checkout URL so the buyer can complete payment.
+     * The payment status will transition from "pending" to "confirmed" ONLY
+     * through the signed Chapa webhook — never from this controller.
      */
-    public function show(Order $order): Response
+    public function initiate(int $id): JsonResponse
     {
-        $this->authorize('viewPayment', $order);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        $payment = $order->payment;
-
-        if (!$payment) {
-            return response(['error' => 'No payment found for this order'], 404);
+        if (! $this->hasActiveBuyerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active buyer capability to initiate payments.',
+            ], 403);
         }
 
-        $payment->load('webhookEvents', 'exceptions');
-        return response($payment);
-    }
+        $order = Order::findOrFail($id);
 
-    /**
-     * Initiate payment (create pending payment record).
-     * In practice, this is called by a CheckoutService after order creation.
-     */
-    public function initiate(Order $order): Response
-    {
-        $this->authorize('initiatePayment', $order);
-
-        // Check if payment already initiated
-        if ($order->payment) {
-            return response(['error' => 'Payment already initiated for this order'], 422);
+        if ($order->buyer_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to pay for this order.',
+            ], 403);
         }
 
-        // Generate unique transaction reference
-        $txRef = 'ORD-' . $order->id . '-' . time();
+        if ($order->status !== 'pending_payment') {
+            return response()->json([
+                'message' => 'This order is not awaiting payment.',
+            ], 422);
+        }
 
+        // Prevent duplicate payment initiation.
+        $existingPayment = Payment::where('order_id', $order->id)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->first();
+
+        if ($existingPayment) {
+            // If there is already a pending payment with a checkout URL, return it.
+            if ($existingPayment->status === 'pending' && $existingPayment->chapa_checkout_url) {
+                return response()->json([
+                    'message'      => 'Payment already initiated.',
+                    'checkout_url' => $existingPayment->chapa_checkout_url,
+                    'payment'      => $existingPayment,
+                ]);
+            }
+
+            if ($existingPayment->status === 'confirmed') {
+                return response()->json([
+                    'message' => 'Payment has already been confirmed for this order.',
+                ], 422);
+            }
+        }
+
+        // Generate a unique transaction reference for Chapa.
+        $txRef = 'TX-' . $order->order_number . '-' . strtoupper(Str::random(6));
+
+        // Build the Chapa initialization payload.
+        $chapaPayload = [
+            'amount'       => (float) $order->total_amount,
+            'currency'     => $order->currency,
+            'tx_ref'       => $txRef,
+            'callback_url' => config('services.chapa.callback_url'),
+            'return_url'   => config('services.chapa.return_url'),
+            'first_name'   => $user->first_name,
+            'last_name'    => $user->second_name,
+            'phone_number' => $user->phone,
+            'customization' => [
+                'title'       => 'Ethiopian Farmers Market',
+                'description' => "Payment for order {$order->order_number}",
+            ],
+        ];
+
+        try {
+            $response = Http::withToken(config('services.chapa.secret_key'))
+                ->post('https://api.chapa.co/v1/transaction/initialize', $chapaPayload);
+
+            if (! $response->successful()) {
+                return response()->json([
+                    'message' => 'Unable to initiate payment with the payment gateway. Please try again.',
+                ], 502);
+            }
+
+            $chapaData   = $response->json('data');
+            $checkoutUrl = $chapaData['checkout_url'] ?? null;
+
+            if (! $checkoutUrl) {
+                return response()->json([
+                    'message' => 'Payment gateway returned an unexpected response. Please try again.',
+                ], 502);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Unable to reach the payment gateway. Please try again later.',
+            ], 503);
+        }
+
+        // Create the payment record (status starts as "pending").
         $payment = Payment::create([
-            'order_id' => $order->id,
-            'chapa_tx_ref' => $txRef,
-            'amount' => $order->total_amount,
-            'currency' => $order->currency,
-            'status' => 'pending',
+            'order_id'           => $order->id,
+            'chapa_tx_ref'       => $txRef,
+            'chapa_checkout_url' => $checkoutUrl,
+            'amount'             => $order->total_amount,
+            'currency'           => $order->currency,
+            'status'             => 'pending',
         ]);
 
-        return response([
-            'message' => 'Payment initiated',
+        return response()->json([
+            'message'      => 'Payment initiated. Redirect the buyer to the checkout URL.',
+            'checkout_url' => $checkoutUrl,
+            'payment'      => $payment,
+        ], 201);
+    }
+
+    /**
+     * Show the payment details for a specific order.
+     *
+     * GET /api/orders/{id}/payment
+     */
+    public function show(int $id): JsonResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (! $this->hasActiveBuyerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active buyer capability to view payment details.',
+            ], 403);
+        }
+
+        $order = Order::findOrFail($id);
+
+        if ($order->buyer_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to view this payment.',
+            ], 403);
+        }
+
+        $payment = Payment::where('order_id', $order->id)->first();
+
+        if (! $payment) {
+            return response()->json([
+                'message' => 'No payment has been initiated for this order.',
+            ], 404);
+        }
+
+        return response()->json([
             'payment' => $payment,
-            'tx_ref' => $txRef,
-        ], 201);
-    }
-
-    /**
-     * Get checkout URL for Chapa payment.
-     * This should be called after payment is initiated.
-     */
-    public function checkoutUrl(Order $order): Response
-    {
-        $this->authorize('viewPayment', $order);
-
-        $payment = $order->payment;
-
-        if (!$payment) {
-            return response(['error' => 'Payment not initiated'], 404);
-        }
-
-        if ($payment->status !== 'pending') {
-            return response(['error' => 'Payment is already ' . $payment->status], 422);
-        }
-
-        // Return checkout URL (built by ChapaService or similar)
-        return response([
-            'checkout_url' => $payment->chapa_checkout_url,
-            'tx_ref' => $payment->chapa_tx_ref,
         ]);
     }
 
     /**
-     * Get payment status for an order.
+     * Check whether the given user has an active buyer capability.
      */
-    public function status(Order $order): Response
+    private function hasActiveBuyerCapability(\App\Models\User $user): bool
     {
-        $this->authorize('viewPayment', $order);
-
-        $payment = $order->payment;
-
-        if (!$payment) {
-            return response(['error' => 'No payment found'], 404);
-        }
-
-        return response([
-            'order_id' => $order->id,
-            'tx_ref' => $payment->chapa_tx_ref,
-            'amount' => $payment->amount,
-            'currency' => $payment->currency,
-            'status' => $payment->status,
-            'confirmed_at' => $payment->confirmed_at,
-        ]);
-    }
-
-    /**
-     * Get payment webhook events (for debugging/audit).
-     */
-    public function webhookEvents(Order $order): Response
-    {
-        $this->authorize('viewPayment', $order);
-
-        $payment = $order->payment;
-
-        if (!$payment) {
-            return response(['error' => 'No payment found'], 404);
-        }
-
-        $events = $payment->webhookEvents()->orderBy('created_at', 'desc')->get();
-        return response($events);
-    }
-
-    /**
-     * Raise a payment exception/dispute (buyer or admin).
-     */
-    public function raiseException(Request $request, Order $order): Response
-    {
-        $this->authorize('raisePaymentException', $order);
-
-        $validated = $request->validate([
-            'type' => 'required|in:dispute,mismatch,failed_payment_review,refund_request,other',
-            'description' => 'required|string|max:1000',
-        ]);
-
-        $payment = $order->payment;
-
-        if (!$payment) {
-            return response(['error' => 'No payment found for this order'], 404);
-        }
-
-        $exception = PaymentException::create([
-            'payment_id' => $payment->id,
-            'order_id' => $order->id,
-            'raised_by' => auth()->id(),
-            'type' => $validated['type'],
-            'description' => $validated['description'],
-            'status' => 'open',
-        ]);
-
-        return response([
-            'message' => 'Payment exception raised',
-            'exception' => $exception,
-        ], 201);
-    }
-
-    /**
-     * Get payment exceptions for an order (admin only).
-     */
-    public function exceptions(Order $order): Response
-    {
-        $this->authorize('viewPaymentExceptions', $order);
-
-        $exceptions = PaymentException::where('order_id', $order->id)
-            ->with(['payment', 'raisedBy', 'resolvedBy'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response($exceptions);
-    }
-
-    /**
-     * Get all payment exceptions (admin dashboard).
-     */
-    public function allExceptions(Request $request): Response
-    {
-        $query = PaymentException::with(['payment', 'order.buyer', 'raisedBy', 'resolvedBy']);
-
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $exceptions = $query->orderBy('created_at', 'desc')->paginate(20);
-        return response($exceptions);
-    }
-
-    /**
-     * Update exception status (admin only).
-     */
-    public function updateException(Request $request, PaymentException $exception): Response
-    {
-        $this->authorize('updatePaymentException', $exception);
-
-        $validated = $request->validate([
-            'status' => 'sometimes|in:open,investigating,resolved,rejected',
-            'resolution_notes' => 'sometimes|string|max:500',
-        ]);
-
-        $exception->update($validated);
-
-        if (isset($validated['status']) && $validated['status'] === 'resolved') {
-            $exception->update([
-                'resolved_by' => auth()->id(),
-                'resolved_at' => now(),
-            ]);
-        }
-
-        return response([
-            'message' => 'Exception updated',
-            'exception' => $exception,
-        ]);
+        return $user->capabilities()
+            ->where('capability_type', 'buyer')
+            ->where('status', 'active')
+            ->exists();
     }
 }

@@ -2,188 +2,320 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListFulfillmentsRequest;
+use App\Http\Requests\RejectFulfillmentRequest;
+use App\Models\Listing;
+use App\Models\Order;
 use App\Models\OrderFulfillment;
-use App\Models\AuditLog;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderFulfillmentController extends Controller
 {
     /**
-     * Get all fulfillments for authenticated farmer.
+     * List all fulfillments assigned to the authenticated farmer.
+     *
+     * GET /api/fulfillments?status=pending&per_page=15
      */
-    public function index(Request $request): Response
+    public function index(ListFulfillmentsRequest $request): JsonResponse
     {
-        $user = auth()->user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        $query = OrderFulfillment::where('farmer_id', $user->id)
-            ->with(['order.buyer', 'items.listing', 'farmer']);
-
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
+        if (! $this->hasActiveFarmerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active farmer capability to view fulfillments.',
+            ], 403);
         }
 
-        $fulfillments = $query->orderBy('created_at', 'desc')->paginate(15);
-        return response($fulfillments);
+        $validated = $request->validated();
+
+        $fulfillments = $user->orderFulfillments()
+            ->with([
+                'order:id,order_number,buyer_id,status,total_amount,currency,placed_at',
+                'order.buyer:id,first_name,second_name',
+                'items.listing:id,title,unit',
+            ])
+            ->when(isset($validated['status']), function ($query) use ($validated) {
+                $query->where('status', $validated['status']);
+            })
+            ->orderByDesc('created_at')
+            ->paginate($validated['per_page'] ?? 20);
+
+        return response()->json($fulfillments);
     }
 
     /**
-     * Display a specific fulfillment (farmer only - scoped to their own).
+     * Show a single fulfillment with full details.
+     *
+     * GET /api/fulfillments/{id}
      */
-    public function show(OrderFulfillment $fulfillment): Response
+    public function show(int $id): JsonResponse
     {
-        $this->authorize('view', $fulfillment);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        $fulfillment->load(['order.buyer', 'items.listing', 'farmer']);
-        return response($fulfillment);
+        if (! $this->hasActiveFarmerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active farmer capability to view fulfillments.',
+            ], 403);
+        }
+
+        $fulfillment = OrderFulfillment::with([
+            'order:id,order_number,buyer_id,status,total_amount,currency,placed_at',
+            'order.buyer:id,first_name,second_name',
+            'items.listing:id,title,unit,price_per_unit',
+        ])->findOrFail($id);
+
+        if ($fulfillment->farmer_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to view this fulfillment.',
+            ], 403);
+        }
+
+        return response()->json([
+            'fulfillment' => $fulfillment,
+        ]);
     }
 
     /**
-     * Accept a fulfillment (farmer action).
+     * Accept a pending fulfillment.
+     *
+     * POST /api/fulfillments/{id}/accept
+     *
+     * The farmer confirms they can fulfill their portion of the order.
      */
-    public function accept(OrderFulfillment $fulfillment): Response
+    public function accept(int $id): JsonResponse
     {
-        $this->authorize('accept', $fulfillment);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (! $this->hasActiveFarmerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active farmer capability to accept fulfillments.',
+            ], 403);
+        }
+
+        $fulfillment = OrderFulfillment::findOrFail($id);
+
+        if ($fulfillment->farmer_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to accept this fulfillment.',
+            ], 403);
+        }
 
         if ($fulfillment->status !== 'pending') {
-            return response(['error' => 'Fulfillment is already ' . $fulfillment->status], 422);
+            return response()->json([
+                'message' => 'Only pending fulfillments can be accepted.',
+            ], 422);
         }
 
         $fulfillment->update([
-            'status' => 'accepted',
+            'status'      => 'accepted',
             'accepted_at' => now(),
         ]);
 
-        // Audit log
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'fulfillment.accepted',
-            'auditable_type' => OrderFulfillment::class,
-            'auditable_id' => $fulfillment->id,
-            'new_values' => ['status' => 'accepted', 'accepted_at' => $fulfillment->accepted_at],
-            'ip_address' => request()->ip(),
-        ]);
+        $this->syncOrderStatus($fulfillment->order_id);
 
-        return response([
-            'message' => 'Fulfillment accepted',
-            'fulfillment' => $fulfillment,
+        return response()->json([
+            'message'     => 'Fulfillment accepted.',
+            'fulfillment' => $fulfillment->fresh([
+                'order:id,order_number,status',
+                'items.listing:id,title,unit',
+            ]),
         ]);
     }
 
     /**
-     * Reject a fulfillment (farmer action).
+     * Reject a pending fulfillment and release the reserved stock.
+     *
+     * POST /api/fulfillments/{id}/reject
+     * Body: { "farmer_notes": "Out of stock due to weather damage." }
+     *
+     * When a farmer rejects a fulfillment the reserved quantities for their
+     * items are returned to available stock.
      */
-    public function reject(Request $request, OrderFulfillment $fulfillment): Response
+    public function reject(RejectFulfillmentRequest $request, int $id): JsonResponse
     {
-        $this->authorize('reject', $fulfillment);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        $validated = $request->validate([
-            'farmer_notes' => 'required|string|max:500',
-        ]);
+        if (! $this->hasActiveFarmerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active farmer capability to reject fulfillments.',
+            ], 403);
+        }
+
+        $validated = $request->validated();
+
+        $fulfillment = OrderFulfillment::findOrFail($id);
+
+        if ($fulfillment->farmer_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to reject this fulfillment.',
+            ], 403);
+        }
 
         if ($fulfillment->status !== 'pending') {
-            return response(['error' => 'Fulfillment is already ' . $fulfillment->status], 422);
+            return response()->json([
+                'message' => 'Only pending fulfillments can be rejected.',
+            ], 422);
         }
 
-        $fulfillment->update([
-            'status' => 'rejected',
-            'rejected_at' => now(),
-            'farmer_notes' => $validated['farmer_notes'],
-        ]);
+        DB::transaction(function () use ($fulfillment, $validated) {
+            // Release reserved stock for every item in this fulfillment.
+            $items = $fulfillment->items()->get();
 
-        // Audit log
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'fulfillment.rejected',
-            'auditable_type' => OrderFulfillment::class,
-            'auditable_id' => $fulfillment->id,
-            'new_values' => [
-                'status' => 'rejected',
-                'rejected_at' => $fulfillment->rejected_at,
-                'farmer_notes' => $validated['farmer_notes'],
-            ],
-            'ip_address' => request()->ip(),
-        ]);
+            foreach ($items as $item) {
+                $listing = Listing::where('id', $item->listing_id)
+                    ->lockForUpdate()
+                    ->first();
 
-        return response([
-            'message' => 'Fulfillment rejected',
-            'fulfillment' => $fulfillment,
+                if ($listing) {
+                    $listing->increment('quantity_available', (float) $item->quantity);
+                    $listing->decrement('quantity_reserved', (float) $item->quantity);
+                }
+            }
+
+            $fulfillment->update([
+                'status'       => 'rejected',
+                'farmer_notes' => $validated['farmer_notes'] ?? null,
+                'rejected_at'  => now(),
+            ]);
+        });
+
+        $this->syncOrderStatus($fulfillment->order_id);
+
+        return response()->json([
+            'message'     => 'Fulfillment rejected and reserved stock released.',
+            'fulfillment' => $fulfillment->fresh([
+                'order:id,order_number,status',
+                'items.listing:id,title,unit',
+            ]),
         ]);
     }
 
     /**
-     * Mark fulfillment as completed (farmer action).
+     * Mark an accepted fulfillment as completed (handoff done).
+     *
+     * POST /api/fulfillments/{id}/complete
+     *
+     * The farmer confirms the produce has been handed off to the buyer.
+     * Reserved stock is consumed (decremented from quantity_reserved).
      */
-    public function complete(OrderFulfillment $fulfillment): Response
+    public function complete(int $id): JsonResponse
     {
-        $this->authorize('complete', $fulfillment);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (! $this->hasActiveFarmerCapability($user)) {
+            return response()->json([
+                'message' => 'You must have an active farmer capability to complete fulfillments.',
+            ], 403);
+        }
+
+        $fulfillment = OrderFulfillment::findOrFail($id);
+
+        if ($fulfillment->farmer_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to complete this fulfillment.',
+            ], 403);
+        }
 
         if ($fulfillment->status !== 'accepted') {
-            return response(['error' => 'Fulfillment must be accepted before marking complete'], 422);
+            return response()->json([
+                'message' => 'Only accepted fulfillments can be marked as completed.',
+            ], 422);
         }
 
-        $fulfillment->update([
-            'status' => 'completed',
-            'completed_at' => now(),
-        ]);
+        DB::transaction(function () use ($fulfillment) {
+            // Consume the reserved stock — the produce has been handed off.
+            $items = $fulfillment->items()->get();
 
-        // Audit log
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'fulfillment.completed',
-            'auditable_type' => OrderFulfillment::class,
-            'auditable_id' => $fulfillment->id,
-            'new_values' => ['status' => 'completed', 'completed_at' => $fulfillment->completed_at],
-            'ip_address' => request()->ip(),
-        ]);
+            foreach ($items as $item) {
+                $listing = Listing::where('id', $item->listing_id)
+                    ->lockForUpdate()
+                    ->first();
 
-        return response([
-            'message' => 'Fulfillment marked as completed',
-            'fulfillment' => $fulfillment,
+                if ($listing) {
+                    $listing->decrement('quantity_reserved', (float) $item->quantity);
+                }
+            }
+
+            $fulfillment->update([
+                'status'       => 'completed',
+                'completed_at' => now(),
+            ]);
+        });
+
+        $this->syncOrderStatus($fulfillment->order_id);
+
+        return response()->json([
+            'message'     => 'Fulfillment completed.',
+            'fulfillment' => $fulfillment->fresh([
+                'order:id,order_number,status',
+                'items.listing:id,title,unit',
+            ]),
         ]);
     }
 
     /**
-     * Get items for a fulfillment.
+     * Synchronise the parent order's aggregate status based on the current
+     * state of all its fulfillments.
+     *
+     * Status logic:
+     * - All completed → "completed"
+     * - Mix of completed and rejected (none pending/accepted) → "partially_fulfilled"
+     * - All rejected → "cancelled"
+     * - At least one accepted and none pending → "processing"
+     * - Otherwise remains unchanged (still has pending fulfillments).
      */
-    public function items(OrderFulfillment $fulfillment): Response
+    private function syncOrderStatus(int $orderId): void
     {
-        $this->authorize('view', $fulfillment);
+        $order = Order::findOrFail($orderId);
 
-        $items = $fulfillment->items()->with('listing')->get();
-        return response($items);
+        // Only sync orders that are past payment (not pending_payment or already cancelled).
+        if (in_array($order->status, ['pending_payment', 'cancelled'], true)) {
+            return;
+        }
+
+        $statuses = $order->fulfillments()->pluck('status');
+
+        if ($statuses->isEmpty()) {
+            return;
+        }
+
+        $allCompleted = $statuses->every(fn ($s) => $s === 'completed');
+        $allRejected  = $statuses->every(fn ($s) => $s === 'rejected');
+        $hasPending   = $statuses->contains('pending');
+
+        if ($allCompleted) {
+            $order->update(['status' => 'completed']);
+        } elseif ($allRejected) {
+            $order->update(['status' => 'cancelled']);
+        } elseif (! $hasPending) {
+            // No pending left — either a mix of completed/rejected or all accepted.
+            $hasCompleted = $statuses->contains('completed');
+            $hasRejected  = $statuses->contains('rejected');
+
+            if ($hasCompleted && $hasRejected) {
+                $order->update(['status' => 'partially_fulfilled']);
+            } else {
+                $order->update(['status' => 'processing']);
+            }
+        }
+        // If there are still pending fulfillments, order status stays as-is.
     }
 
     /**
-     * Get pending fulfillments for farmer.
+     * Check whether the given user has an active farmer capability.
      */
-    public function pending(): Response
+    private function hasActiveFarmerCapability(\App\Models\User $user): bool
     {
-        $user = auth()->user();
-
-        $fulfillments = OrderFulfillment::where('farmer_id', $user->id)
-            ->where('status', 'pending')
-            ->with(['order.buyer', 'items.listing'])
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        return response($fulfillments);
-    }
-
-    /**
-     * Get fulfillment summary for farmer.
-     */
-    public function summary(): Response
-    {
-        $user = auth()->user();
-
-        $summary = [
-            'pending' => OrderFulfillment::where('farmer_id', $user->id)->where('status', 'pending')->count(),
-            'accepted' => OrderFulfillment::where('farmer_id', $user->id)->where('status', 'accepted')->count(),
-            'completed' => OrderFulfillment::where('farmer_id', $user->id)->where('status', 'completed')->count(),
-            'rejected' => OrderFulfillment::where('farmer_id', $user->id)->where('status', 'rejected')->count(),
-        ];
-
-        return response($summary);
+        return $user->capabilities()
+            ->where('capability_type', 'farmer')
+            ->where('status', 'active')
+            ->exists();
     }
 }

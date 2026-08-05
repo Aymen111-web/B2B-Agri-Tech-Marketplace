@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'sms_ethiopia' => [
+        'base_url' => env('SMS_ETHIOPIA_BASE_URL', 'https://smsethiopia.et/api'),
+        'key' => env('SMS_ETHIOPIA_API_KEY'),
+    ],
+
+    'chapa' => [
+        'secret_key'     => env('CHAPA_SECRET_KEY'),
+        'webhook_secret' => env('CHAPA_WEBHOOK_SECRET'),
+        'callback_url'   => env('CHAPA_CALLBACK_URL', 'http://127.0.0.1:8000/api/payments/webhook'),
+        'return_url'     => env('CHAPA_RETURN_URL', 'http://localhost:5173/payment/success'),
+    ],
+
 ];

@@ -2,192 +2,231 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RejectCapabilityApplicationRequest;
+use App\Http\Requests\StoreCapabilityApplicationRequest;
 use App\Models\CapabilityApplication;
 use App\Models\UserCapability;
-use App\Models\AuditLog;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CapabilityApplicationController extends Controller
 {
     /**
-     * Get all capability applications (admin only).
+     * Submit a capability application (farmer or buyer).
+     *
+     * POST /api/capability-applications
+     * Body: { "capability_type": "farmer", "supporting_documents": [...] }
      */
-    public function index(Request $request): Response
+    public function store(StoreCapabilityApplicationRequest $request): JsonResponse
     {
-        $query = CapabilityApplication::with(['user', 'reviewer']);
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        if ($request->has('capability_type')) {
-            $query->where('capability_type', $request->capability_type);
-        }
-
-        $applications = $query->orderBy('created_at', 'desc')->paginate(20);
-        return response($applications);
-    }
-
-    /**
-     * Submit a new capability application.
-     */
-    public function store(Request $request): Response
-    {
-        $user = auth()->user();
-
-        $validated = $request->validate([
-            'capability_type' => 'required|in:farmer,buyer',
-            'supporting_documents' => 'nullable|array',
-        ]);
-
-        // Check if user already has this capability granted
-        $existing = UserCapability::where('user_id', $user->id)
-            ->where('capability_type', $validated['capability_type'])
+        // Check if the user already has an active capability of this type.
+        $existingCapability = $user->capabilities()
+            ->where('capability_type', $request->input('capability_type'))
             ->where('status', 'active')
-            ->first();
+            ->exists();
 
-        if ($existing) {
-            return response(['error' => 'You already have ' . $validated['capability_type'] . ' capability'], 422);
+        if ($existingCapability) {
+            return response()->json([
+                'message' => 'You already have an active ' . $request->input('capability_type') . ' capability.',
+            ], 409);
+        }
+
+        // Check if the user already has a pending application for this type.
+        $pendingApplication = $user->capabilityApplications()
+            ->where('capability_type', $request->input('capability_type'))
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($pendingApplication) {
+            return response()->json([
+                'message' => 'You already have a pending application for ' . $request->input('capability_type') . ' capability.',
+            ], 409);
         }
 
         $application = CapabilityApplication::create([
-            'user_id' => $user->id,
-            'capability_type' => $validated['capability_type'],
-            'supporting_documents' => $validated['supporting_documents'] ?? null,
-            'status' => 'pending',
+            'user_id'              => $user->id,
+            'capability_type'      => $request->validated('capability_type'),
+            'supporting_documents' => $request->validated('supporting_documents'),
         ]);
 
-        return response([
-            'message' => 'Application submitted',
-            'application' => $application,
+        return response()->json([
+            'message'     => 'Capability application submitted successfully.',
+            'application' => $application->load('user'),
         ], 201);
     }
 
     /**
-     * Get user's own applications.
+     * List the authenticated user's own capability applications.
+     *
+     * GET /api/capability-applications/my
      */
-    public function myApplications(): Response
+    public function my(): JsonResponse
     {
-        $user = auth()->user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        $applications = CapabilityApplication::where('user_id', $user->id)
-            ->with('reviewer')
-            ->orderBy('created_at', 'desc')
+        $applications = $user->capabilityApplications()
+            ->with('reviewer:id,first_name,second_name')
+            ->orderByDesc('created_at')
             ->get();
 
-        return response($applications);
+        return response()->json([
+            'applications' => $applications,
+        ]);
     }
 
     /**
-     * Display a specific application.
+     * Show a single capability application (own or admin).
+     *
+     * GET /api/capability-applications/{id}
      */
-    public function show(CapabilityApplication $application): Response
+    public function show(int $id): JsonResponse
     {
-        $this->authorize('view', $application);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        $application->load(['user', 'reviewer']);
-        return response($application);
-    }
+        $application = CapabilityApplication::with(['user:id,first_name,second_name,phone', 'reviewer:id,first_name,second_name'])
+            ->findOrFail($id);
 
-    /**
-     * Approve a capability application (admin only).
-     */
-    public function approve(CapabilityApplication $application): Response
-    {
-        $this->authorize('approve', $application);
-
-        if ($application->status !== 'pending') {
-            return response(['error' => 'Application is already ' . $application->status], 422);
+        /////// Non-admin users can only view their own applications./////////
+        if (! $user->is_admin && $application->user_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to view this application.',
+            ], 403);
         }
 
-        // Update application status
-        $application->update([
-            'status' => 'approved',
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now(),
-        ]);
-
-        // Grant capability
-        UserCapability::create([
-            'user_id' => $application->user_id,
-            'capability_type' => $application->capability_type,
-            'capability_application_id' => $application->id,
-            'status' => 'active',
-            'granted_by' => auth()->id(),
-            'granted_at' => now(),
-        ]);
-
-        // Audit log
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'capability.approved',
-            'auditable_type' => CapabilityApplication::class,
-            'auditable_id' => $application->id,
-            'new_values' => [
-                'status' => 'approved',
-                'capability_type' => $application->capability_type,
-            ],
-            'ip_address' => request()->ip(),
-        ]);
-
-        return response([
-            'message' => 'Application approved',
+        return response()->json([
             'application' => $application,
         ]);
     }
 
     /**
-     * Reject a capability application (admin only).
+     * List all pending capability applications (admin only).
+     *
+     * GET /api/admin/capability-applications?status=pending&capability_type=farmer
      */
-    public function reject(Request $request, CapabilityApplication $application): Response
+    public function index(Request $request): JsonResponse
     {
-        $this->authorize('reject', $application);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        $validated = $request->validate([
-            'rejection_reason' => 'required|string|max:500',
-        ]);
-
-        if ($application->status !== 'pending') {
-            return response(['error' => 'Application is already ' . $application->status], 422);
+        if (! $user->is_admin) {
+            return response()->json([
+                'message' => 'Unauthorized. Admin access required.',
+            ], 403);
         }
 
-        $application->update([
-            'status' => 'rejected',
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now(),
-            'rejection_reason' => $validated['rejection_reason'],
-        ]);
+        $query = CapabilityApplication::with('user:id,first_name,second_name,phone');
 
-        // Audit log
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'capability.rejected',
-            'auditable_type' => CapabilityApplication::class,
-            'auditable_id' => $application->id,
-            'new_values' => [
-                'status' => 'rejected',
-                'rejection_reason' => $validated['rejection_reason'],
-            ],
-            'ip_address' => request()->ip(),
-        ]);
+        if ($request->has('status')) {
+            $request->validate(['status' => ['in:pending,approved,rejected']]);
+            $query->where('status', $request->input('status'));
+        }
 
-        return response([
-            'message' => 'Application rejected',
-            'application' => $application,
+        if ($request->has('capability_type')) {
+            $request->validate(['capability_type' => ['in:farmer,buyer']]);
+            $query->where('capability_type', $request->input('capability_type'));
+        }
+
+        $applications = $query->orderByDesc('created_at')->paginate(20);
+
+        return response()->json($applications);
+    }
+
+    /**
+     * Approve a pending capability application (admin only).
+     *
+     * POST /api/admin/capability-applications/{id}/approve
+     */
+    public function approve(int $id): JsonResponse
+    {
+        /** @var \App\Models\User $user */
+        $admin = Auth::user();
+
+        if (! $admin->is_admin) {
+            return response()->json([
+                'message' => 'Unauthorized. Admin access required.',
+            ], 403);
+        }
+
+        $application = CapabilityApplication::findOrFail($id);
+
+        if ($application->status !== 'pending') {
+            return response()->json([
+                'message' => 'This application has already been ' . $application->status . '.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($application, $admin) {
+            $application->update([
+                'status'      => 'approved',
+                'reviewed_by' => $admin->id,
+                'reviewed_at' => now(),
+            ]);
+
+            // Grant the capability (upsert: reactivate if previously revoked).
+            UserCapability::updateOrCreate(
+                [
+                    'user_id'         => $application->user_id,
+                    'capability_type' => $application->capability_type,
+                ],
+                [
+                    'capability_application_id' => $application->id,
+                    'status'                    => 'active',
+                    'granted_by'                => $admin->id,
+                    'granted_at'                => now(),
+                    'revoked_at'                => null,
+                ],
+            );
+        });
+
+        return response()->json([
+            'message'     => 'Application approved. ' . ucfirst($application->capability_type) . ' capability granted.',
+            'application' => $application->fresh()->load(['user:id,first_name,second_name,phone', 'capabilityGrant']),
         ]);
     }
 
     /**
-     * Get applications pending review (admin).
+     * Reject a pending capability application (admin only).
+     *
+     * POST /api/admin/capability-applications/{id}/reject
+     * Body: { "rejection_reason": "..." }
      */
-    public function pending(): Response
+    public function reject(RejectCapabilityApplicationRequest $request, int $id): JsonResponse
     {
-        $applications = CapabilityApplication::where('status', 'pending')
-            ->with('user')
-            ->orderBy('created_at', 'asc')
-            ->paginate(20);
+        /** @var \App\Models\User $user */
+        $admin = Auth::user();
 
-        return response($applications);
+        if (! $admin->is_admin) {
+            return response()->json([
+                'message' => 'Unauthorized. Admin access required.',
+            ], 403);
+        }
+
+        $application = CapabilityApplication::findOrFail($id);
+
+        if ($application->status !== 'pending') {
+            return response()->json([
+                'message' => 'This application has already been ' . $application->status . '.',
+            ], 422);
+        }
+
+        $application->update([
+            'status'           => 'rejected',
+            'rejection_reason' => $request->validated('rejection_reason'),
+            'reviewed_by'      => $admin->id,
+            'reviewed_at'      => now(),
+        ]);
+
+        return response()->json([
+            'message'     => 'Application rejected.',
+            'application' => $application->fresh()->load('user:id,first_name,second_name,phone'),
+        ]);
     }
 }
