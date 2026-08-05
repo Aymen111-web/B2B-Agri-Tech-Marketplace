@@ -2,259 +2,191 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OrderFulfillment;
 use App\Models\Payout;
-use Illuminate\Http\JsonResponse;
+use App\Models\OrderFulfillment;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Response;
 
 class PayoutController extends Controller
 {
     /**
-     * List the authenticated farmer's own payouts.
-     *
-     * GET /api/payouts?status=pending&per_page=20
-     *
-     * Doc: farmer permission "view payout history."
-     * Each payout corresponds to a completed fulfillment for this farmer.
+     * Get all payouts for authenticated farmer.
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): Response
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+        $user = auth()->user();
 
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to view payouts.',
-            ], 403);
-        }
-
-        $request->validate([
-            'status'   => ['sometimes', 'string', 'in:pending,processed,failed'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-        ]);
-
-        $payouts = Payout::where('farmer_id', $user->id)
-            ->with([
-                'fulfillment:id,order_id,status,subtotal_amount,completed_at',
-                'fulfillment.order:id,order_number,status,currency',
-            ])
-            ->when($request->has('status'), function ($query) use ($request) {
-                $query->where('status', $request->input('status'));
-            })
-            ->orderByDesc('created_at')
-            ->paginate($request->input('per_page', 20));
-
-        return response()->json($payouts);
-    }
-
-    /**
-     * Show a single payout belonging to the authenticated farmer.
-     *
-     * GET /api/payouts/{id}
-     */
-    public function show(int $id): JsonResponse
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to view payouts.',
-            ], 403);
-        }
-
-        $payout = Payout::with([
-            'fulfillment:id,order_id,status,subtotal_amount,completed_at',
-            'fulfillment.order:id,order_number,status,total_amount,currency',
-            'fulfillment.items.listing:id,title,unit,price_per_unit',
-        ])->findOrFail($id);
-
-        if ($payout->farmer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to view this payout.',
-            ], 403);
-        }
-
-        return response()->json([
-            'payout' => $payout,
-        ]);
-    }
-
-    /**
-     * List all payouts across the platform (admin only).
-     *
-     * GET /api/admin/payouts?status=pending&farmer_id=5&per_page=20
-     */
-    public function adminIndex(Request $request): JsonResponse
-    {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
-        }
-
-        $request->validate([
-            'status'    => ['sometimes', 'string', 'in:pending,processed,failed'],
-            'farmer_id' => ['sometimes', 'integer', 'exists:users,id'],
-            'per_page'  => ['sometimes', 'integer', 'min:1', 'max:100'],
-        ]);
-
-        $query = Payout::with([
-            'farmer:id,first_name,second_name,phone',
-            'fulfillment:id,order_id,status,subtotal_amount,completed_at',
-            'fulfillment.order:id,order_number,status,currency',
-        ]);
+        $query = Payout::where('farmer_id', $user->id)
+            ->with(['fulfillment.order']);
 
         if ($request->has('status')) {
-            $query->where('status', $request->input('status'));
+            $query->where('status', $request->status);
         }
 
-        if ($request->has('farmer_id')) {
-            $query->where('farmer_id', $request->input('farmer_id'));
-        }
-
-        $payouts = $query->orderByDesc('created_at')
-            ->paginate($request->input('per_page', 20));
-
-        return response()->json($payouts);
+        $payouts = $query->orderBy('created_at', 'desc')->paginate(20);
+        return response($payouts);
     }
 
     /**
-     * Show a single payout with full details (admin only).
-     *
-     * GET /api/admin/payouts/{id}
+     * Display a specific payout.
      */
-    public function adminShow(int $id): JsonResponse
+    public function show(Payout $payout): Response
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+        $this->authorize('view', $payout);
 
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
+        $payout->load(['fulfillment.order', 'farmer']);
+        return response($payout);
+    }
+
+    /**
+     * Get payout summary for authenticated farmer.
+     */
+    public function summary(): Response
+    {
+        $user = auth()->user();
+
+        $payouts = Payout::where('farmer_id', $user->id)->get();
+
+        $summary = [
+            'total_earned' => $payouts->sum('amount'),
+            'pending' => $payouts->where('status', 'pending')->sum('amount'),
+            'processed' => $payouts->where('status', 'processed')->sum('amount'),
+            'failed' => $payouts->where('status', 'failed')->sum('amount'),
+            'payout_count' => $payouts->count(),
+            'pending_count' => $payouts->where('status', 'pending')->count(),
+            'processed_count' => $payouts->where('status', 'processed')->count(),
+        ];
+
+        return response($summary);
+    }
+
+    /**
+     * Get pending payouts for a farmer.
+     */
+    public function pending(): Response
+    {
+        $user = auth()->user();
+
+        $payouts = Payout::where('farmer_id', $user->id)
+            ->where('status', 'pending')
+            ->with('fulfillment.order')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return response($payouts);
+    }
+
+    /**
+     * Get processed payouts for a farmer.
+     */
+    public function processed(): Response
+    {
+        $user = auth()->user();
+
+        $payouts = Payout::where('farmer_id', $user->id)
+            ->where('status', 'processed')
+            ->with(['fulfillment.order'])
+            ->orderBy('processed_at', 'desc')
+            ->paginate(20);
+
+        return response($payouts);
+    }
+
+    /**
+     * Create a payout (admin action, typically triggered by batch job).
+     * In practice, this is called by a PayoutService after settlement.
+     */
+    public function store(Request $request): Response
+    {
+        $this->authorize('create', Payout::class);
+
+        $validated = $request->validate([
+            'farmer_id' => 'required|exists:users,id',
+            'order_fulfillment_id' => 'required|exists:order_fulfillments,id',
+            'amount' => 'required|numeric|min:0.01',
+            'reference' => 'nullable|string|max:255',
+        ]);
+
+        // Verify the fulfillment belongs to the farmer
+        $fulfillment = OrderFulfillment::findOrFail($validated['order_fulfillment_id']);
+        if ($fulfillment->farmer_id != $validated['farmer_id']) {
+            return response(['error' => 'Fulfillment does not belong to this farmer'], 422);
         }
 
-        $payout = Payout::with([
-            'farmer:id,first_name,second_name,phone',
-            'fulfillment:id,order_id,status,subtotal_amount,completed_at',
-            'fulfillment.order:id,order_number,status,total_amount,currency',
-            'fulfillment.items.listing:id,title,unit,price_per_unit',
-        ])->findOrFail($id);
+        $payout = Payout::create($validated);
+        return response($payout, 201);
+    }
 
-        return response()->json([
+    /**
+     * Update payout status (admin only).
+     */
+    public function updateStatus(Request $request, Payout $payout): Response
+    {
+        $this->authorize('update', $payout);
+
+        $validated = $request->validate([
+            'status' => 'required|in:pending,processed,failed',
+            'reference' => 'sometimes|string|max:255',
+        ]);
+
+        $payout->update($validated);
+
+        if ($validated['status'] === 'processed') {
+            $payout->update(['processed_at' => now()]);
+        }
+
+        return response([
+            'message' => 'Payout status updated',
             'payout' => $payout,
         ]);
     }
 
     /**
-     * Mark a pending payout as processed (admin only).
-     *
-     * POST /api/admin/payouts/{id}/process
-     * Body: { "reference": "CHAPA-TRF-ABC123" }
-     *
-     * The admin confirms the payout has been transferred to the farmer
-     * (e.g. via Chapa transfer, bank transfer, mobile money).
+     * Get payout history for admin dashboard.
      */
-    public function process(Request $request, int $id): JsonResponse
+    public function history(Request $request): Response
     {
-        /** @var \App\Models\User $user */
-        $admin = Auth::user();
+        $query = Payout::with(['farmer', 'fulfillment.order']);
 
-        if (! $admin->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
+        if ($request->has('farmer_id')) {
+            $query->where('farmer_id', $request->farmer_id);
         }
 
-        $validated = $request->validate([
-            'reference' => ['required', 'string', 'max:255'],
-        ]);
-
-        $payout = Payout::findOrFail($id);
-
-        if ($payout->status !== 'pending') {
-            return response()->json([
-                'message' => 'Only pending payouts can be marked as processed.',
-            ], 422);
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
         }
 
-        $payout->update([
-            'status'       => 'processed',
-            'reference'    => $validated['reference'],
-            'processed_at' => now(),
-        ]);
-
-        return response()->json([
-            'message' => 'Payout marked as processed.',
-            'payout'  => $payout->fresh()->load([
-                'farmer:id,first_name,second_name,phone',
-                'fulfillment:id,order_id,status,subtotal_amount',
-                'fulfillment.order:id,order_number,currency',
-            ]),
-        ]);
+        $payouts = $query->orderBy('created_at', 'desc')->paginate(20);
+        return response($payouts);
     }
 
     /**
-     * Mark a pending payout as failed (admin only).
-     *
-     * POST /api/admin/payouts/{id}/fail
-     * Body: { "reference": "CHAPA-TRF-FAILED-XYZ" }  (optional)
-     *
-     * The admin records that the payout transfer failed.
-     * The payout can be retried later by creating a new process attempt.
+     * Get monthly payout report.
      */
-    public function fail(Request $request, int $id): JsonResponse
+    public function monthlyReport(Request $request): Response
     {
-        /** @var \App\Models\User $user */
-        $admin = Auth::user();
-
-        if (! $admin->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
-        }
-
         $validated = $request->validate([
-            'reference' => ['nullable', 'string', 'max:255'],
+            'month' => 'required|date_format:Y-m',
         ]);
 
-        $payout = Payout::findOrFail($id);
+        $farmer = auth()->user();
+        $month = $validated['month'];
 
-        if ($payout->status !== 'pending') {
-            return response()->json([
-                'message' => 'Only pending payouts can be marked as failed.',
-            ], 422);
-        }
+        $payouts = Payout::where('farmer_id', $farmer->id)
+            ->whereYear('created_at', substr($month, 0, 4))
+            ->whereMonth('created_at', substr($month, 5, 2))
+            ->with('fulfillment.order')
+            ->get();
 
-        $payout->update([
-            'status'       => 'failed',
-            'reference'    => $validated['reference'] ?? $payout->reference,
-            'processed_at' => now(),
-        ]);
+        $report = [
+            'month' => $month,
+            'total_payouts' => $payouts->count(),
+            'total_amount' => $payouts->sum('amount'),
+            'processed_amount' => $payouts->where('status', 'processed')->sum('amount'),
+            'pending_amount' => $payouts->where('status', 'pending')->sum('amount'),
+            'payouts' => $payouts,
+        ];
 
-        return response()->json([
-            'message' => 'Payout marked as failed.',
-            'payout'  => $payout->fresh()->load([
-                'farmer:id,first_name,second_name,phone',
-                'fulfillment:id,order_id,status,subtotal_amount',
-                'fulfillment.order:id,order_number,currency',
-            ]),
-        ]);
-    }
-
-    /**
-     * Check whether the given user has an active farmer capability.
-     */
-    private function hasActiveFarmerCapability(\App\Models\User $user): bool
-    {
-        return $user->capabilities()
-            ->where('capability_type', 'farmer')
-            ->where('status', 'active')
-            ->exists();
+        return response($report);
     }
 }
