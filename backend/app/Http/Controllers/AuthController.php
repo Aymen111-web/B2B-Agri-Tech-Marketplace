@@ -2,105 +2,79 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\SmsDeliveryException;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RegisterRequest;
-use App\Http\Requests\RequestOtpRequest;
 use App\Models\User;
-use App\Services\OtpService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function __construct(
-        private readonly OtpService $otpService,
-    ) {}
-
     /**
-     * Request an OTP code for registration (phone ownership verification).
-     *
-     * POST /api/auth/request-otp
-     * Body: { "phone": "+251911639555" }
+     * Register a new user and issue a Sanctum token.
      */
-    public function requestOtp(RequestOtpRequest $request): JsonResponse
+    public function register(Request $request): Response
     {
-        try {
-            $this->otpService->generate(
-                $request->validated('phone'),
-                'registration',
-            );
-
-            return response()->json([
-                'message' => 'Verification code sent.',
-            ]);
-        } catch (SmsDeliveryException $e) {
-            return response()->json([
-                'message' => 'Unable to send verification code right now, please try again.',
-            ], 503);
-        }
-    }
-
-    /**
-     * Register a new user after OTP verification.
-     *
-     * POST /api/auth/register
-     * Body: { "first_name": "...", "second_name": "...", "phone": "+251...", "password": "...", "password_confirmation": "...", "code": "123456" }
-     */
-    public function register(RegisterRequest $request): JsonResponse
-    {
-        $phone = $request->validated('phone');
-        $code  = $request->validated('code');
-
-        $valid = $this->otpService->verify($phone, $code, 'registration'); /////code verification/////
-
-        if (! $valid) {
-            return response()->json([
-                'message' => 'Invalid or expired verification code.',
-            ], 422);
-        }
-
-        $user = User::create([
-            'first_name'        => $request->validated('first_name'),
-            'second_name'       => $request->validated('second_name'),
-            'phone'             => $phone,
-            'password'          => $request->validated('password'),
-            'phone_verified_at' => now(),
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|unique:users,phone',
+            'email' => 'nullable|email|unique:users,email',
+            'password' => 'required|string|min:8',
         ]);
 
-        $token = $user->createToken('auth')->plainTextToken;
+        $user = User::create([
+            'name' => $validated['name'],
+            'phone' => $validated['phone'],
+            'email' => $validated['email'] ?? null,
+            'password' => Hash::make($validated['password']),
+            'is_admin' => false,
+            'account_status' => 'active',
+        ]);
 
-        return response()->json([
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response([
             'message' => 'Registration successful.',
-            'token'   => $token,
-            'user'    => $user,
+            'user' => $user,
+            'token' => $token,
         ], 201);
     }
 
     /**
-     * Login with phone and password.
-     *
-     * POST /api/auth/login
-     * Body: { "phone": "+251911639555", "password": "..." }
+     * Authenticate a user and issue a Sanctum token.
      */
-    public function login(LoginRequest $request): JsonResponse
+    public function login(Request $request): Response
     {
-        $credentials = $request->validated();
+        $validated = $request->validate([
+            'phone' => 'required|string',
+            'password' => 'required|string',
+        ]);
 
-        if (! Auth::attempt($credentials)) {
-            return response()->json([
-                'message' => 'Invalid phone number or password.',
+        $user = User::where('phone', $validated['phone'])->first();
+
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
+            return response([
+                'error' => 'Invalid credentials.',
             ], 401);
         }
 
-        /** @var User $user */
-        $user  = Auth::user();
-        $token = $user->createToken('auth')->plainTextToken;
+        $token = $user->createToken('auth-token')->plainTextToken;
 
-        return response()->json([
+        return response([
             'message' => 'Login successful.',
-            'token'   => $token,
-            'user'    => $user,
+            'user' => $user,
+            'token' => $token,
+        ]);
+    }
+
+    /**
+     * Revoke the current access token.
+     */
+    public function logout(Request $request): Response
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response([
+            'message' => 'Logged out successfully.',
         ]);
     }
 }
