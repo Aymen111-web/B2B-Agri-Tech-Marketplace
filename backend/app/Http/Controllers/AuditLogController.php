@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AuditLogForResourceRequest;
+use App\Http\Requests\ListAuditLogsRequest;
+use App\Http\Requests\MyActivityRequest;
 use App\Models\AuditLog;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuditLogController extends Controller
@@ -14,7 +16,7 @@ class AuditLogController extends Controller
      *
      * GET /api/admin/audit-logs?action=listing.created&user_id=1&auditable_type=App\Models\Listing&per_page=20
      */
-    public function index(Request $request): JsonResponse
+    public function index(ListAuditLogsRequest $request): JsonResponse
     {
         $user = Auth::user();
 
@@ -24,13 +26,7 @@ class AuditLogController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'action'         => ['sometimes', 'string', 'max:255'],
-            'user_id'        => ['sometimes', 'integer', 'exists:users,id'],
-            'auditable_type' => ['sometimes', 'string', 'max:255'],
-            'auditable_id'   => ['sometimes', 'integer'],
-            'per_page'       => ['sometimes', 'integer', 'min:1', 'max:100'],
-        ]);
+        $validated = $request->validated();
 
         $logs = AuditLog::with('user')
             ->when(isset($validated['action']),         fn ($q) => $q->where('action', $validated['action']))
@@ -68,7 +64,7 @@ class AuditLogController extends Controller
      *
      * GET /api/admin/audit-logs/resource?type=App\Models\Order&id=5
      */
-    public function forResource(Request $request): JsonResponse
+    public function forResource(AuditLogForResourceRequest $request): JsonResponse
     {
         $user = Auth::user();
 
@@ -78,11 +74,7 @@ class AuditLogController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'type'     => ['required', 'string', 'max:255'],
-            'id'       => ['required', 'integer'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-        ]);
+        $validated = $request->validated();
 
         $logs = AuditLog::with('user')
             ->where('auditable_type', $validated['type'])
@@ -123,14 +115,11 @@ class AuditLogController extends Controller
      *
      * Users can only see their own logs — no admin check required.
      */
-    public function myActivity(Request $request): JsonResponse
+    public function myActivity(MyActivityRequest $request): JsonResponse
     {
         $user = Auth::user();
 
-        $validated = $request->validate([
-            'action'   => ['sometimes', 'string', 'max:255'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
-        ]);
+        $validated = $request->validated();
 
         $logs = AuditLog::where('user_id', $user->id)
             ->when(isset($validated['action']), fn ($q) => $q->where('action', $validated['action']))
