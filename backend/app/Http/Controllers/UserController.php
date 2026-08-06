@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListUsersRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
@@ -28,15 +29,11 @@ class UserController extends Controller
      *
      * PUT /api/profile
      */
-    public function updateProfile(Request $request): JsonResponse
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
         $user = Auth::user();
 
-        $validated = $request->validate([
-            'first_name'  => 'sometimes|string|max:255',
-            'second_name' => 'sometimes|string|max:255',
-            'phone'       => 'sometimes|string|unique:users,phone,' . $user->id,
-        ]);
+        $validated = $request->validated();
 
         $user->update($validated);
 
@@ -51,7 +48,7 @@ class UserController extends Controller
      *
      * GET /api/admin/users?account_status=active&capability=farmer&search=term&per_page=20
      */
-    public function index(Request $request): JsonResponse
+    public function index(ListUsersRequest $request): JsonResponse
     {
         $user = Auth::user();
 
@@ -61,12 +58,7 @@ class UserController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'account_status' => 'sometimes|string|in:active,suspended',
-            'capability'     => 'sometimes|string|in:farmer,buyer',
-            'search'         => 'sometimes|string|max:255',
-            'per_page'       => 'sometimes|integer|min:1|max:100',
-        ]);
+        $validated = $request->validated();
 
         $users = User::with('capabilities')
             ->when(isset($validated['account_status']), fn ($q) => $q->where('account_status', $validated['account_status']))
