@@ -4,6 +4,8 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapabilityApplicationController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CartItemController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChapaWebhookController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\OrderController;
@@ -162,4 +164,31 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/audit-logs/resource',       [AuditLogController::class, 'forResource']);
     Route::get('/audit-logs/user/{userId}',  [AuditLogController::class, 'forUser']);
     Route::get('/audit-logs/{auditLog}',     [AuditLogController::class, 'show']);
+});
+
+////// Categories — Public (browse) /////
+
+Route::get('/categories',                    [CategoryController::class, 'index']);
+Route::get('/categories/with-listing-count', [CategoryController::class, 'withListingCount']);
+Route::get('/categories/{category}',         [CategoryController::class, 'show']);
+
+////// Admin — Categories /////
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::post('/categories',              [CategoryController::class, 'store']);
+    Route::put('/categories/{category}',    [CategoryController::class, 'update']);
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+});
+
+////// Cart Items — Buyer (authenticated, detailed cart item management) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/cart-items',              [CartItemController::class, 'index']);
+    Route::post('/cart-items',             [CartItemController::class, 'store']);
+    Route::get('/cart-items/grouped',      [CartItemController::class, 'grouped']);
+    Route::get('/cart-items/breakdown',    [CartItemController::class, 'breakdown']);
+    Route::get('/cart-items/{cartItem}',   [CartItemController::class, 'show']);
+    Route::put('/cart-items/{cartItem}',   [CartItemController::class, 'update']);
+    Route::delete('/cart-items/clear',     [CartItemController::class, 'clear']);
+    Route::delete('/cart-items/{cartItem}',[CartItemController::class, 'destroy']);
 });
