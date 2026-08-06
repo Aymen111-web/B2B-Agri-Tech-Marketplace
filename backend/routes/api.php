@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapabilityApplicationController;
 use App\Http\Controllers\CartController;
@@ -146,4 +147,19 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/payouts',                    [PayoutController::class, 'history']);
     Route::post('/payouts',                   [PayoutController::class, 'store']);
     Route::patch('/payouts/{payout}/status',  [PayoutController::class, 'updateStatus']);
+});
+
+////// Audit Logs — Authenticated user's own activity /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/my-activity', [AuditLogController::class, 'myActivity']);
+});
+
+////// Admin — Audit Logs /////
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::get('/audit-logs',                [AuditLogController::class, 'index']);
+    Route::get('/audit-logs/resource',       [AuditLogController::class, 'forResource']);
+    Route::get('/audit-logs/user/{userId}',  [AuditLogController::class, 'forUser']);
+    Route::get('/audit-logs/{auditLog}',     [AuditLogController::class, 'show']);
 });
