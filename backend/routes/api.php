@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderFulfillmentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentExceptionController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 ///// Authcontroller //////////////
@@ -109,3 +110,20 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/payment-exceptions/{id}/reject',       [PaymentExceptionController::class, 'reject']);
 });
 
+////// User Profile (authenticated) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile',  [UserController::class, 'profile']);
+    Route::put('/profile',  [UserController::class, 'updateProfile']);
+});
+
+////// Admin — User Management /////
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::get('/users',                       [UserController::class, 'index']);
+    Route::get('/users/stats',                 [UserController::class, 'stats']);
+    Route::get('/users/{userId}',              [UserController::class, 'show']);
+    Route::get('/users/{userId}/capabilities', [UserController::class, 'capabilities']);
+    Route::post('/users/{userId}/suspend',     [UserController::class, 'suspend']);
+    Route::post('/users/{userId}/activate',    [UserController::class, 'activate']);
+});
