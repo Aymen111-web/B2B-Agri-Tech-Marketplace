@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderFulfillmentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentExceptionController;
+use App\Http\Controllers\PayoutController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -126,4 +127,23 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/users/{userId}/capabilities', [UserController::class, 'capabilities']);
     Route::post('/users/{userId}/suspend',     [UserController::class, 'suspend']);
     Route::post('/users/{userId}/activate',    [UserController::class, 'activate']);
+});
+
+////// Payouts — Farmer (authenticated, requires farmer capability) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/payouts',                [PayoutController::class, 'index']);
+    Route::get('/payouts/summary',        [PayoutController::class, 'summary']);
+    Route::get('/payouts/pending',        [PayoutController::class, 'pending']);
+    Route::get('/payouts/processed',      [PayoutController::class, 'processed']);
+    Route::get('/payouts/monthly-report', [PayoutController::class, 'monthlyReport']);
+    Route::get('/payouts/{payout}',       [PayoutController::class, 'show']);
+});
+
+////// Admin — Payouts /////
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::get('/payouts',                    [PayoutController::class, 'history']);
+    Route::post('/payouts',                   [PayoutController::class, 'store']);
+    Route::patch('/payouts/{payout}/status',  [PayoutController::class, 'updateStatus']);
 });
