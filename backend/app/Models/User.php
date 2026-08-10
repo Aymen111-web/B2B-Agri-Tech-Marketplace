@@ -3,10 +3,8 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -20,8 +18,10 @@ class User extends Authenticatable
         'first_name',
         'second_name',
         'phone',
+        'email',
         'phone_verified_at',
         'password',
+        'is_admin',
         'account_status',
     ];
 
