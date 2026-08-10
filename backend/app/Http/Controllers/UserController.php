@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ListUsersRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\UserCapabilityResource;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +23,7 @@ class UserController extends Controller
 
         $user->load(['capabilities', 'capabilityApplications']);
 
-        return response()->json($user);
+        return response()->json(new UserResource($user));
     }
 
     /**
@@ -39,7 +41,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Profile updated successfully.',
-            'user'    => $user->fresh(),
+            'user'    => new UserResource($user->fresh()),
         ]);
     }
 
@@ -74,7 +76,7 @@ class UserController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($users);
+        return UserResource::collection($users)->response();
     }
 
     /**
@@ -97,7 +99,7 @@ class UserController extends Controller
             'capabilityApplications',
         ])->findOrFail($userId);
 
-        return response()->json($target);
+        return response()->json(new UserResource($target));
     }
 
     /**
@@ -133,7 +135,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User account suspended.',
-            'user'    => $target->fresh(),
+            'user'    => new UserResource($target->fresh()),
         ]);
     }
 
@@ -164,7 +166,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User account activated.',
-            'user'    => $target->fresh(),
+            'user'    => new UserResource($target->fresh()),
         ]);
     }
 
@@ -190,7 +192,7 @@ class UserController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return response()->json($capabilities);
+        return response()->json(UserCapabilityResource::collection($capabilities));
     }
 
     /**

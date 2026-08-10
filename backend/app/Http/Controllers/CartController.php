@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCartItemRequest;
 use App\Http\Requests\UpdateCartItemRequest;
+use App\Http\Resources\CartItemResource;
 use App\Models\CartItem;
 use App\Models\Listing;
 use Illuminate\Http\JsonResponse;
@@ -33,7 +34,7 @@ class CartController extends Controller
             ->get();
 
         return response()->json([
-            'cart_items' => $cartItems,
+            'cart_items' => CartItemResource::collection($cartItems),
         ]);
     }
 
@@ -98,7 +99,7 @@ class CartController extends Controller
 
         return response()->json([
             'message'   => $wasRecentlyCreated ? 'Item added to cart.' : 'Cart item quantity updated.',
-            'cart_item' => $cartItem,
+            'cart_item' => new CartItemResource($cartItem),
         ], $wasRecentlyCreated ? 201 : 200);
     }
 
@@ -155,7 +156,7 @@ class CartController extends Controller
 
         return response()->json([
             'message'   => 'Cart item updated.',
-            'cart_item' => $cartItem,
+            'cart_item' => new CartItemResource($cartItem),
         ]);
     }
 

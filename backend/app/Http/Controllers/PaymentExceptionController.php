@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ListPaymentExceptionsRequest;
 use App\Http\Requests\ResolvePaymentExceptionRequest;
 use App\Http\Requests\StorePaymentExceptionRequest;
+use App\Http\Resources\PaymentExceptionResource;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentException;
@@ -72,11 +73,9 @@ class PaymentExceptionController extends Controller
 
         return response()->json([
             'message'           => 'Payment exception raised successfully.',
-            'payment_exception' => $exception->load([
-                'payment:id,chapa_tx_ref,amount,currency,status',
-                'order:id,order_number,status',
-                'raisedBy:id,first_name,second_name',
-            ]),
+            'payment_exception' => new PaymentExceptionResource($exception->load([
+                'payment', 'order', 'raisedBy',
+            ])),
         ], 201);
     }
 
@@ -103,7 +102,7 @@ class PaymentExceptionController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($exceptions);
+        return PaymentExceptionResource::collection($exceptions)->response();
     }
 
     /**
@@ -131,7 +130,7 @@ class PaymentExceptionController extends Controller
         }
 
         return response()->json([
-            'payment_exception' => $exception,
+            'payment_exception' => new PaymentExceptionResource($exception),
         ]);
     }
 
@@ -170,7 +169,7 @@ class PaymentExceptionController extends Controller
         $exceptions = $query->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($exceptions);
+        return PaymentExceptionResource::collection($exceptions)->response();
     }
 
     /**
@@ -203,11 +202,9 @@ class PaymentExceptionController extends Controller
 
         return response()->json([
             'message'           => 'Exception is now under investigation.',
-            'payment_exception' => $exception->fresh()->load([
-                'payment:id,chapa_tx_ref,amount,currency,status',
-                'order:id,order_number,status',
-                'raisedBy:id,first_name,second_name',
-            ]),
+            'payment_exception' => new PaymentExceptionResource($exception->fresh()->load([
+                'payment', 'order', 'raisedBy',
+            ])),
         ]);
     }
 
@@ -251,12 +248,9 @@ class PaymentExceptionController extends Controller
 
         return response()->json([
             'message'           => 'Exception resolved.',
-            'payment_exception' => $exception->fresh()->load([
-                'payment:id,chapa_tx_ref,amount,currency,status',
-                'order:id,order_number,status',
-                'raisedBy:id,first_name,second_name',
-                'resolvedBy:id,first_name,second_name',
-            ]),
+            'payment_exception' => new PaymentExceptionResource($exception->fresh()->load([
+                'payment', 'order', 'raisedBy', 'resolvedBy',
+            ])),
         ]);
     }
 
@@ -296,12 +290,9 @@ class PaymentExceptionController extends Controller
 
         return response()->json([
             'message'           => 'Exception rejected.',
-            'payment_exception' => $exception->fresh()->load([
-                'payment:id,chapa_tx_ref,amount,currency,status',
-                'order:id,order_number,status',
-                'raisedBy:id,first_name,second_name',
-                'resolvedBy:id,first_name,second_name',
-            ]),
+            'payment_exception' => new PaymentExceptionResource($exception->fresh()->load([
+                'payment', 'order', 'raisedBy', 'resolvedBy',
+            ])),
         ]);
     }
 

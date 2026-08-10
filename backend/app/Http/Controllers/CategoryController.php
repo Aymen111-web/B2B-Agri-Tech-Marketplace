@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -17,7 +18,7 @@ class CategoryController extends Controller
             ->orderBy('name')
             ->get();
 
-        return response($categories);
+        return response(CategoryResource::collection($categories));
     }
 
     /**
@@ -34,7 +35,7 @@ class CategoryController extends Controller
         ]);
 
         $category = Category::create($validated);
-        return response($category, 201);
+        return response(new CategoryResource($category), 201);
     }
 
     /**
@@ -42,7 +43,7 @@ class CategoryController extends Controller
      */
     public function show(Category $category): Response
     {
-        return response($category);
+        return response(new CategoryResource($category));
     }
 
     /**
@@ -59,7 +60,7 @@ class CategoryController extends Controller
         ]);
 
         $category->update($validated);
-        return response($category);
+        return response(new CategoryResource($category));
     }
 
     /**
@@ -84,6 +85,6 @@ class CategoryController extends Controller
             ->orderBy('name')
             ->get();
 
-        return response($categories);
+        return response(CategoryResource::collection($categories));
     }
 }

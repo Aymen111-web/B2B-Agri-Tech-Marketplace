@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ListFulfillmentsRequest;
 use App\Http\Requests\RejectFulfillmentRequest;
+use App\Http\Resources\OrderFulfillmentResource;
 use App\Models\Listing;
 use App\Models\Order;
 use App\Models\OrderFulfillment;
@@ -43,7 +44,7 @@ class OrderFulfillmentController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($fulfillments);
+        return OrderFulfillmentResource::collection($fulfillments)->response();
     }
 
     /**
@@ -75,7 +76,7 @@ class OrderFulfillmentController extends Controller
         }
 
         return response()->json([
-            'fulfillment' => $fulfillment,
+            'fulfillment' => new OrderFulfillmentResource($fulfillment),
         ]);
     }
 
@@ -120,10 +121,9 @@ class OrderFulfillmentController extends Controller
 
         return response()->json([
             'message'     => 'Fulfillment accepted.',
-            'fulfillment' => $fulfillment->fresh([
-                'order:id,order_number,status',
-                'items.listing:id,title,unit',
-            ]),
+            'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
+                'order', 'items.listing',
+            ])),
         ]);
     }
 
@@ -189,10 +189,9 @@ class OrderFulfillmentController extends Controller
 
         return response()->json([
             'message'     => 'Fulfillment rejected and reserved stock released.',
-            'fulfillment' => $fulfillment->fresh([
-                'order:id,order_number,status',
-                'items.listing:id,title,unit',
-            ]),
+            'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
+                'order', 'items.listing',
+            ])),
         ]);
     }
 
@@ -253,10 +252,9 @@ class OrderFulfillmentController extends Controller
 
         return response()->json([
             'message'     => 'Fulfillment completed.',
-            'fulfillment' => $fulfillment->fresh([
-                'order:id,order_number,status',
-                'items.listing:id,title,unit',
-            ]),
+            'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
+                'order', 'items.listing',
+            ])),
         ]);
     }
 

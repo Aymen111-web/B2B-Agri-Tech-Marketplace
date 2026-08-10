@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AuditLogForResourceRequest;
 use App\Http\Requests\ListAuditLogsRequest;
 use App\Http\Requests\MyActivityRequest;
+use App\Http\Resources\AuditLogResource;
 use App\Models\AuditLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -36,7 +37,7 @@ class AuditLogController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($logs);
+        return AuditLogResource::collection($logs)->response();
     }
 
     /**
@@ -56,7 +57,7 @@ class AuditLogController extends Controller
 
         $auditLog->load('user');
 
-        return response()->json($auditLog);
+        return response()->json(new AuditLogResource($auditLog));
     }
 
     /**
@@ -82,7 +83,7 @@ class AuditLogController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($logs);
+        return AuditLogResource::collection($logs)->response();
     }
 
     /**
@@ -105,7 +106,7 @@ class AuditLogController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        return response()->json($logs);
+        return AuditLogResource::collection($logs)->response();
     }
 
     /**
@@ -126,6 +127,6 @@ class AuditLogController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($logs);
+        return AuditLogResource::collection($logs)->response(); /////wiring resources here
     }
 }

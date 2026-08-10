@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -34,7 +35,7 @@ class AuthController extends Controller
 
         return response([
             'message' => 'Registration successful.',
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ], 201);
     }
@@ -61,7 +62,7 @@ class AuthController extends Controller
 
         return response([
             'message' => 'Login successful.',
-            'user' => $user,
+            'user' => new UserResource($user),
             'token' => $token,
         ]);
     }

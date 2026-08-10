@@ -6,6 +6,7 @@ use App\Http\Requests\ListPayoutsRequest;
 use App\Http\Requests\MonthlyPayoutReportRequest;
 use App\Http\Requests\StorePayoutRequest;
 use App\Http\Requests\UpdatePayoutStatusRequest;
+use App\Http\Resources\PayoutResource;
 use App\Models\OrderFulfillment;
 use App\Models\Payout;
 use Illuminate\Http\JsonResponse;
@@ -28,7 +29,7 @@ class PayoutController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($payouts);
+        return PayoutResource::collection($payouts)->response();
     }
 
     /**
@@ -42,7 +43,7 @@ class PayoutController extends Controller
 
         $payout->load(['fulfillment.order', 'farmer']);
 
-        return response()->json($payout);
+        return response()->json(new PayoutResource($payout));
     }
 
     /**
@@ -83,7 +84,7 @@ class PayoutController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return response()->json($payouts);
+        return response()->json(PayoutResource::collection($payouts));
     }
 
     /**
@@ -101,7 +102,7 @@ class PayoutController extends Controller
             ->orderByDesc('processed_at')
             ->paginate(20);
 
-        return response()->json($payouts);
+        return PayoutResource::collection($payouts)->response();
     }
 
     /**
@@ -126,7 +127,7 @@ class PayoutController extends Controller
 
         $payout = Payout::create($validated);
 
-        return response()->json($payout, 201);
+        return response()->json(new PayoutResource($payout), 201);
     }
 
     /**
@@ -148,7 +149,7 @@ class PayoutController extends Controller
 
         return response()->json([
             'message' => 'Payout status updated.',
-            'payout'  => $payout->fresh(),
+            'payout'  => new PayoutResource($payout->fresh()),
         ]);
     }
 
@@ -167,7 +168,7 @@ class PayoutController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($payouts);
+        return PayoutResource::collection($payouts)->response();
     }
 
     /**
@@ -193,7 +194,7 @@ class PayoutController extends Controller
             'total_amount'     => $payouts->sum('amount'),
             'processed_amount' => $payouts->where('status', 'processed')->sum('amount'),
             'pending_amount'   => $payouts->where('status', 'pending')->sum('amount'),
-            'payouts'          => $payouts,
+            'payouts'          => PayoutResource::collection($payouts),
         ];
 
         return response()->json($report);
