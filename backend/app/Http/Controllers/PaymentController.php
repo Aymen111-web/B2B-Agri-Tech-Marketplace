@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PaymentResource;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
@@ -57,7 +58,7 @@ class PaymentController extends Controller
                 return response()->json([
                     'message'      => 'Payment already initiated.',
                     'checkout_url' => $existingPayment->chapa_checkout_url,
-                    'payment'      => $existingPayment,
+                    'payment'      => new PaymentResource($existingPayment),
                 ]);
             }
 
@@ -124,7 +125,7 @@ class PaymentController extends Controller
         return response()->json([
             'message'      => 'Payment initiated. Redirect the buyer to the checkout URL.',
             'checkout_url' => $checkoutUrl,
-            'payment'      => $payment,
+            'payment'      => new PaymentResource($payment),
         ], 201);
     }
 
@@ -161,7 +162,7 @@ class PaymentController extends Controller
         }
 
         return response()->json([
-            'payment' => $payment,
+            'payment' => new PaymentResource($payment),
         ]);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ListOrdersRequest;
+use App\Http\Resources\OrderResource;
 use App\Models\CartItem;
 use App\Models\Listing;
 use App\Models\Order;
@@ -41,7 +42,7 @@ class OrderController extends Controller
             ->orderByDesc('placed_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($orders);
+        return OrderResource::collection($orders)->response();
     }
 
     /**
@@ -74,7 +75,7 @@ class OrderController extends Controller
         }
 
         return response()->json([
-            'order' => $order,
+            'order' => new OrderResource($order),
         ]);
     }
 
@@ -228,7 +229,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Order placed successfully.',
-            'order'   => $order,
+            'order'   => new OrderResource($order),
         ], 201);
     }
 
@@ -292,7 +293,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Order cancelled and reserved stock released.',
-            'order'   => $order->fresh(['fulfillments:id,order_id,status', 'payment:id,order_id,status']),
+            'order'   => new OrderResource($order->fresh(['fulfillments', 'payment'])),
         ]);
     }
 

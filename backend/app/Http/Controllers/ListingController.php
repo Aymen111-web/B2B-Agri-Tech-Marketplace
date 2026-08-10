@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreListingRequest;
 use App\Http\Requests\UpdateListingRequest;
+use App\Http\Resources\ListingResource;
 use App\Models\Listing;
 use App\Models\ListingPriceHistory;
 use Illuminate\Http\JsonResponse;
@@ -52,7 +53,7 @@ class ListingController extends Controller
 
         $listings = $query->paginate($request->input('per_page', 20));
 
-        return response()->json($listings);
+        return ListingResource::collection($listings)->response();
     }
 
     /**
@@ -69,7 +70,7 @@ class ListingController extends Controller
         ])->findOrFail($id);
 
         return response()->json([
-            'listing' => $listing,
+            'listing' => new ListingResource($listing),
         ]);
     }
 
@@ -116,7 +117,7 @@ class ListingController extends Controller
 
         return response()->json([
             'message' => 'Listing created successfully.',
-            'listing' => $listing->load(['farmer:id,first_name,second_name', 'category:id,name,slug']),
+            'listing' => new ListingResource($listing->load(['farmer', 'category'])),
         ], 201);
     }
 
@@ -163,7 +164,7 @@ class ListingController extends Controller
 
         return response()->json([
             'message' => 'Listing updated successfully.',
-            'listing' => $listing->fresh()->load(['farmer:id,first_name,second_name', 'category:id,name,slug']),
+            'listing' => new ListingResource($listing->fresh()->load(['farmer', 'category'])),
         ]);
     }
 
@@ -231,7 +232,7 @@ class ListingController extends Controller
         $listings = $query->orderByDesc('created_at')
             ->paginate($request->input('per_page', 20));
 
-        return response()->json($listings);
+        return ListingResource::collection($listings)->response();
     }
 
     /**

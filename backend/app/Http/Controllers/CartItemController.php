@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CartItemResource;
 use App\Models\CartItem;
 use App\Models\Listing;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class CartItemController extends Controller
             'total_value' => $items->sum(function ($item) {
                 return $item->quantity * $item->price_snapshot;
             }),
-            'items' => $items,
+            'items' => CartItemResource::collection($items),
         ];
 
         return response($summary);
@@ -77,7 +78,7 @@ class CartItemController extends Controller
 
         return response([
             'message' => 'Item added to cart',
-            'item' => $cartItem->load('listing.farmer'),
+            'item' => new CartItemResource($cartItem->load('listing.farmer')),
         ], 201);
     }
 
@@ -89,7 +90,7 @@ class CartItemController extends Controller
         $this->authorize('view', $cartItem);
 
         $cartItem->load(['listing.farmer', 'listing.category']);
-        return response($cartItem);
+        return response(new CartItemResource($cartItem));
     }
 
     /**
@@ -119,7 +120,7 @@ class CartItemController extends Controller
 
         return response([
             'message' => 'Cart item updated',
-            'item' => $cartItem,
+            'item' => new CartItemResource($cartItem),
         ]);
     }
 
@@ -158,7 +159,7 @@ class CartItemController extends Controller
 
         $grouped = $items->groupBy('listing.farmer_id');
 
-        return response($grouped);
+        return response($grouped->map(fn ($group) => CartItemResource::collection($group)));
     }
 
     /**
