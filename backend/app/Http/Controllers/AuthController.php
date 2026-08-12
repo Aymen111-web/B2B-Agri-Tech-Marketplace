@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     public function __construct(
-        private readonly ?OtpService $otpService = null,
+        private readonly OtpService $otpService,
     ) {}
 
     /**
@@ -24,12 +24,10 @@ class AuthController extends Controller
     public function requestOtp(RequestOtpRequest $request): JsonResponse
     {
         try {
-            if ($this->otpService) {
-                $this->otpService->generate(
-                    $request->validated('phone'),
-                    'registration'
-                );
-            }
+            $this->otpService->generate(
+                $request->validated('phone'),
+                'registration'
+            );
 
             return response()->json([
                 'message' => 'Verification code sent.',
@@ -54,7 +52,7 @@ class AuthController extends Controller
             'code'        => 'nullable|string|digits:6',
         ]);
 
-        if (! empty($validated['code']) && $this->otpService) {
+        if (! empty($validated['code'])) {
             $valid = $this->otpService->verify($validated['phone'], $validated['code'], 'registration');
 
             if (! $valid) {

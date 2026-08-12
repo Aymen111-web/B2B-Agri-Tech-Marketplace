@@ -3,11 +3,12 @@ import axios from 'axios'
 /**
  * Axios instance pre-configured to talk to the Laravel backend.
  *
- * Backend base URL: http://127.0.0.1:8000
- * Auth strategy:   Sanctum token — stored in localStorage and sent as Bearer token.
+ * In development: requests go through Vite's proxy (/api → http://127.0.0.1:8000/api).
+ * This eliminates CORS entirely since the browser sees all requests as same-origin.
+ * Auth strategy: Sanctum token — stored in localStorage and sent as Bearer token.
  */
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
