@@ -18,7 +18,6 @@ class User extends Authenticatable
         'first_name',
         'second_name',
         'phone',
-        'email',
         'phone_verified_at',
         'password',
         'is_admin',

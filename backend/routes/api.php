@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/auth/request-otp', [AuthController::class, 'requestOtp']);
 Route::post('/auth/register',    [AuthController::class, 'register']);
 Route::post('/auth/login',       [AuthController::class, 'login']);
+Route::post('/auth/logout',      [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -36,7 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //// Admin — Capability Applications ///////////
 
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/capability-applications',              [CapabilityApplicationController::class, 'index']);
     Route::post('/capability-applications/{id}/approve', [CapabilityApplicationController::class, 'approve']);
     Route::post('/capability-applications/{id}/reject',  [CapabilityApplicationController::class, 'reject']);
@@ -107,7 +108,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 ////// Admin — Payment Exceptions /////
 
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/payment-exceptions',                    [PaymentExceptionController::class, 'index']);
     Route::post('/payment-exceptions/{id}/investigate',  [PaymentExceptionController::class, 'investigate']);
     Route::post('/payment-exceptions/{id}/resolve',      [PaymentExceptionController::class, 'resolve']);
@@ -123,7 +124,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 ////// Admin — User Management /////
 
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/users',                       [UserController::class, 'index']);
     Route::get('/users/stats',                 [UserController::class, 'stats']);
     Route::get('/users/{userId}',              [UserController::class, 'show']);
@@ -145,7 +146,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 ////// Admin — Payouts /////
 
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/payouts',                    [PayoutController::class, 'history']);
     Route::post('/payouts',                   [PayoutController::class, 'store']);
     Route::patch('/payouts/{payout}/status',  [PayoutController::class, 'updateStatus']);
@@ -159,7 +160,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 ////// Admin — Audit Logs /////
 
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/audit-logs',                [AuditLogController::class, 'index']);
     Route::get('/audit-logs/resource',       [AuditLogController::class, 'forResource']);
     Route::get('/audit-logs/user/{userId}',  [AuditLogController::class, 'forUser']);
@@ -174,7 +175,7 @@ Route::get('/categories/{category}',         [CategoryController::class, 'show']
 
 ////// Admin — Categories /////
 
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::post('/categories',              [CategoryController::class, 'store']);
     Route::put('/categories/{category}',    [CategoryController::class, 'update']);
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
