@@ -24,22 +24,9 @@ class PaymentController extends Controller
      */
     public function initiate(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to initiate payments.',
-            ], 403);
-        }
-
         $order = Order::findOrFail($id);
 
-        if ($order->buyer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to pay for this order.',
-            ], 403);
-        }
+        $this->authorize('initiate', $order);
 
         if ($order->status !== 'pending_payment') {
             return response()->json([
@@ -68,6 +55,9 @@ class PaymentController extends Controller
                 ], 422);
             }
         }
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
         // Generate a unique transaction reference for Chapa.
         $txRef = 'TX-' . $order->order_number . '-' . strtoupper(Str::random(6));
@@ -136,22 +126,9 @@ class PaymentController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to view payment details.',
-            ], 403);
-        }
-
         $order = Order::findOrFail($id);
 
-        if ($order->buyer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to view this payment.',
-            ], 403);
-        }
+        $this->authorize('view', $order);
 
         $payment = Payment::where('order_id', $order->id)->first();
 
@@ -164,16 +141,5 @@ class PaymentController extends Controller
         return response()->json([
             'payment' => new PaymentResource($payment),
         ]);
-    }
-
-    /**
-     * Check whether the given user has an active buyer capability.
-     */
-    private function hasActiveBuyerCapability(\App\Models\User $user): bool
-    {
-        return $user->capabilities()
-            ->where('capability_type', 'buyer')
-            ->where('status', 'active')
-            ->exists();
     }
 }

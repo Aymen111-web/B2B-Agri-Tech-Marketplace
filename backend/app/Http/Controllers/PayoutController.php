@@ -20,6 +20,8 @@ class PayoutController extends Controller
      */
     public function index(ListPayoutsRequest $request): JsonResponse
     {
+        $this->authorize('viewAny', Payout::class);
+
         $user      = auth()->user();
         $validated = $request->validated();
 
@@ -53,6 +55,8 @@ class PayoutController extends Controller
      */
     public function summary(): JsonResponse
     {
+        $this->authorize('viewAny', Payout::class);
+
         $user    = auth()->user();
         $payouts = Payout::where('farmer_id', $user->id)->get();
 
@@ -76,6 +80,8 @@ class PayoutController extends Controller
      */
     public function pending(): JsonResponse
     {
+        $this->authorize('viewAny', Payout::class);
+
         $user = auth()->user();
 
         $payouts = Payout::where('farmer_id', $user->id)
@@ -94,6 +100,8 @@ class PayoutController extends Controller
      */
     public function processed(): JsonResponse
     {
+        $this->authorize('viewAny', Payout::class);
+
         $user = auth()->user();
 
         $payouts = Payout::where('farmer_id', $user->id)
@@ -160,6 +168,8 @@ class PayoutController extends Controller
      */
     public function history(ListPayoutsRequest $request): JsonResponse
     {
+        $this->authorize('viewAll', Payout::class);
+
         $validated = $request->validated();
 
         $payouts = Payout::with(['farmer', 'fulfillment.order'])
@@ -178,6 +188,8 @@ class PayoutController extends Controller
      */
     public function monthlyReport(MonthlyPayoutReportRequest $request): JsonResponse
     {
+        $this->authorize('viewAny', Payout::class);
+
         $validated = $request->validated();
         $farmer    = auth()->user();
         $month     = $validated['month'];

@@ -15,6 +15,8 @@ class CartItemController extends Controller
      */
     public function index(): Response
     {
+        $this->authorize('viewAny', CartItem::class);
+
         $user = auth()->user();
 
         $items = CartItem::where('buyer_id', $user->id)
@@ -38,6 +40,8 @@ class CartItemController extends Controller
      */
     public function store(Request $request): Response
     {
+        $this->authorize('create', CartItem::class);
+
         $user = auth()->user();
 
         $validated = $request->validate([
@@ -140,6 +144,8 @@ class CartItemController extends Controller
      */
     public function clear(): Response
     {
+        $this->authorize('clear', CartItem::class);
+
         $user = auth()->user();
 
         CartItem::where('buyer_id', $user->id)->delete();
@@ -151,6 +157,8 @@ class CartItemController extends Controller
      */
     public function grouped(): Response
     {
+        $this->authorize('viewAny', CartItem::class);
+
         $user = auth()->user();
 
         $items = CartItem::where('buyer_id', $user->id)
@@ -167,6 +175,8 @@ class CartItemController extends Controller
      */
     public function breakdown(): Response
     {
+        $this->authorize('viewAny', CartItem::class);
+
         $user = auth()->user();
 
         $items = CartItem::where('buyer_id', $user->id)

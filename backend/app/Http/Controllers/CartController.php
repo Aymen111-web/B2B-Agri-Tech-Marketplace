@@ -19,14 +19,10 @@ class CartController extends Controller
      */
     public function index(): JsonResponse
     {
+        $this->authorize('viewAny', CartItem::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to access the cart.',
-            ], 403);
-        }
 
         $cartItems = $user->cartItems()
             ->with(['listing:id,farmer_id,title,unit,price_per_unit,quantity_available,status', 'listing.farmer:id,first_name,second_name'])
@@ -46,14 +42,10 @@ class CartController extends Controller
      */
     public function store(StoreCartItemRequest $request): JsonResponse
     {
+        $this->authorize('create', CartItem::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to add items to the cart.',
-            ], 403);
-        }
 
         $validated = $request->validated();
 
@@ -111,22 +103,9 @@ class CartController extends Controller
      */
     public function update(UpdateCartItemRequest $request, int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to update cart items.',
-            ], 403);
-        }
-
         $cartItem = CartItem::findOrFail($id);
 
-        if ($cartItem->buyer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to update this cart item.',
-            ], 403);
-        }
+        $this->authorize('update', $cartItem);
 
         $validated = $request->validated();
 
@@ -167,22 +146,9 @@ class CartController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to remove cart items.',
-            ], 403);
-        }
-
         $cartItem = CartItem::findOrFail($id);
 
-        if ($cartItem->buyer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to remove this cart item.',
-            ], 403);
-        }
+        $this->authorize('delete', $cartItem);
 
         $cartItem->delete();
 
@@ -198,30 +164,15 @@ class CartController extends Controller
      */
     public function clear(): JsonResponse
     {
+        $this->authorize('clear', CartItem::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to clear the cart.',
-            ], 403);
-        }
 
         $user->cartItems()->delete();
 
         return response()->json([
             'message' => 'Cart cleared.',
         ]);
-    }
-
-    /**
-     * Check whether the given user has an active buyer capability.
-     */
-    private function hasActiveBuyerCapability(\App\Models\User $user): bool
-    {
-        return $user->capabilities()
-            ->where('capability_type', 'buyer')
-            ->where('status', 'active')
-            ->exists();
     }
 }
