@@ -1,0 +1,179 @@
+/* ── Shared styles used by all auth form views ──
+   Imported via `@import '@/assets/auth-form.css'` in each view's <style scoped>
+──────────────────────────────────────────────── */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Error / Success banners */
+.auth-form__error,
+.auth-form__success {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .85rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: .9rem;
+  font-weight: 500;
+}
+.auth-form__error {
+  background: var(--error-bg);
+  border: 1px solid #f5c6c3;
+  color: var(--error);
+}
+.auth-form__success {
+  background: var(--brand-green-light);
+  border: 1px solid var(--brand-green);
+  color: var(--brand-green-dark);
+}
+.auth-form__error-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--error);
+  line-height: 1;
+  padding: 0 .2rem;
+}
+
+/* Form group */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+
+.form-label {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.form-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Input wrapper (icon + field) */
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-icon {
+  position: absolute;
+  left: .9rem;
+  font-size: 1rem;
+  pointer-events: none;
+  user-select: none;
+}
+.input-toggle {
+  position: absolute;
+  right: .75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: .2rem;
+  line-height: 1;
+  transition: opacity .2s;
+}
+.input-toggle:hover { opacity: .7; }
+
+/* Input field */
+.form-input {
+  width: 100%;
+  padding: .75rem .9rem .75rem 2.75rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: .95rem;
+  color: var(--text-primary);
+  background: var(--surface);
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.form-input--padded-right { padding-right: 2.75rem; }
+.form-input:focus {
+  border-color: var(--brand-green);
+  box-shadow: 0 0 0 3px rgba(26,107,60,.12);
+}
+.form-input::placeholder { color: var(--text-muted); }
+
+/* Input without icon (e.g. OTP) */
+.form-input.form-input--otp {
+  padding-left: .9rem;
+}
+
+/* Hints */
+.form-hint {
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+.form-hint--error { color: var(--error); }
+
+/* Submit button */
+.btn-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  width: 100%;
+  padding: .9rem;
+  background: var(--brand-green);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s, transform .15s, opacity .2s;
+  margin-top: .25rem;
+}
+.btn-submit:hover:not(:disabled) {
+  background: var(--brand-green-dark);
+  transform: translateY(-1px);
+}
+.btn-submit:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Footer link row */
+.auth-form__footer {
+  text-align: center;
+  font-size: .88rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+}
+.auth-form__link {
+  color: var(--brand-green);
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity .2s;
+}
+.auth-form__link:hover { opacity: .75; }
+.auth-form__link--btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+}
+.auth-form__link--btn:disabled { opacity: .5; cursor: not-allowed; }

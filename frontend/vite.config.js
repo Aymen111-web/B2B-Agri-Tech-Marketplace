@@ -17,4 +17,8 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    // Serve index.html for all routes — required for Vue Router's HTML5 history mode
+    historyApiFallback: true,
+  },
 })
