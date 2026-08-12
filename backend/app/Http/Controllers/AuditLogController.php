@@ -19,13 +19,7 @@ class AuditLogController extends Controller
      */
     public function index(ListAuditLogsRequest $request): JsonResponse
     {
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may view audit logs.',
-            ], 403);
-        }
+        $this->authorize('viewAny', AuditLog::class);
 
         $validated = $request->validated();
 
@@ -47,13 +41,7 @@ class AuditLogController extends Controller
      */
     public function show(AuditLog $auditLog): JsonResponse
     {
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may view audit logs.',
-            ], 403);
-        }
+        $this->authorize('view', $auditLog);
 
         $auditLog->load('user');
 
@@ -67,13 +55,7 @@ class AuditLogController extends Controller
      */
     public function forResource(AuditLogForResourceRequest $request): JsonResponse
     {
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may view audit logs.',
-            ], 403);
-        }
+        $this->authorize('viewForResource', AuditLog::class);
 
         $validated = $request->validated();
 
@@ -93,13 +75,7 @@ class AuditLogController extends Controller
      */
     public function forUser(int $userId): JsonResponse
     {
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may view audit logs.',
-            ], 403);
-        }
+        $this->authorize('viewForUser', AuditLog::class);
 
         $logs = AuditLog::where('user_id', $userId)
             ->with('user')
@@ -118,6 +94,8 @@ class AuditLogController extends Controller
      */
     public function myActivity(MyActivityRequest $request): JsonResponse
     {
+        $this->authorize('viewOwnActivity', AuditLog::class);
+
         $user = Auth::user();
 
         $validated = $request->validated();

@@ -19,6 +19,8 @@ class UserController extends Controller
      */
     public function profile(): JsonResponse
     {
+        $this->authorize('viewProfile', User::class);
+
         $user = Auth::user();
 
         $user->load(['capabilities', 'capabilityApplications']);
@@ -33,6 +35,8 @@ class UserController extends Controller
      */
     public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
+        $this->authorize('updateProfile', User::class);
+
         $user = Auth::user();
 
         $validated = $request->validated();
@@ -52,13 +56,7 @@ class UserController extends Controller
      */
     public function index(ListUsersRequest $request): JsonResponse
     {
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may list users.',
-            ], 403);
-        }
+        $this->authorize('viewAny', User::class);
 
         $validated = $request->validated();
 
@@ -86,18 +84,12 @@ class UserController extends Controller
      */
     public function show(int $userId): JsonResponse
     {
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may view user details.',
-            ], 403);
-        }
-
         $target = User::with([
             'capabilities',
             'capabilityApplications',
         ])->findOrFail($userId);
+
+        $this->authorize('view', $target);
 
         return response()->json(new UserResource($target));
     }
@@ -110,13 +102,6 @@ class UserController extends Controller
     public function suspend(int $userId): JsonResponse
     {
         $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may suspend users.',
-            ], 403);
-        }
-
         $target = User::findOrFail($userId);
 
         if ($target->id === $user->id) {
@@ -124,6 +109,8 @@ class UserController extends Controller
                 'message' => 'You cannot suspend your own account.',
             ], 422);
         }
+
+        $this->authorize('suspend', $target);
 
         if ($target->account_status === 'suspended') {
             return response()->json([
@@ -146,15 +133,9 @@ class UserController extends Controller
      */
     public function activate(int $userId): JsonResponse
     {
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may activate users.',
-            ], 403);
-        }
-
         $target = User::findOrFail($userId);
+
+        $this->authorize('activate', $target);
 
         if ($target->account_status === 'active') {
             return response()->json([
@@ -177,15 +158,9 @@ class UserController extends Controller
      */
     public function capabilities(int $userId): JsonResponse
     {
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may view user capabilities.',
-            ], 403);
-        }
-
         $target = User::findOrFail($userId);
+
+        $this->authorize('viewCapabilities', $target);
 
         $capabilities = $target->capabilities()
             ->with('application')
@@ -202,13 +177,7 @@ class UserController extends Controller
      */
     public function stats(): JsonResponse
     {
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Only admins may view user statistics.',
-            ], 403);
-        }
+        $this->authorize('viewStats', User::class);
 
         $stats = [
             'total_users'      => User::count(),
