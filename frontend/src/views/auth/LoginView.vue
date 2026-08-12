@@ -11,8 +11,23 @@ const phone    = ref('')
 const password = ref('')
 const showPwd  = ref(false)
 
+function normalizePhone(input) {
+  let p = input.trim()
+  if (p.startsWith('09') && p.length === 10) {
+    return '+251' + p.substring(1)
+  }
+  if (p.startsWith('07') && p.length === 10) {
+    return '+251' + p.substring(1)
+  }
+  if ((p.startsWith('9') || p.startsWith('7')) && p.length === 9) {
+    return '+251' + p
+  }
+  return p
+}
+
 async function handleLogin() {
-  const ok = await auth.login(phone.value, password.value)
+  const formattedPhone = normalizePhone(phone.value)
+  const ok = await auth.login(formattedPhone, password.value)
   if (ok) router.push('/dashboard')
 }
 </script>

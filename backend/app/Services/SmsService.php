@@ -31,25 +31,29 @@ class SmsService
                     'text'   => $text,
                 ]);
 
-            if ($response->failed()) {
-                Log::error('SMS Ethiopia send failed', [
-                    'status' => $response->status(),
-                    'body'   => $response->json(),
-                    'msisdn' => $msisdn,
-                ]);
-
-                return false;
+            if ($response->successful() && $response->json('sent') === true) {
+                return true;
             }
 
-            return $response->json('sent') === true;
+            Log::warning('SMS Ethiopia send failed — checking local fallback', [
+                'status' => $response->status(),
+                'body'   => $response->json(),
+                'msisdn' => $msisdn,
+            ]);
         } catch (\Throwable $e) {
-            Log::error('SMS Ethiopia send exception', [
+            Log::warning('SMS Ethiopia send exception — checking local fallback', [
                 'message' => $e->getMessage(),
                 'msisdn'  => $msisdn,
             ]);
-
-            return false;
         }
+
+        // In local/testing environments, log the SMS content and return true so development is unimpeded
+        if (app()->environment('local', 'testing') || config('services.sms_ethiopia.mock', false)) {
+            Log::info("LOCAL SMS MOCK [To: {$msisdn}]: {$text}");
+            return true;
+        }
+
+        return false;
     }
 
     /**

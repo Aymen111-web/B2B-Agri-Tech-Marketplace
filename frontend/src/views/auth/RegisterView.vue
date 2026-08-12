@@ -24,20 +24,46 @@ const otpSent   = ref(false)
 // Client-side validation
 const passwordsMatch = computed(() => password.value === confirm.value)
 const passwordStrong = computed(() => password.value.length >= 8)
+
+// Accepts: 09XXXXXXXX, 07XXXXXXXX, 9XXXXXXXX, 7XXXXXXXX, +251XXXXXXXXX
+const phoneValid = computed(() => {
+  const p = phone.value.trim()
+  return /^\+251[0-9]{9}$/.test(p) ||
+    (/^(09|07)[0-9]{8}$/).test(p) ||
+    (/^(9|7)[0-9]{8}$/).test(p)
+})
+
 const step1Valid = computed(() =>
   firstName.value.trim() &&
   secondName.value.trim() &&
-  phone.value.trim() &&
+  phoneValid.value &&
   passwordStrong.value &&
   passwordsMatch.value
 )
+
+function normalizePhone(input) {
+  let p = input.trim()
+  if (p.startsWith('09') && p.length === 10) {
+    return '+251' + p.substring(1)
+  }
+  if (p.startsWith('07') && p.length === 10) {
+    return '+251' + p.substring(1)
+  }
+  if ((p.startsWith('9') || p.startsWith('7')) && p.length === 9) {
+    return '+251' + p
+  }
+  return p
+}
 
 async function handleRequestOtp() {
   auth.clearError()
 
   if (!step1Valid.value) return
 
-  const ok = await auth.requestOtp(phone.value.trim())
+  const formattedPhone = normalizePhone(phone.value)
+  phone.value = formattedPhone
+
+  const ok = await auth.requestOtp(formattedPhone)
   if (ok) {
     otpSent.value = true
     step.value = 2
@@ -45,10 +71,12 @@ async function handleRequestOtp() {
 }
 
 async function handleRegister() {
+  const formattedPhone = normalizePhone(phone.value)
+
   const ok = await auth.register({
     first_name:  firstName.value.trim(),
     second_name: secondName.value.trim(),
-    phone:       phone.value.trim(),
+    phone:       formattedPhone,
     password:    password.value,
     code:        otpCode.value.trim() || undefined,
   })
@@ -132,6 +160,9 @@ function goBack() {
             autocomplete="tel"
           />
         </div>
+        <p v-if="phone && !phoneValid" class="form-hint form-hint--error">
+          Enter your Ethiopian number: 0911223344, 0712345678, or +251911223344
+        </p>
       </div>
 
       <!-- Password -->
