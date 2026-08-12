@@ -82,14 +82,10 @@ class ListingController extends Controller
      */
     public function store(StoreListingRequest $request): JsonResponse
     {
+        $this->authorize('create', Listing::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to create listings.',
-            ], 403);
-        }
 
         $validated = $request->validated();
 
@@ -129,22 +125,12 @@ class ListingController extends Controller
      */
     public function update(UpdateListingRequest $request, int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to update listings.',
-            ], 403);
-        }
-
         $listing = Listing::findOrFail($id);
 
-        if ($listing->farmer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to update this listing.',
-            ], 403);
-        }
+        $this->authorize('update', $listing);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
         $validated = $request->validated();
 
@@ -175,22 +161,9 @@ class ListingController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to remove listings.',
-            ], 403);
-        }
-
         $listing = Listing::findOrFail($id);
 
-        if ($listing->farmer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to remove this listing.',
-            ], 403);
-        }
+        $this->authorize('delete', $listing);
 
         // Prevent deletion when stock is currently reserved by pending orders.
         if ($listing->quantity_reserved > 0) {
@@ -213,14 +186,10 @@ class ListingController extends Controller
      */
     public function my(Request $request): JsonResponse
     {
+        $this->authorize('viewOwn', Listing::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to view your listings.',
-            ], 403);
-        }
 
         $query = $user->listings()->with('category:id,name,slug');
 
