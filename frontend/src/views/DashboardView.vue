@@ -30,6 +30,9 @@ async function handleLogout() {
           </router-link>
         </div>
         <div class="dash-nav__right">
+          <router-link to="/listings" class="dash-nav__link">
+            Browse Marketplace
+          </router-link>
           <router-link to="/capabilities/apply" class="dash-nav__link">
             Capabilities
           </router-link>
@@ -89,9 +92,13 @@ async function handleLogout() {
                 Apply for Farmer Capability
               </button>
 
-              <span v-else class="text-granted">
-                ✓ Ready to list & sell produce
-              </span>
+              <button
+                v-else
+                class="btn btn--primary"
+                @click="router.push('/farmer/listings')"
+              >
+                Manage Produce Listings →
+              </button>
             </div>
           </div>
 
