@@ -31,12 +31,24 @@ const router = createRouter({
       meta: { guest: true, title: 'Verify Phone — Agri Market' },
     },
 
-    // ── Authenticated (placeholder — will expand in future tasks) ──
+    // ── Authenticated ─────────────────────────────────
     {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/DashboardView.vue'),
       meta: { requiresAuth: true, title: 'Dashboard — Agri Market' },
+    },
+    {
+      path: '/capabilities/apply',
+      name: 'capability-apply',
+      component: () => import('@/views/capabilities/CapabilityApplyView.vue'),
+      meta: { requiresAuth: true, title: 'Apply for Capability — Agri Market' },
+    },
+    {
+      path: '/admin/capability-applications',
+      name: 'admin-capability-approval',
+      component: () => import('@/views/admin/AdminCapabilityApprovalView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin Capability Approvals — Agri Market' },
     },
 
     // ── Catch-all ──────────────────────────────────────
@@ -57,6 +69,11 @@ router.beforeEach((to) => {
   // Protected route: redirect to login if not authenticated
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login' }
+  }
+
+  // Admin route: redirect to dashboard if not admin
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    return { name: 'dashboard' }
   }
 
   // Guest-only route: redirect authenticated users to dashboard
