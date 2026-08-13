@@ -23,7 +23,7 @@ Route::post('/auth/login',       [AuthController::class, 'login']);
 Route::post('/auth/logout',      [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::get('/user', function (Request $request) {
-    return $request->user();
+    return new \App\Http\Resources\UserResource($request->user()->load(['capabilities', 'capabilityApplications']));
 })->middleware('auth:sanctum');
 
 

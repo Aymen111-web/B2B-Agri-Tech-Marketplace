@@ -19,7 +19,7 @@ class StoreCapabilityApplicationRequest extends FormRequest
         return [
             'capability_type'        => ['required', 'string', 'in:farmer,buyer'],
             'supporting_documents'   => ['nullable', 'array'],
-            'supporting_documents.*' => ['string'],
+            'supporting_documents.*' => ['nullable'],
         ];
     }
 

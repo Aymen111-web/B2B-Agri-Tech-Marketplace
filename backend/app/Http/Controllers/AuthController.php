@@ -76,7 +76,7 @@ class AuthController extends Controller
 
         return response([
             'message' => 'Registration successful.',
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load(['capabilities', 'capabilityApplications'])),
             'token' => $token,
         ], 201);
     }
@@ -103,7 +103,7 @@ class AuthController extends Controller
 
         return response([
             'message' => 'Login successful.',
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load(['capabilities', 'capabilityApplications'])),
             'token' => $token,
         ]);
     }
