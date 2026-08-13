@@ -65,6 +65,14 @@ const router = createRouter({
       meta: { requiresAuth: true, title: 'Apply for Capability — Agri Market' },
     },
     {
+      path: '/admin',
+      redirect: '/admin/capability-applications',
+    },
+    {
+      path: '/admin/dashboard',
+      redirect: '/admin/capability-applications',
+    },
+    {
       path: '/admin/capability-applications',
       name: 'admin-capability-approval',
       component: () => import('@/views/admin/AdminCapabilityApprovalView.vue'),

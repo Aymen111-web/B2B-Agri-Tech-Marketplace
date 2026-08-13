@@ -16,10 +16,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Admin user
-        User::factory()->create([
+        User::firstOrCreate([
+            'phone'             => '+251708943727',
             'first_name'        => 'Admin',
-            'second_name'       => 'System',
-            'phone'             => '+251911000000',
+            'second_name'       => 'User',
+            'password'          => Hash::make('admin123456'),
             'is_admin'          => true,
             'phone_verified_at' => now(),
             'account_status'    => 'active',
