@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
+use Illuminate\Support\Facades\Hash;
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         User::firstOrCreate([
             'phone'             => '+251708943727',
             'first_name'        => 'Admin',
-            'second_name'       => 'User',
+            'second_name'       => 'Aymen',
             'password'          => Hash::make('admin123456'),
             'is_admin'          => true,
             'phone_verified_at' => now(),
