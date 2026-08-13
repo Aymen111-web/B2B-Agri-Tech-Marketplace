@@ -14,7 +14,7 @@ class PayoutController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = auth()->user();
+        $user = auth()->user(); 
 
         $query = Payout::where('farmer_id', $user->id)
             ->with(['fulfillment.order']);
