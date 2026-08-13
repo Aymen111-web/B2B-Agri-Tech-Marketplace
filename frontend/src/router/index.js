@@ -31,12 +31,32 @@ const router = createRouter({
       meta: { guest: true, title: 'Verify Phone — Agri Market' },
     },
 
+    // ── Public Marketplace ────────────────────────────────
+    {
+      path: '/listings',
+      name: 'listings',
+      component: () => import('@/views/listings/ListingsView.vue'),
+      meta: { title: 'Produce Marketplace — Agri Market' },
+    },
+    {
+      path: '/listings/:id',
+      name: 'listing-detail',
+      component: () => import('@/views/listings/ListingDetailView.vue'),
+      meta: { title: 'Produce Details — Agri Market' },
+    },
+
     // ── Authenticated ─────────────────────────────────
     {
       path: '/dashboard',
       name: 'dashboard',
       component: () => import('@/views/DashboardView.vue'),
       meta: { requiresAuth: true, title: 'Dashboard — Agri Market' },
+    },
+    {
+      path: '/farmer/listings',
+      name: 'farmer-listings',
+      component: () => import('@/views/farmer/FarmerListingsView.vue'),
+      meta: { requiresAuth: true, requiresFarmer: true, title: 'Farmer Produce Portal — Agri Market' },
     },
     {
       path: '/capabilities/apply',
@@ -74,6 +94,14 @@ router.beforeEach((to) => {
   // Admin route: redirect to dashboard if not admin
   if (to.meta.requiresAdmin && !auth.isAdmin) {
     return { name: 'dashboard' }
+  }
+
+  // Farmer route: redirect to capability apply if no active farmer capability
+  if (to.meta.requiresFarmer) {
+    const hasFarmer = auth.user?.capabilities?.some(c => c.capability_type === 'farmer' && c.status === 'active')
+    if (!hasFarmer && !auth.isAdmin) {
+      return { name: 'capability-apply' }
+    }
   }
 
   // Guest-only route: redirect authenticated users to dashboard
