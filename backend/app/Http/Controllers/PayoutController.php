@@ -2,69 +2,86 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payout;
+use App\Http\Requests\ListPayoutsRequest;
+use App\Http\Requests\MonthlyPayoutReportRequest;
+use App\Http\Requests\StorePayoutRequest;
+use App\Http\Requests\UpdatePayoutStatusRequest;
+use App\Http\Resources\PayoutResource;
 use App\Models\OrderFulfillment;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use App\Models\Payout;
+use Illuminate\Http\JsonResponse;
 
 class PayoutController extends Controller
 {
     /**
      * Get all payouts for authenticated farmer.
+     *
+     * GET /api/payouts?status=pending&per_page=20
      */
-    public function index(Request $request): Response
+    public function index(ListPayoutsRequest $request): JsonResponse
     {
-        $user = auth()->user(); 
+        $this->authorize('viewAny', Payout::class);
 
-        $query = Payout::where('farmer_id', $user->id)
-            ->with(['fulfillment.order']);
+        $user      = auth()->user();
+        $validated = $request->validated();
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
+        $payouts = Payout::where('farmer_id', $user->id)
+            ->with(['fulfillment.order'])
+            ->when(isset($validated['status']), fn ($q) => $q->where('status', $validated['status']))
+            ->orderByDesc('created_at')
+            ->paginate($validated['per_page'] ?? 20);
 
-        $payouts = $query->orderBy('created_at', 'desc')->paginate(20);
-        return response($payouts);
+        return PayoutResource::collection($payouts)->response();
     }
 
     /**
      * Display a specific payout.
+     *
+     * GET /api/payouts/{payout}
      */
-    public function show(Payout $payout): Response
+    public function show(Payout $payout): JsonResponse
     {
         $this->authorize('view', $payout);
 
         $payout->load(['fulfillment.order', 'farmer']);
-        return response($payout);
+
+        return response()->json(new PayoutResource($payout));
     }
 
     /**
      * Get payout summary for authenticated farmer.
+     *
+     * GET /api/payouts/summary
      */
-    public function summary(): Response
+    public function summary(): JsonResponse
     {
-        $user = auth()->user();
+        $this->authorize('viewAny', Payout::class);
 
+        $user    = auth()->user();
         $payouts = Payout::where('farmer_id', $user->id)->get();
 
         $summary = [
-            'total_earned' => $payouts->sum('amount'),
-            'pending' => $payouts->where('status', 'pending')->sum('amount'),
-            'processed' => $payouts->where('status', 'processed')->sum('amount'),
-            'failed' => $payouts->where('status', 'failed')->sum('amount'),
-            'payout_count' => $payouts->count(),
-            'pending_count' => $payouts->where('status', 'pending')->count(),
+            'total_earned'    => $payouts->sum('amount'),
+            'pending'         => $payouts->where('status', 'pending')->sum('amount'),
+            'processed'       => $payouts->where('status', 'processed')->sum('amount'),
+            'failed'          => $payouts->where('status', 'failed')->sum('amount'),
+            'payout_count'    => $payouts->count(),
+            'pending_count'   => $payouts->where('status', 'pending')->count(),
             'processed_count' => $payouts->where('status', 'processed')->count(),
         ];
 
-        return response($summary);
+        return response()->json($summary);
     }
 
     /**
-     * Get pending payouts for a farmer.
+     * Get pending payouts for the authenticated farmer.
+     *
+     * GET /api/payouts/pending
      */
-    public function pending(): Response
+    public function pending(): JsonResponse
     {
+        $this->authorize('viewAny', Payout::class);
+
         $user = auth()->user();
 
         $payouts = Payout::where('farmer_id', $user->id)
@@ -73,61 +90,64 @@ class PayoutController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return response($payouts);
+        return response()->json(PayoutResource::collection($payouts));
     }
 
     /**
-     * Get processed payouts for a farmer.
+     * Get processed payouts for the authenticated farmer.
+     *
+     * GET /api/payouts/processed
      */
-    public function processed(): Response
+    public function processed(): JsonResponse
     {
+        $this->authorize('viewAny', Payout::class);
+
         $user = auth()->user();
 
         $payouts = Payout::where('farmer_id', $user->id)
             ->where('status', 'processed')
             ->with(['fulfillment.order'])
-            ->orderBy('processed_at', 'desc')
+            ->orderByDesc('processed_at')
             ->paginate(20);
 
-        return response($payouts);
+        return PayoutResource::collection($payouts)->response();
     }
 
     /**
-     * Create a payout (admin action, typically triggered by batch job).
-     * In practice, this is called by a PayoutService after settlement.
+     * Create a payout — admin action, typically triggered by a batch settlement job.
+     *
+     * POST /api/admin/payouts
      */
-    public function store(Request $request): Response
+    public function store(StorePayoutRequest $request): JsonResponse
     {
         $this->authorize('create', Payout::class);
 
-        $validated = $request->validate([
-            'farmer_id' => 'required|exists:users,id',
-            'order_fulfillment_id' => 'required|exists:order_fulfillments,id',
-            'amount' => 'required|numeric|min:0.01',
-            'reference' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
-        // Verify the fulfillment belongs to the farmer
+        // Verify the fulfillment belongs to the stated farmer.
         $fulfillment = OrderFulfillment::findOrFail($validated['order_fulfillment_id']);
-        if ($fulfillment->farmer_id != $validated['farmer_id']) {
-            return response(['error' => 'Fulfillment does not belong to this farmer'], 422);
+
+        if ((int) $fulfillment->farmer_id !== (int) $validated['farmer_id']) {
+            return response()->json([
+                'message' => 'Fulfillment does not belong to this farmer.',
+            ], 422);
         }
 
         $payout = Payout::create($validated);
-        return response($payout, 201);
+
+        return response()->json(new PayoutResource($payout), 201);
     }
 
     /**
-     * Update payout status (admin only).
+     * Update a payout's status — admin only.
+     *
+     * PATCH /api/admin/payouts/{payout}/status
      */
-    public function updateStatus(Request $request, Payout $payout): Response
+    public function updateStatus(UpdatePayoutStatusRequest $request, Payout $payout): JsonResponse
     {
         $this->authorize('update', $payout);
 
-        $validated = $request->validate([
-            'status' => 'required|in:pending,processed,failed',
-            'reference' => 'sometimes|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         $payout->update($validated);
 
@@ -135,42 +155,44 @@ class PayoutController extends Controller
             $payout->update(['processed_at' => now()]);
         }
 
-        return response([
-            'message' => 'Payout status updated',
-            'payout' => $payout,
+        return response()->json([
+            'message' => 'Payout status updated.',
+            'payout'  => new PayoutResource($payout->fresh()),
         ]);
     }
 
     /**
-     * Get payout history for admin dashboard.
+     * Get payout history for the admin dashboard.
+     *
+     * GET /api/admin/payouts?farmer_id=&status=&per_page=20
      */
-    public function history(Request $request): Response
+    public function history(ListPayoutsRequest $request): JsonResponse
     {
-        $query = Payout::with(['farmer', 'fulfillment.order']);
+        $this->authorize('viewAll', Payout::class);
 
-        if ($request->has('farmer_id')) {
-            $query->where('farmer_id', $request->farmer_id);
-        }
+        $validated = $request->validated();
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
+        $payouts = Payout::with(['farmer', 'fulfillment.order'])
+            ->when(isset($validated['farmer_id']), fn ($q) => $q->where('farmer_id', $validated['farmer_id']))
+            ->when(isset($validated['status']),    fn ($q) => $q->where('status', $validated['status']))
+            ->orderByDesc('created_at')
+            ->paginate($validated['per_page'] ?? 20);
 
-        $payouts = $query->orderBy('created_at', 'desc')->paginate(20);
-        return response($payouts);
+        return PayoutResource::collection($payouts)->response();
     }
 
     /**
-     * Get monthly payout report.
+     * Get a monthly payout report for the authenticated farmer.
+     *
+     * GET /api/payouts/monthly-report?month=2026-08
      */
-    public function monthlyReport(Request $request): Response
+    public function monthlyReport(MonthlyPayoutReportRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'month' => 'required|date_format:Y-m',
-        ]);
+        $this->authorize('viewAny', Payout::class);
 
-        $farmer = auth()->user();
-        $month = $validated['month'];
+        $validated = $request->validated();
+        $farmer    = auth()->user();
+        $month     = $validated['month'];
 
         $payouts = Payout::where('farmer_id', $farmer->id)
             ->whereYear('created_at', substr($month, 0, 4))
@@ -179,14 +201,14 @@ class PayoutController extends Controller
             ->get();
 
         $report = [
-            'month' => $month,
-            'total_payouts' => $payouts->count(),
-            'total_amount' => $payouts->sum('amount'),
+            'month'            => $month,
+            'total_payouts'    => $payouts->count(),
+            'total_amount'     => $payouts->sum('amount'),
             'processed_amount' => $payouts->where('status', 'processed')->sum('amount'),
-            'pending_amount' => $payouts->where('status', 'pending')->sum('amount'),
-            'payouts' => $payouts,
+            'pending_amount'   => $payouts->where('status', 'pending')->sum('amount'),
+            'payouts'          => PayoutResource::collection($payouts),
         ];
 
-        return response($report);
+        return response()->json($report);
     }
 }

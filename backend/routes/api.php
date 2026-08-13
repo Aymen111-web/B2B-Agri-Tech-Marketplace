@@ -1,20 +1,26 @@
 <?php
 
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapabilityApplicationController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CartItemController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChapaWebhookController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderFulfillmentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentExceptionController;
+use App\Http\Controllers\PayoutController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 ///// Authcontroller //////////////
 Route::post('/auth/request-otp', [AuthController::class, 'requestOtp']);
 Route::post('/auth/register',    [AuthController::class, 'register']);
 Route::post('/auth/login',       [AuthController::class, 'login']);
+Route::post('/auth/logout',      [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -31,7 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 //// Admin — Capability Applications ///////////
 
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/capability-applications',              [CapabilityApplicationController::class, 'index']);
     Route::post('/capability-applications/{id}/approve', [CapabilityApplicationController::class, 'approve']);
     Route::post('/capability-applications/{id}/reject',  [CapabilityApplicationController::class, 'reject']);
@@ -102,10 +108,88 @@ Route::middleware('auth:sanctum')->group(function () {
 
 ////// Admin — Payment Exceptions /////
 
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/payment-exceptions',                    [PaymentExceptionController::class, 'index']);
     Route::post('/payment-exceptions/{id}/investigate',  [PaymentExceptionController::class, 'investigate']);
     Route::post('/payment-exceptions/{id}/resolve',      [PaymentExceptionController::class, 'resolve']);
     Route::post('/payment-exceptions/{id}/reject',       [PaymentExceptionController::class, 'reject']);
 });
 
+////// User Profile (authenticated) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile',  [UserController::class, 'profile']);
+    Route::put('/profile',  [UserController::class, 'updateProfile']);
+});
+
+////// Admin — User Management /////
+
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/users',                       [UserController::class, 'index']);
+    Route::get('/users/stats',                 [UserController::class, 'stats']);
+    Route::get('/users/{userId}',              [UserController::class, 'show']);
+    Route::get('/users/{userId}/capabilities', [UserController::class, 'capabilities']);
+    Route::post('/users/{userId}/suspend',     [UserController::class, 'suspend']);
+    Route::post('/users/{userId}/activate',    [UserController::class, 'activate']);
+});
+
+////// Payouts — Farmer (authenticated, requires farmer capability) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/payouts',                [PayoutController::class, 'index']);
+    Route::get('/payouts/summary',        [PayoutController::class, 'summary']);
+    Route::get('/payouts/pending',        [PayoutController::class, 'pending']);
+    Route::get('/payouts/processed',      [PayoutController::class, 'processed']);
+    Route::get('/payouts/monthly-report', [PayoutController::class, 'monthlyReport']);
+    Route::get('/payouts/{payout}',       [PayoutController::class, 'show']);
+});
+
+////// Admin — Payouts /////
+
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/payouts',                    [PayoutController::class, 'history']);
+    Route::post('/payouts',                   [PayoutController::class, 'store']);
+    Route::patch('/payouts/{payout}/status',  [PayoutController::class, 'updateStatus']);
+});
+
+////// Audit Logs — Authenticated user's own activity /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/my-activity', [AuditLogController::class, 'myActivity']);
+});
+
+////// Admin — Audit Logs /////
+
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/audit-logs',                [AuditLogController::class, 'index']);
+    Route::get('/audit-logs/resource',       [AuditLogController::class, 'forResource']);
+    Route::get('/audit-logs/user/{userId}',  [AuditLogController::class, 'forUser']);
+    Route::get('/audit-logs/{auditLog}',     [AuditLogController::class, 'show']);
+});
+
+////// Categories — Public (browse) /////
+
+Route::get('/categories',                    [CategoryController::class, 'index']);
+Route::get('/categories/with-listing-count', [CategoryController::class, 'withListingCount']);
+Route::get('/categories/{category}',         [CategoryController::class, 'show']);
+
+////// Admin — Categories /////
+
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::post('/categories',              [CategoryController::class, 'store']);
+    Route::put('/categories/{category}',    [CategoryController::class, 'update']);
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+});
+
+////// Cart Items — Buyer (authenticated, detailed cart item management) /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/cart-items',              [CartItemController::class, 'index']);
+    Route::post('/cart-items',             [CartItemController::class, 'store']);
+    Route::get('/cart-items/grouped',      [CartItemController::class, 'grouped']);
+    Route::get('/cart-items/breakdown',    [CartItemController::class, 'breakdown']);
+    Route::get('/cart-items/{cartItem}',   [CartItemController::class, 'show']);
+    Route::put('/cart-items/{cartItem}',   [CartItemController::class, 'update']);
+    Route::delete('/cart-items/clear',     [CartItemController::class, 'clear']);
+    Route::delete('/cart-items/{cartItem}',[CartItemController::class, 'destroy']);
+});

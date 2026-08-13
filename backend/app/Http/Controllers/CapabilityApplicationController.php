@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RejectCapabilityApplicationRequest;
 use App\Http\Requests\StoreCapabilityApplicationRequest;
+use App\Http\Resources\CapabilityApplicationResource;
 use App\Models\CapabilityApplication;
 use App\Models\UserCapability;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +22,7 @@ class CapabilityApplicationController extends Controller
      */
     public function store(StoreCapabilityApplicationRequest $request): JsonResponse
     {
+        $this->authorize('create', CapabilityApplication::class);
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -57,7 +59,7 @@ class CapabilityApplicationController extends Controller
 
         return response()->json([
             'message'     => 'Capability application submitted successfully.',
-            'application' => $application->load('user'),
+            'application' => new CapabilityApplicationResource($application->load('user')),
         ], 201);
     }
 
@@ -77,7 +79,7 @@ class CapabilityApplicationController extends Controller
             ->get();
 
         return response()->json([
-            'applications' => $applications,
+            'applications' => CapabilityApplicationResource::collection($applications),
         ]);
     }
 
@@ -88,21 +90,13 @@ class CapabilityApplicationController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
         $application = CapabilityApplication::with(['user:id,first_name,second_name,phone', 'reviewer:id,first_name,second_name'])
             ->findOrFail($id);
 
-        /////// Non-admin users can only view their own applications./////////
-        if (! $user->is_admin && $application->user_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to view this application.',
-            ], 403);
-        }
+        $this->authorize('view', $application);
 
         return response()->json([
-            'application' => $application,
+            'application' => new CapabilityApplicationResource($application),
         ]);
     }
 
@@ -113,14 +107,7 @@ class CapabilityApplicationController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
-        }
+        $this->authorize('viewAny', CapabilityApplication::class);
 
         $query = CapabilityApplication::with('user:id,first_name,second_name,phone');
 
@@ -136,7 +123,7 @@ class CapabilityApplicationController extends Controller
 
         $applications = $query->orderByDesc('created_at')->paginate(20);
 
-        return response()->json($applications);
+        return response()->json(CapabilityApplicationResource::collection($applications)->response()->getData(true));
     }
 
     /**
@@ -146,16 +133,12 @@ class CapabilityApplicationController extends Controller
      */
     public function approve(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $admin = Auth::user();
-
-        if (! $admin->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
-        }
-
         $application = CapabilityApplication::findOrFail($id);
+
+        $this->authorize('approve', $application);
+
+        /** @var \App\Models\User $admin */
+        $admin = Auth::user();
 
         if ($application->status !== 'pending') {
             return response()->json([
@@ -188,7 +171,7 @@ class CapabilityApplicationController extends Controller
 
         return response()->json([
             'message'     => 'Application approved. ' . ucfirst($application->capability_type) . ' capability granted.',
-            'application' => $application->fresh()->load(['user:id,first_name,second_name,phone', 'capabilityGrant']),
+            'application' => new CapabilityApplicationResource($application->fresh()->load(['user:id,first_name,second_name,phone', 'capabilityGrant'])),
         ]);
     }
 
@@ -200,16 +183,12 @@ class CapabilityApplicationController extends Controller
      */
     public function reject(RejectCapabilityApplicationRequest $request, int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $admin = Auth::user();
-
-        if (! $admin->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
-        }
-
         $application = CapabilityApplication::findOrFail($id);
+
+        $this->authorize('reject', $application);
+
+        /** @var \App\Models\User $admin */
+        $admin = Auth::user();
 
         if ($application->status !== 'pending') {
             return response()->json([
@@ -226,7 +205,7 @@ class CapabilityApplicationController extends Controller
 
         return response()->json([
             'message'     => 'Application rejected.',
-            'application' => $application->fresh()->load('user:id,first_name,second_name,phone'),
+            'application' => new CapabilityApplicationResource($application->fresh()->load('user:id,first_name,second_name,phone')),
         ]);
     }
 }

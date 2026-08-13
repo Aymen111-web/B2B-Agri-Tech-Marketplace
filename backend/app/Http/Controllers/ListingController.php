@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreListingRequest;
 use App\Http\Requests\UpdateListingRequest;
+use App\Http\Resources\ListingResource;
 use App\Models\Listing;
 use App\Models\ListingPriceHistory;
 use Illuminate\Http\JsonResponse;
@@ -52,7 +53,7 @@ class ListingController extends Controller
 
         $listings = $query->paginate($request->input('per_page', 20));
 
-        return response()->json($listings);
+        return ListingResource::collection($listings)->response();
     }
 
     /**
@@ -69,7 +70,7 @@ class ListingController extends Controller
         ])->findOrFail($id);
 
         return response()->json([
-            'listing' => $listing,
+            'listing' => new ListingResource($listing),
         ]);
     }
 
@@ -81,14 +82,10 @@ class ListingController extends Controller
      */
     public function store(StoreListingRequest $request): JsonResponse
     {
+        $this->authorize('create', Listing::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to create listings.',
-            ], 403);
-        }
 
         $validated = $request->validated();
 
@@ -116,7 +113,7 @@ class ListingController extends Controller
 
         return response()->json([
             'message' => 'Listing created successfully.',
-            'listing' => $listing->load(['farmer:id,first_name,second_name', 'category:id,name,slug']),
+            'listing' => new ListingResource($listing->load(['farmer', 'category'])),
         ], 201);
     }
 
@@ -128,22 +125,12 @@ class ListingController extends Controller
      */
     public function update(UpdateListingRequest $request, int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to update listings.',
-            ], 403);
-        }
-
         $listing = Listing::findOrFail($id);
 
-        if ($listing->farmer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to update this listing.',
-            ], 403);
-        }
+        $this->authorize('update', $listing);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
         $validated = $request->validated();
 
@@ -163,7 +150,7 @@ class ListingController extends Controller
 
         return response()->json([
             'message' => 'Listing updated successfully.',
-            'listing' => $listing->fresh()->load(['farmer:id,first_name,second_name', 'category:id,name,slug']),
+            'listing' => new ListingResource($listing->fresh()->load(['farmer', 'category'])),
         ]);
     }
 
@@ -174,22 +161,9 @@ class ListingController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to remove listings.',
-            ], 403);
-        }
-
         $listing = Listing::findOrFail($id);
 
-        if ($listing->farmer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to remove this listing.',
-            ], 403);
-        }
+        $this->authorize('delete', $listing);
 
         // Prevent deletion when stock is currently reserved by pending orders.
         if ($listing->quantity_reserved > 0) {
@@ -212,14 +186,10 @@ class ListingController extends Controller
      */
     public function my(Request $request): JsonResponse
     {
+        $this->authorize('viewOwn', Listing::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to view your listings.',
-            ], 403);
-        }
 
         $query = $user->listings()->with('category:id,name,slug');
 
@@ -231,7 +201,7 @@ class ListingController extends Controller
         $listings = $query->orderByDesc('created_at')
             ->paginate($request->input('per_page', 20));
 
-        return response()->json($listings);
+        return ListingResource::collection($listings)->response();
     }
 
     /**

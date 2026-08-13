@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ListPaymentExceptionsRequest;
 use App\Http\Requests\ResolvePaymentExceptionRequest;
 use App\Http\Requests\StorePaymentExceptionRequest;
+use App\Http\Resources\PaymentExceptionResource;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentException;
@@ -28,6 +29,8 @@ class PaymentExceptionController extends Controller
      */
     public function store(StorePaymentExceptionRequest $request): JsonResponse
     {
+        $this->authorize('create', PaymentException::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -43,6 +46,8 @@ class PaymentExceptionController extends Controller
         }
 
         // Only the buyer or a farmer assigned to a fulfillment on this order may raise an exception.
+        // This participant check is a business-logic concern that requires the order context,
+        // so it remains here rather than in the policy.
         if (! $this->isOrderParticipant($user, $order)) {
             return response()->json([
                 'message' => 'You are not authorized to raise an exception for this payment.',
@@ -72,11 +77,9 @@ class PaymentExceptionController extends Controller
 
         return response()->json([
             'message'           => 'Payment exception raised successfully.',
-            'payment_exception' => $exception->load([
-                'payment:id,chapa_tx_ref,amount,currency,status',
-                'order:id,order_number,status',
-                'raisedBy:id,first_name,second_name',
-            ]),
+            'payment_exception' => new PaymentExceptionResource($exception->load([
+                'payment', 'order', 'raisedBy',
+            ])),
         ], 201);
     }
 
@@ -103,7 +106,7 @@ class PaymentExceptionController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($exceptions);
+        return PaymentExceptionResource::collection($exceptions)->response();
     }
 
     /**
@@ -113,9 +116,6 @@ class PaymentExceptionController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
         $exception = PaymentException::with([
             'payment:id,chapa_tx_ref,amount,currency,status',
             'order:id,order_number,status,total_amount,currency',
@@ -123,15 +123,10 @@ class PaymentExceptionController extends Controller
             'resolvedBy:id,first_name,second_name',
         ])->findOrFail($id);
 
-        // Non-admin users can only view their own exceptions.
-        if (! $user->is_admin && $exception->raised_by !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to view this exception.',
-            ], 403);
-        }
+        $this->authorize('view', $exception);
 
         return response()->json([
-            'payment_exception' => $exception,
+            'payment_exception' => new PaymentExceptionResource($exception),
         ]);
     }
 
@@ -142,14 +137,7 @@ class PaymentExceptionController extends Controller
      */
     public function index(ListPaymentExceptionsRequest $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $user->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
-        }
+        $this->authorize('viewAny', PaymentException::class);
 
         $validated = $request->validated();
 
@@ -170,7 +158,7 @@ class PaymentExceptionController extends Controller
         $exceptions = $query->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($exceptions);
+        return PaymentExceptionResource::collection($exceptions)->response();
     }
 
     /**
@@ -180,16 +168,9 @@ class PaymentExceptionController extends Controller
      */
     public function investigate(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $admin = Auth::user();
-
-        if (! $admin->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
-        }
-
         $exception = PaymentException::findOrFail($id);
+
+        $this->authorize('investigate', $exception);
 
         if ($exception->status !== 'open') {
             return response()->json([
@@ -203,11 +184,9 @@ class PaymentExceptionController extends Controller
 
         return response()->json([
             'message'           => 'Exception is now under investigation.',
-            'payment_exception' => $exception->fresh()->load([
-                'payment:id,chapa_tx_ref,amount,currency,status',
-                'order:id,order_number,status',
-                'raisedBy:id,first_name,second_name',
-            ]),
+            'payment_exception' => new PaymentExceptionResource($exception->fresh()->load([
+                'payment', 'order', 'raisedBy',
+            ])),
         ]);
     }
 
@@ -223,18 +202,14 @@ class PaymentExceptionController extends Controller
      */
     public function resolve(ResolvePaymentExceptionRequest $request, int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        $exception = PaymentException::findOrFail($id);
+
+        $this->authorize('resolve', $exception);
+
+        /** @var \App\Models\User $admin */
         $admin = Auth::user();
 
-        if (! $admin->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
-        }
-
         $validated = $request->validated();
-
-        $exception = PaymentException::findOrFail($id);
 
         if (! in_array($exception->status, ['open', 'investigating'], true)) {
             return response()->json([
@@ -251,12 +226,9 @@ class PaymentExceptionController extends Controller
 
         return response()->json([
             'message'           => 'Exception resolved.',
-            'payment_exception' => $exception->fresh()->load([
-                'payment:id,chapa_tx_ref,amount,currency,status',
-                'order:id,order_number,status',
-                'raisedBy:id,first_name,second_name',
-                'resolvedBy:id,first_name,second_name',
-            ]),
+            'payment_exception' => new PaymentExceptionResource($exception->fresh()->load([
+                'payment', 'order', 'raisedBy', 'resolvedBy',
+            ])),
         ]);
     }
 
@@ -268,18 +240,14 @@ class PaymentExceptionController extends Controller
      */
     public function reject(ResolvePaymentExceptionRequest $request, int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        $exception = PaymentException::findOrFail($id);
+
+        $this->authorize('reject', $exception);
+
+        /** @var \App\Models\User $admin */
         $admin = Auth::user();
 
-        if (! $admin->is_admin) {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access required.',
-            ], 403);
-        }
-
         $validated = $request->validated();
-
-        $exception = PaymentException::findOrFail($id);
 
         if (! in_array($exception->status, ['open', 'investigating'], true)) {
             return response()->json([
@@ -296,18 +264,18 @@ class PaymentExceptionController extends Controller
 
         return response()->json([
             'message'           => 'Exception rejected.',
-            'payment_exception' => $exception->fresh()->load([
-                'payment:id,chapa_tx_ref,amount,currency,status',
-                'order:id,order_number,status',
-                'raisedBy:id,first_name,second_name',
-                'resolvedBy:id,first_name,second_name',
-            ]),
+            'payment_exception' => new PaymentExceptionResource($exception->fresh()->load([
+                'payment', 'order', 'raisedBy', 'resolvedBy',
+            ])),
         ]);
     }
 
     /**
      * Check whether the given user is a participant in the order
      * (either the buyer or a farmer assigned to a fulfillment).
+     *
+     * This is intentionally kept in the controller because it requires the
+     * resolved Order instance — a concern too contextual for the policy.
      */
     private function isOrderParticipant(\App\Models\User $user, Order $order): bool
     {

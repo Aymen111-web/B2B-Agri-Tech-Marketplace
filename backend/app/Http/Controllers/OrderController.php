@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ListOrdersRequest;
+use App\Http\Resources\OrderResource;
 use App\Models\CartItem;
 use App\Models\Listing;
 use App\Models\Order;
@@ -22,14 +23,10 @@ class OrderController extends Controller
      */
     public function index(ListOrdersRequest $request): JsonResponse
     {
+        $this->authorize('viewAny', Order::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to view orders.',
-            ], 403);
-        }
 
         $validated = $request->validated();
 
@@ -41,7 +38,7 @@ class OrderController extends Controller
             ->orderByDesc('placed_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($orders);
+        return OrderResource::collection($orders)->response();
     }
 
     /**
@@ -51,15 +48,6 @@ class OrderController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to view orders.',
-            ], 403);
-        }
-
         $order = Order::with([
             'items.listing:id,farmer_id,title,unit',
             'fulfillments.farmer:id,first_name,second_name',
@@ -67,14 +55,10 @@ class OrderController extends Controller
             'payment:id,order_id,status,amount,currency,confirmed_at',
         ])->findOrFail($id);
 
-        if ($order->buyer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to view this order.',
-            ], 403);
-        }
+        $this->authorize('view', $order);
 
         return response()->json([
-            'order' => $order,
+            'order' => new OrderResource($order),
         ]);
     }
 
@@ -95,14 +79,10 @@ class OrderController extends Controller
      */
     public function checkout(): JsonResponse
     {
+        $this->authorize('create', Order::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to place orders.',
-            ], 403);
-        }
 
         // Load cart items with their listings eagerly.
         $cartItems = $user->cartItems()->with('listing')->get();
@@ -228,7 +208,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Order placed successfully.',
-            'order'   => $order,
+            'order'   => new OrderResource($order),
         ], 201);
     }
 
@@ -241,22 +221,9 @@ class OrderController extends Controller
      */
     public function cancel(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveBuyerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active buyer capability to cancel orders.',
-            ], 403);
-        }
-
         $order = Order::findOrFail($id);
 
-        if ($order->buyer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to cancel this order.',
-            ], 403);
-        }
+        $this->authorize('cancel', $order);
 
         if ($order->status !== 'pending_payment') {
             return response()->json([
@@ -292,7 +259,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Order cancelled and reserved stock released.',
-            'order'   => $order->fresh(['fulfillments:id,order_id,status', 'payment:id,order_id,status']),
+            'order'   => new OrderResource($order->fresh(['fulfillments', 'payment'])),
         ]);
     }
 

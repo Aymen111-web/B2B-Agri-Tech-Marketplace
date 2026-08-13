@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ListFulfillmentsRequest;
 use App\Http\Requests\RejectFulfillmentRequest;
+use App\Http\Resources\OrderFulfillmentResource;
 use App\Models\Listing;
 use App\Models\Order;
 use App\Models\OrderFulfillment;
@@ -20,14 +21,10 @@ class OrderFulfillmentController extends Controller
      */
     public function index(ListFulfillmentsRequest $request): JsonResponse
     {
+        $this->authorize('viewAny', OrderFulfillment::class);
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to view fulfillments.',
-            ], 403);
-        }
 
         $validated = $request->validated();
 
@@ -43,7 +40,7 @@ class OrderFulfillmentController extends Controller
             ->orderByDesc('created_at')
             ->paginate($validated['per_page'] ?? 20);
 
-        return response()->json($fulfillments);
+        return OrderFulfillmentResource::collection($fulfillments)->response();
     }
 
     /**
@@ -53,29 +50,16 @@ class OrderFulfillmentController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to view fulfillments.',
-            ], 403);
-        }
-
         $fulfillment = OrderFulfillment::with([
             'order:id,order_number,buyer_id,status,total_amount,currency,placed_at',
             'order.buyer:id,first_name,second_name',
             'items.listing:id,title,unit,price_per_unit',
         ])->findOrFail($id);
 
-        if ($fulfillment->farmer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to view this fulfillment.',
-            ], 403);
-        }
+        $this->authorize('view', $fulfillment);
 
         return response()->json([
-            'fulfillment' => $fulfillment,
+            'fulfillment' => new OrderFulfillmentResource($fulfillment),
         ]);
     }
 
@@ -88,22 +72,9 @@ class OrderFulfillmentController extends Controller
      */
     public function accept(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to accept fulfillments.',
-            ], 403);
-        }
-
         $fulfillment = OrderFulfillment::findOrFail($id);
 
-        if ($fulfillment->farmer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to accept this fulfillment.',
-            ], 403);
-        }
+        $this->authorize('accept', $fulfillment);
 
         if ($fulfillment->status !== 'pending') {
             return response()->json([
@@ -120,10 +91,9 @@ class OrderFulfillmentController extends Controller
 
         return response()->json([
             'message'     => 'Fulfillment accepted.',
-            'fulfillment' => $fulfillment->fresh([
-                'order:id,order_number,status',
-                'items.listing:id,title,unit',
-            ]),
+            'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
+                'order', 'items.listing',
+            ])),
         ]);
     }
 
@@ -138,24 +108,11 @@ class OrderFulfillmentController extends Controller
      */
     public function reject(RejectFulfillmentRequest $request, int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to reject fulfillments.',
-            ], 403);
-        }
-
         $validated = $request->validated();
 
         $fulfillment = OrderFulfillment::findOrFail($id);
 
-        if ($fulfillment->farmer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to reject this fulfillment.',
-            ], 403);
-        }
+        $this->authorize('reject', $fulfillment);
 
         if ($fulfillment->status !== 'pending') {
             return response()->json([
@@ -189,10 +146,9 @@ class OrderFulfillmentController extends Controller
 
         return response()->json([
             'message'     => 'Fulfillment rejected and reserved stock released.',
-            'fulfillment' => $fulfillment->fresh([
-                'order:id,order_number,status',
-                'items.listing:id,title,unit',
-            ]),
+            'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
+                'order', 'items.listing',
+            ])),
         ]);
     }
 
@@ -206,22 +162,9 @@ class OrderFulfillmentController extends Controller
      */
     public function complete(int $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if (! $this->hasActiveFarmerCapability($user)) {
-            return response()->json([
-                'message' => 'You must have an active farmer capability to complete fulfillments.',
-            ], 403);
-        }
-
         $fulfillment = OrderFulfillment::findOrFail($id);
 
-        if ($fulfillment->farmer_id !== $user->id) {
-            return response()->json([
-                'message' => 'You are not authorized to complete this fulfillment.',
-            ], 403);
-        }
+        $this->authorize('complete', $fulfillment);
 
         if ($fulfillment->status !== 'accepted') {
             return response()->json([
@@ -253,10 +196,9 @@ class OrderFulfillmentController extends Controller
 
         return response()->json([
             'message'     => 'Fulfillment completed.',
-            'fulfillment' => $fulfillment->fresh([
-                'order:id,order_number,status',
-                'items.listing:id,title,unit',
-            ]),
+            'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
+                'order', 'items.listing',
+            ])),
         ]);
     }
 
