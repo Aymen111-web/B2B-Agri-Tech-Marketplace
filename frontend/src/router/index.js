@@ -44,6 +44,30 @@ const router = createRouter({
       component: () => import('@/views/listings/ListingDetailView.vue'),
       meta: { title: 'Produce Details — Agri Market' },
     },
+    {
+      path: '/cart',
+      name: 'cart',
+      component: () => import('@/views/cart/CartView.vue'),
+      meta: { requiresAuth: true, title: 'Your Produce Cart — Agri Market' },
+    },
+    {
+      path: '/checkout',
+      name: 'checkout',
+      component: () => import('@/views/checkout/CheckoutView.vue'),
+      meta: { requiresAuth: true, title: 'Order Checkout — Agri Market' },
+    },
+    {
+      path: '/orders',
+      name: 'orders-list',
+      component: () => import('@/views/orders/OrdersListView.vue'),
+      meta: { requiresAuth: true, title: 'My Produce Orders — Agri Market' },
+    },
+    {
+      path: '/orders/:id',
+      name: 'order-detail',
+      component: () => import('@/views/orders/OrderDetailView.vue'),
+      meta: { requiresAuth: true, title: 'Order Confirmation — Agri Market' },
+    },
 
     // ── Authenticated ─────────────────────────────────
     {

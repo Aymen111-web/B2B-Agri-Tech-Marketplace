@@ -3,19 +3,26 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useListingStore } from '@/stores/listing'
 import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 
 const listingStore = useListingStore()
 const auth = useAuthStore()
+const cartStore = useCartStore()
 const router = useRouter()
 const route = useRoute()
 
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const selectedSort = ref('newest')
+const addingCartId = ref(null)
+const cartMessage = ref({ type: '', text: '' })
 
 onMounted(async () => {
   await listingStore.fetchCategories()
   await loadListings()
+  if (auth.isAuthenticated) {
+    await cartStore.fetchCart()
+  }
 })
 
 async function loadListings() {
@@ -44,6 +51,28 @@ function handleSortChange() {
   loadListings()
 }
 
+async function handleAddToCart(item) {
+  if (!auth.isAuthenticated) {
+    router.push('/login')
+    return
+  }
+  addingCartId.value = item.id
+  cartMessage.value = { type: '', text: '' }
+
+  const res = await cartStore.addToCart(item.id, 1)
+  addingCartId.value = null
+
+  if (res.success) {
+    cartMessage.value = { type: 'success', text: `Added ${item.title} to your cart!` }
+  } else {
+    cartMessage.value = { type: 'error', text: res.message }
+  }
+
+  setTimeout(() => {
+    cartMessage.value = { type: '', text: '' }
+  }, 4000)
+}
+
 function formatPrice(val) {
   if (val === undefined || val === null) return '0.00'
   return Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -51,13 +80,14 @@ function formatPrice(val) {
 
 function getCategoryIcon(catName) {
   const name = (catName || '').toLowerCase()
-  if (name.includes('grain') || name.includes('teff')) return '🌾'
+  if (name.includes('grain') || name.includes('cereal') || name.includes('wheat')) return '🌾'
   if (name.includes('vegetable') || name.includes('tomato')) return '🥦'
   if (name.includes('fruit') || name.includes('avocado')) return '🍎'
   if (name.includes('coffee')) return '☕'
   if (name.includes('pulse') || name.includes('bean')) return '🫘'
   if (name.includes('oil')) return '🌻'
-  if (name.includes('spice')) return '🌶️'
+  if (name.includes('dairy') || name.includes('milk')) return '🥛'
+  if (name.includes('honey') || name.includes('bee')) return '🍯'
   return '📦'
 }
 </script>
@@ -73,6 +103,9 @@ function getCategoryIcon(catName) {
         <div class="top-nav__right">
           <router-link to="/listings" class="top-nav__link active">
             Browse Produce
+          </router-link>
+          <router-link v-if="auth.isAuthenticated" to="/cart" class="top-nav__link cart-link">
+            🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
           </router-link>
           <router-link v-if="auth.isAuthenticated" to="/dashboard" class="top-nav__link">
             Dashboard
@@ -99,7 +132,7 @@ function getCategoryIcon(catName) {
             <input
               type="text"
               v-model="searchQuery"
-              placeholder="Search produce (e.g. White Teff, Tomatoes, Harar Coffee)..."
+              placeholder="Search produce (e.g. White Wheat, Tomatoes, Harar Coffee)..."
               @keyup.enter="handleSearch"
             />
             <button class="search-btn" @click="handleSearch">Search</button>
@@ -141,6 +174,12 @@ function getCategoryIcon(catName) {
     <!-- Produce Grid Section -->
     <main class="listings-main">
       <div class="listings-container">
+
+        <!-- Toast Notification Alert -->
+        <div v-if="cartMessage.text" :class="['toast-alert', cartMessage.type === 'error' ? 'toast-alert--error' : 'toast-alert--success']">
+          <span>{{ cartMessage.type === 'error' ? '⚠️' : '✅' }}</span>
+          <span>{{ cartMessage.text }}</span>
+        </div>
 
         <div v-if="listingStore.loading" class="state-box">
           <div class="spinner"></div>
@@ -196,9 +235,19 @@ function getCategoryIcon(catName) {
               </div>
             </div>
 
-            <button class="view-btn">
-              View Details & Pricing →
-            </button>
+            <div class="card-actions">
+              <button
+                v-if="item.status === 'active'"
+                class="add-cart-btn"
+                :disabled="addingCartId === item.id"
+                @click.stop="handleAddToCart(item)"
+              >
+                🛒 Add to Cart
+              </button>
+              <button class="view-btn">
+                Details →
+              </button>
+            </div>
           </div>
         </div>
 
@@ -436,5 +485,65 @@ function getCategoryIcon(catName) {
   background: var(--brand-green);
   color: #fff;
   border-color: var(--brand-green);
+}
+
+.cart-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.cart-badge {
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  line-height: 1;
+}
+
+.toast-alert {
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+.toast-alert--success {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.toast-alert--error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.add-cart-btn {
+  flex: 1;
+  padding: 0.65rem;
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-cart-btn:hover {
+  background: #059669;
+}
+.add-cart-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

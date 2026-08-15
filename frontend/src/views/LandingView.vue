@@ -45,12 +45,12 @@ const features = [
 ]
 
 const crops = [
-  { name: 'Teff', emoji: '🌾', desc: 'Ethiopia\'s staple grain' },
   { name: 'Coffee', emoji: '☕', desc: 'Premium highland beans' },
-  { name: 'Sesame', emoji: '🫘', desc: 'Oil crop exports' },
-  { name: 'Lentils', emoji: '🍵', desc: 'Protein-rich legumes' },
-  { name: 'Wheat', emoji: '🌽', desc: 'Bread wheat varieties' },
-  { name: 'Chickpeas', emoji: '🫛', desc: 'Export-quality pulses' },
+  { name: 'Sesame', emoji: '🌻', desc: 'Oil crop exports' },
+  { name: 'Wheat', emoji: '🌾', desc: 'Bread wheat varieties' },
+  { name: 'Tomatoes', emoji: '🍅', desc: 'Fresh farm vegetables' },
+  { name: 'Avocado', emoji: '🥑', desc: 'Highland organic fruits' },
+  { name: 'Honey', emoji: '🍯', desc: 'Pure natural honey' },
 ]
 </script>
 
@@ -105,7 +105,7 @@ const crops = [
         <div class="hero__card hero__card--1">
           <span class="hero__card-icon">🌾</span>
           <div>
-            <div class="hero__card-label">Teff — Grade A</div>
+            <div class="hero__card-label">Wheat — Grade A</div>
             <div class="hero__card-price">ETB 48/kg</div>
           </div>
           <div class="hero__card-badge">Active</div>
@@ -126,7 +126,7 @@ const crops = [
           </div>
           <div class="hero__card-badge">Active</div>
         </div>
-      </div>
+        </div>
     </section>
 
     <!-- ── Stats ──────────────────────────────────────── -->
@@ -166,7 +166,7 @@ const crops = [
           <div class="section-badge">What's Trading</div>
           <h2 class="section-title">Popular Categories</h2>
           <p class="section-subtitle">
-            From highland teff to premium coffee — find the produce your business needs.
+            From highland wheat to premium coffee — find the produce your business needs.
           </p>
         </div>
         <div class="crops__grid">

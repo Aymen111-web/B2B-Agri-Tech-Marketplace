@@ -349,7 +349,7 @@ function formatDate(dateStr) {
               id="create-title"
               type="text"
               v-model="form.title"
-              placeholder="e.g. Red Teff - Grade A"
+              placeholder="e.g. White Teff - Grade A"
               required
             />
           </div>
@@ -360,9 +360,9 @@ function formatDate(dateStr) {
               <select id="create-unit" v-model="form.unit" required>
                 <option value="kg">kilograms (kg)</option>
                 <option value="quintal">quintals (100 kg)</option>
+                <option value="litre">litres (L)</option>
                 <option value="crate">crates</option>
                 <option value="ton">tons</option>
-                <option value="bag">bags</option>
               </select>
             </div>
 

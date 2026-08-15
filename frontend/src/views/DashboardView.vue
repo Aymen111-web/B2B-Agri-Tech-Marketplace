@@ -122,9 +122,20 @@ async function handleLogout() {
               >
                 Apply for Buyer Capability
               </button>
-              <span v-else class="text-granted">
-                ✓ Ready to order produce
-              </span>
+              <div v-else class="buyer-actions-flex">
+                <button
+                  class="btn btn--primary"
+                  @click="router.push('/orders')"
+                >
+                  My Orders →
+                </button>
+                <button
+                  class="btn btn--outline"
+                  @click="router.push('/cart')"
+                >
+                  View Cart 🛒
+                </button>
+              </div>
             </div>
           </div>
 
@@ -253,6 +264,10 @@ async function handleLogout() {
 .btn--primary:hover { background: #2d5a3f; }
 .btn--admin   { background: #1e293b; color: #fff; }
 .btn--admin:hover { background: #0f172a; }
+.btn--outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
+.btn--outline:hover { background: #f8fafc; }
+
+.buyer-actions-flex { display: flex; gap: 0.75rem; }
 
 .text-granted { font-size: 0.9rem; font-weight: 600; color: #166534; }
 </style>
