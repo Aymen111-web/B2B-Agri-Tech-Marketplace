@@ -44,6 +44,12 @@ const router = createRouter({
       component: () => import('@/views/listings/ListingDetailView.vue'),
       meta: { title: 'Produce Details — Agri Market' },
     },
+    {
+      path: '/cart',
+      name: 'cart',
+      component: () => import('@/views/cart/CartView.vue'),
+      meta: { requiresAuth: true, title: 'Your Produce Cart — Agri Market' },
+    },
 
     // ── Authenticated ─────────────────────────────────
     {
