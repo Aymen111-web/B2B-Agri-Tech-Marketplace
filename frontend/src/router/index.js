@@ -10,25 +10,25 @@ const router = createRouter({
       path: '/',
       name: 'landing',
       component: () => import('@/views/LandingView.vue'),
-      meta: { guest: true, title: 'Agri Market — Ethiopian Farmers Marketplace' },
+      meta: { guest: true, hideSidebar: true, title: 'Agri Market — Ethiopian Farmers Marketplace' },
     },
     {
       path: '/login',
       name: 'login',
       component: () => import('@/views/auth/LoginView.vue'),
-      meta: { guest: true, title: 'Login — Agri Market' },
+      meta: { guest: true, hideSidebar: true, title: 'Login — Agri Market' },
     },
     {
       path: '/register',
       name: 'register',
       component: () => import('@/views/auth/RegisterView.vue'),
-      meta: { guest: true, title: 'Create Account — Agri Market' },
+      meta: { guest: true, hideSidebar: true, title: 'Create Account — Agri Market' },
     },
     {
       path: '/verify-otp',
       name: 'verify-otp',
       component: () => import('@/views/auth/OtpView.vue'),
-      meta: { guest: true, title: 'Verify Phone — Agri Market' },
+      meta: { guest: true, hideSidebar: true, title: 'Verify Phone — Agri Market' },
     },
 
     // ── Public Marketplace ────────────────────────────────
