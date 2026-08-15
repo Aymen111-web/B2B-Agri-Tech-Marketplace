@@ -98,15 +98,25 @@ async function handleLogout() {
       <!-- Role-Based Portals -->
       <div v-if="isFarmer || authStore.isAdmin" class="nav-section-title mt-4">PORTALS</div>
 
-      <router-link
-        v-if="isFarmer"
-        to="/farmer/listings"
-        class="nav-item"
-        :class="{ active: route.path.startsWith('/farmer') }"
-      >
-        <span class="nav-icon">🚜</span>
-        <span class="nav-label">Farmer Portal</span>
-      </router-link>
+      <template v-if="isFarmer">
+        <router-link
+          to="/farmer/listings"
+          class="nav-item"
+          :class="{ active: route.path === '/farmer/listings' }"
+        >
+          <span class="nav-icon">🌾</span>
+          <span class="nav-label">My Crop Listings</span>
+        </router-link>
+
+        <router-link
+          to="/farmer/fulfillments"
+          class="nav-item"
+          :class="{ active: route.path === '/farmer/fulfillments' }"
+        >
+          <span class="nav-icon">🚜</span>
+          <span class="nav-label">Fulfillment Orders</span>
+        </router-link>
+      </template>
 
       <router-link
         v-if="authStore.isAdmin"
