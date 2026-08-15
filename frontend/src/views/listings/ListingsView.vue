@@ -51,13 +51,14 @@ function formatPrice(val) {
 
 function getCategoryIcon(catName) {
   const name = (catName || '').toLowerCase()
-  if (name.includes('grain') || name.includes('wheat')) return '🌾'
+  if (name.includes('grain') || name.includes('cereal') || name.includes('wheat')) return '🌾'
   if (name.includes('vegetable') || name.includes('tomato')) return '🥦'
   if (name.includes('fruit') || name.includes('avocado')) return '🍎'
   if (name.includes('coffee')) return '☕'
   if (name.includes('pulse') || name.includes('bean')) return '🫘'
   if (name.includes('oil')) return '🌻'
-  if (name.includes('spice')) return '🌶️'
+  if (name.includes('dairy') || name.includes('milk')) return '🥛'
+  if (name.includes('honey') || name.includes('bee')) return '🍯'
   return '📦'
 }
 </script>
