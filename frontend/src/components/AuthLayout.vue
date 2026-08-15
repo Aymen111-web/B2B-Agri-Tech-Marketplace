@@ -23,7 +23,7 @@ defineProps({
           <div class="auth-card">
             <span>🌾</span>
             <div>
-              <div class="auth-card__label">Teff — Grade A</div>
+              <div class="auth-card__label">Wheat — Grade A</div>
               <div class="auth-card__price">ETB 48 / kg</div>
             </div>
           </div>

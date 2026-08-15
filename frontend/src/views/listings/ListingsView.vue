@@ -51,7 +51,7 @@ function formatPrice(val) {
 
 function getCategoryIcon(catName) {
   const name = (catName || '').toLowerCase()
-  if (name.includes('grain') || name.includes('teff')) return '🌾'
+  if (name.includes('grain') || name.includes('wheat')) return '🌾'
   if (name.includes('vegetable') || name.includes('tomato')) return '🥦'
   if (name.includes('fruit') || name.includes('avocado')) return '🍎'
   if (name.includes('coffee')) return '☕'
@@ -99,7 +99,7 @@ function getCategoryIcon(catName) {
             <input
               type="text"
               v-model="searchQuery"
-              placeholder="Search produce (e.g. White Teff, Tomatoes, Harar Coffee)..."
+              placeholder="Search produce (e.g. White Wheat, Tomatoes, Harar Coffee)..."
               @keyup.enter="handleSearch"
             />
             <button class="search-btn" @click="handleSearch">Search</button>

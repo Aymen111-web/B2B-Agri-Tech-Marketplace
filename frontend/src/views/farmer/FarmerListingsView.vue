@@ -349,7 +349,7 @@ function formatDate(dateStr) {
               id="create-title"
               type="text"
               v-model="form.title"
-              placeholder="e.g. Red Teff - Grade A"
+              placeholder="e.g. Red Wheat - Grade A"
               required
             />
           </div>

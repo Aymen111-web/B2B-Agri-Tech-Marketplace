@@ -252,7 +252,7 @@ function formatDate(dateStr) {
                   id="farm-crops"
                   type="text"
                   v-model="farmerForm.primary_crops"
-                  placeholder="e.g. Tomatoes, Onions, Teff, Coffee, Avocado"
+                  placeholder="e.g. Tomatoes, Onions, Wheat, Coffee, Avocado"
                 />
               </div>
 
