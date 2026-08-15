@@ -57,16 +57,12 @@ class DatabaseSeeder extends Seeder
         // Seed default marketplace categories
         $categories = [
             ['name' => 'Cereals & Grains', 'slug' => 'cereals-grains', 'is_active' => true],
-            ['name' => 'Pulses & Legumes', 'slug' => 'pulses-legumes', 'is_active' => true],
             ['name' => 'Oilseeds', 'slug' => 'oilseeds', 'is_active' => true],
             ['name' => 'Coffee', 'slug' => 'coffee', 'is_active' => true],
             ['name' => 'Vegetables', 'slug' => 'vegetables', 'is_active' => true],
             ['name' => 'Fruits', 'slug' => 'fruits', 'is_active' => true],
-            ['name' => 'Spices & Herbs', 'slug' => 'spices-herbs', 'is_active' => true],
             ['name' => 'Honey & Bee Products', 'slug' => 'honey-bee-products', 'is_active' => true],
             ['name' => 'Dairy Products', 'slug' => 'dairy-products', 'is_active' => true],
-            ['name' => 'Livestock', 'slug' => 'livestock', 'is_active' => true],
-            ['name' => 'Seeds & Seedlings', 'slug' => 'seeds-seedlings', 'is_active' => true],
             ['name' => 'Other Agricultural Products', 'slug' => 'other-agricultural-products', 'is_active' => true],
         ];
 
