@@ -3,20 +3,48 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useListingStore } from '@/stores/listing'
 import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 
 const listingStore = useListingStore()
 const auth = useAuthStore()
+const cartStore = useCartStore()
 const route = useRoute()
 const router = useRouter()
 
 const listing = computed(() => listingStore.currentListing)
+const orderQty = ref(1)
+const isAddingCart = ref(false)
+const cartMsg = ref({ type: '', text: '' })
 
 onMounted(async () => {
   const id = route.params.id
   if (id) {
     await listingStore.fetchListingDetails(id)
   }
+  if (auth.isAuthenticated) {
+    await cartStore.fetchCart()
+  }
 })
+
+async function handleAddToCart() {
+  if (!auth.isAuthenticated) {
+    router.push('/login')
+    return
+  }
+  if (!listing.value) return
+
+  isAddingCart.value = true
+  cartMsg.value = { type: '', text: '' }
+
+  const res = await cartStore.addToCart(listing.value.id, orderQty.value)
+  isAddingCart.value = false
+
+  if (res.success) {
+    cartMsg.value = { type: 'success', text: `Added ${orderQty.value} ${listing.value.unit}(s) to your cart!` }
+  } else {
+    cartMsg.value = { type: 'error', text: res.message }
+  }
+}
 
 function formatPrice(val) {
   if (val === undefined || val === null) return '0.00'
@@ -44,6 +72,9 @@ function formatDate(dateStr) {
           ← Back to Produce Marketplace
         </button>
         <div class="top-nav__right">
+          <router-link v-if="auth.isAuthenticated" to="/cart" class="top-nav__link cart-link">
+            🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+          </router-link>
           <router-link v-if="auth.isAuthenticated" to="/dashboard" class="top-nav__link">
             Dashboard
           </router-link>
@@ -148,8 +179,14 @@ function formatDate(dateStr) {
             </div>
 
             <div class="order-prompt">
+              <!-- Toast Notification Alert -->
+              <div v-if="cartMsg.text" :class="['detail-toast', cartMsg.type === 'error' ? 'detail-toast--error' : 'detail-toast--success']">
+                <span>{{ cartMsg.type === 'error' ? '⚠️' : '✅' }}</span>
+                <span>{{ cartMsg.text }}</span>
+              </div>
+
               <p class="prompt-text">
-                To order this produce, log in as a verified <strong>Business Buyer</strong>.
+                Direct trade order from verified <strong>Business Buyer</strong> account.
               </p>
               <button
                 v-if="!auth.isAuthenticated"
@@ -165,13 +202,27 @@ function formatDate(dateStr) {
               >
                 Apply for Buyer Capability
               </button>
-              <button
-                v-else
-                class="btn-primary"
-                @click="router.push('/cart')"
-              >
-                🛒 Add to Cart
-              </button>
+              <div v-else class="add-cart-action-group">
+                <div class="qty-field">
+                  <label for="detail-qty">Quantity ({{ listing.unit }}):</label>
+                  <input
+                    id="detail-qty"
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    :max="listing.quantity_available"
+                    v-model="orderQty"
+                    class="qty-input-box"
+                  />
+                </div>
+                <button
+                  class="btn-primary"
+                  :disabled="isAddingCart || listing.quantity_available <= 0"
+                  @click="handleAddToCart"
+                >
+                  🛒 {{ isAddingCart ? 'Adding...' : 'Add to Cart' }}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -313,4 +364,64 @@ function formatDate(dateStr) {
 .price-cell { font-weight: 700; color: var(--brand-green); }
 .tag-initial { background: #eff6ff; color: #1e40af; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
 .tag-update  { background: #fef3c7; color: #92400e; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+
+.cart-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.cart-badge {
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  line-height: 1;
+}
+
+.detail-toast {
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.detail-toast--success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.detail-toast--error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.add-cart-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.qty-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.qty-input-box {
+  width: 90px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
 </style>
