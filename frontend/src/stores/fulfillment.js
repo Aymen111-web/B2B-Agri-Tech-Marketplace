@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import axios from '@/lib/axios'
+import api from '@/services/api'
 
 export const useFulfillmentStore = defineStore('fulfillment', () => {
   const fulfillments = ref([])
@@ -20,7 +20,7 @@ export const useFulfillmentStore = defineStore('fulfillment', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await axios.get('/api/fulfillments', { params })
+      const res = await api.get('/fulfillments', { params })
       // Laravel JSON API Resource collection
       const data = res.data.data ? res.data.data : res.data
       fulfillments.value = data
@@ -47,7 +47,7 @@ export const useFulfillmentStore = defineStore('fulfillment', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await axios.get(`/api/fulfillments/${id}`)
+      const res = await api.get(`/fulfillments/${id}`)
       currentFulfillment.value = res.data.fulfillment || res.data.data
       return { success: true, fulfillment: currentFulfillment.value }
     } catch (err) {
@@ -65,7 +65,7 @@ export const useFulfillmentStore = defineStore('fulfillment', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await axios.post(`/api/fulfillments/${id}/accept`)
+      const res = await api.post(`/fulfillments/${id}/accept`)
       const updated = res.data.fulfillment || res.data.data
       
       // Update locally in array
@@ -92,7 +92,7 @@ export const useFulfillmentStore = defineStore('fulfillment', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await axios.post(`/api/fulfillments/${id}/reject`, {
+      const res = await api.post(`/fulfillments/${id}/reject`, {
         rejection_reason: rejectionReason,
       })
       const updated = res.data.fulfillment || res.data.data
@@ -120,7 +120,7 @@ export const useFulfillmentStore = defineStore('fulfillment', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await axios.post(`/api/fulfillments/${id}/complete`)
+      const res = await api.post(`/fulfillments/${id}/complete`)
       const updated = res.data.fulfillment || res.data.data
 
       const idx = fulfillments.value.findIndex(f => f.id === id)
