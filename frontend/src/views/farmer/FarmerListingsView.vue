@@ -206,9 +206,14 @@ function formatDate(dateStr) {
               Manage your agricultural crop listings, update prices, and monitor stock availability.
             </p>
           </div>
-          <button class="btn-create" @click="openCreateModal">
-            + Publish New Produce
-          </button>
+          <div class="header-actions">
+            <router-link to="/farmer/fulfillments" class="btn-fulfillment">
+              🚜 Fulfillment Orders
+            </router-link>
+            <button class="btn-create" @click="openCreateModal">
+              + Publish New Produce
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -491,6 +496,14 @@ function formatDate(dateStr) {
 .header-flex { display: flex; justify-content: space-between; align-items: center; }
 .farmer-title { font-size: 1.75rem; font-weight: 700; }
 .farmer-sub { color: rgba(255,255,255,0.85); font-size: 0.95rem; margin-top: 0.25rem; }
+
+.header-actions { display: flex; gap: 0.75rem; align-items: center; }
+.btn-fulfillment {
+  background: rgba(255, 255, 255, 0.2); color: #fff; border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 0.65rem 1.25rem; border-radius: 8px; font-weight: 700; font-size: 0.95rem; text-decoration: none;
+  display: inline-flex; align-items: center; transition: background 0.2s;
+}
+.btn-fulfillment:hover { background: rgba(255, 255, 255, 0.3); }
 
 .btn-create {
   background: var(--brand-gold); color: #1e293b; border: none;
