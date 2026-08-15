@@ -360,9 +360,9 @@ function formatDate(dateStr) {
               <select id="create-unit" v-model="form.unit" required>
                 <option value="kg">kilograms (kg)</option>
                 <option value="quintal">quintals (100 kg)</option>
+                <option value="litre">litres (L)</option>
                 <option value="crate">crates</option>
                 <option value="ton">tons</option>
-                <option value="bag">bags</option>
               </select>
             </div>
 
