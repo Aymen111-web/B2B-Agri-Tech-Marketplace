@@ -203,24 +203,21 @@ function getStatusBadgeClass(status) {
 <style scoped>
 .orders-page {
   min-height: 100vh;
-  background: #0d131a;
-  color: #f1f5f9;
+  background: #f8fafc;
+  color: #0f172a;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* Nav */
 .top-nav {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  background: #10b981;
+  padding: 0 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 .top-nav__inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
+  padding: 1rem 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -228,27 +225,27 @@ function getStatusBadgeClass(status) {
 .top-nav__brand {
   font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none;
 }
-.top-nav__brand strong { color: #10b981; }
+.top-nav__brand strong { color: #ecfdf5; }
 .top-nav__right { display: flex; gap: 1.25rem; align-items: center; }
-.top-nav__link { color: #94a3b8; text-decoration: none; font-weight: 500; }
-.top-nav__link:hover { color: #10b981; }
+.top-nav__link { color: rgba(255, 255, 255, 0.9); text-decoration: none; font-weight: 500; }
+.top-nav__link:hover { color: #fff; }
 
 /* Header */
 .orders-header {
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%);
-  padding: 3rem 1.5rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: #ffffff;
+  padding: 2.5rem 1.5rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 .orders-header__inner { max-width: 1000px; margin: 0 auto; }
 .header-badge {
   display: inline-block;
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399; font-weight: 600; font-size: 0.85rem;
+  background: #dcfce7;
+  color: #15803d; font-weight: 700; font-size: 0.85rem;
   padding: 0.35rem 0.85rem; border-radius: 9999px; margin-bottom: 0.75rem;
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  border: 1px solid #bbf7d0;
 }
-.header-title { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem; }
-.header-sub { color: #94a3b8; font-size: 1rem; margin-bottom: 2rem; }
+.header-title { font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; }
+.header-sub { color: #64748b; font-size: 1rem; margin-bottom: 2rem; }
 
 /* Filter Tabs */
 .filter-tabs {
@@ -258,9 +255,9 @@ function getStatusBadgeClass(status) {
   padding-bottom: 0.5rem;
 }
 .tab {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
   padding: 0.5rem 1.1rem;
   border-radius: 9999px;
   font-size: 0.875rem;
@@ -269,10 +266,10 @@ function getStatusBadgeClass(status) {
   white-space: nowrap;
   transition: all 0.2s;
 }
-.tab:hover { background: rgba(30, 41, 59, 0.9); color: #fff; }
+.tab:hover { background: #e2e8f0; color: #0f172a; }
 .tab.active {
   background: #10b981;
-  color: #064e3b;
+  color: #ffffff;
   border-color: #10b981;
 }
 
@@ -280,11 +277,12 @@ function getStatusBadgeClass(status) {
 .orders-main { max-width: 1000px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 
 .state-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 1rem;
   padding: 4rem 2rem;
   text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 .empty-card .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
 
@@ -292,16 +290,18 @@ function getStatusBadgeClass(status) {
 
 /* Order Card */
 .order-card {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 1rem;
   padding: 1.5rem;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .order-card:hover {
-  background: rgba(30, 41, 59, 0.85);
-  border-color: rgba(16, 185, 129, 0.3);
+  background: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12);
   transform: translateY(-2px);
 }
 
@@ -313,8 +313,8 @@ function getStatusBadgeClass(status) {
 }
 .order-id-group { display: flex; align-items: center; gap: 0.85rem; }
 .order-icon { font-size: 1.75rem; }
-.order-number { font-size: 1.15rem; font-weight: 700; margin: 0; }
-.placed-date { font-size: 0.825rem; color: #94a3b8; }
+.order-number { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0; }
+.placed-date { font-size: 0.825rem; color: #64748b; }
 
 .order-card__body {
   display: flex;
@@ -323,25 +323,26 @@ function getStatusBadgeClass(status) {
   flex-wrap: wrap;
 }
 .info-pill {
-  background: rgba(15, 23, 42, 0.6);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   padding: 0.5rem 0.85rem;
   border-radius: 0.5rem;
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: #64748b;
   display: flex;
   gap: 0.5rem;
 }
-.info-pill strong { color: #fff; }
+.info-pill strong { color: #0f172a; }
 
 .order-card__footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  border-top: 1px dashed #e2e8f0;
   padding-top: 1rem;
 }
-.total-wrap { font-size: 0.9rem; color: #94a3b8; }
-.total-amount { font-size: 1.2rem; font-weight: 800; color: #34d399; margin-left: 0.5rem; }
+.total-wrap { font-size: 0.9rem; color: #64748b; }
+.total-amount { font-size: 1.2rem; font-weight: 800; color: #15803d; margin-left: 0.5rem; }
 
 .btn-text {
   background: none;
@@ -358,13 +359,13 @@ function getStatusBadgeClass(status) {
   font-size: 0.75rem;
   font-weight: 700;
 }
-.badge--success { background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
-.badge--warning { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
-.badge--danger  { background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
-.badge--info    { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
+.badge--success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.badge--warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.badge--danger  { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.badge--info    { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
 
-.text-success { color: #34d399; }
-.text-warning { color: #fbbf24; }
+.text-success { color: #15803d; }
+.text-warning { color: #b45309; }
 
 /* Buttons */
 .btn {
@@ -372,8 +373,8 @@ function getStatusBadgeClass(status) {
   padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600;
   text-decoration: none; cursor: pointer; border: none;
 }
-.btn--primary { background: #10b981; color: #064e3b; }
-.btn--primary:hover { background: #34d399; }
+.btn--primary { background: #10b981; color: #ffffff; }
+.btn--primary:hover { background: #059669; }
 .btn--lg { padding: 0.9rem 1.75rem; font-size: 1.05rem; }
 
 .spinner {

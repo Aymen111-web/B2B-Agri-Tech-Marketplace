@@ -247,24 +247,21 @@ function getStatusBadgeClass(status) {
 <style scoped>
 .order-detail-page {
   min-height: 100vh;
-  background: #0d131a;
-  color: #f1f5f9;
+  background: #f8fafc;
+  color: #0f172a;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* Nav */
 .top-nav {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  background: #10b981;
+  padding: 0 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 .top-nav__inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
+  padding: 1rem 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -272,28 +269,30 @@ function getStatusBadgeClass(status) {
 .top-nav__brand {
   font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none;
 }
-.top-nav__brand strong { color: #10b981; }
+.top-nav__brand strong { color: #ecfdf5; }
 .top-nav__right { display: flex; gap: 1.25rem; align-items: center; }
-.top-nav__link { color: #94a3b8; text-decoration: none; font-weight: 500; }
-.top-nav__link:hover { color: #10b981; }
+.top-nav__link { color: rgba(255, 255, 255, 0.9); text-decoration: none; font-weight: 500; }
+.top-nav__link:hover { color: #fff; }
 
 /* Main Container */
 .detail-main { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
 
 .state-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 1rem;
   padding: 4rem 2rem;
   text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 /* Order Header Card */
 .order-header-card {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
   border-radius: 1rem;
   padding: 1.75rem 2rem;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.06);
 }
 .order-header-flex {
   display: flex;
@@ -303,12 +302,12 @@ function getStatusBadgeClass(status) {
   gap: 1.5rem;
 }
 .order-number-wrap { display: flex; align-items: center; gap: 1rem; }
-.order-number { font-size: 1.85rem; font-weight: 800; margin: 0; letter-spacing: -0.02em; }
-.order-placed-at { color: #94a3b8; font-size: 0.9rem; margin-top: 0.35rem; }
+.order-number { font-size: 1.85rem; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.02em; }
+.order-placed-at { color: #64748b; font-size: 0.9rem; margin-top: 0.35rem; }
 
 .order-total-box { text-align: right; }
-.total-label { display: block; font-size: 0.85rem; color: #94a3b8; }
-.total-val { font-size: 1.75rem; font-weight: 800; color: #34d399; }
+.total-label { display: block; font-size: 0.85rem; color: #64748b; }
+.total-val { font-size: 1.75rem; font-weight: 800; color: #15803d; }
 
 /* Grid Layout */
 .detail-grid {
@@ -318,27 +317,28 @@ function getStatusBadgeClass(status) {
 }
 @media (max-width: 960px) { .detail-grid { grid-template-columns: 1fr; } }
 
-.section-heading { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; }
+.section-heading { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 1.25rem; }
 
 /* Fulfillment Card */
 .fulfillment-card {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 1rem;
   margin-bottom: 1.5rem;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .fulfillment-header {
-  background: rgba(15, 23, 42, 0.6);
+  background: #f8fafc;
   padding: 1rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #e2e8f0;
 }
 .farmer-meta { display: flex; align-items: center; gap: 0.75rem; }
-.farmer-title { font-size: 1rem; font-weight: 700; margin: 0; }
-.fulfillment-id { font-size: 0.75rem; color: #94a3b8; }
+.farmer-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0; }
+.fulfillment-id { font-size: 0.75rem; color: #64748b; }
 
 .fulfillment-body { padding: 1rem 1.25rem; }
 .item-row {
@@ -346,40 +346,42 @@ function getStatusBadgeClass(status) {
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+  border-bottom: 1px dashed #e2e8f0;
 }
 .item-row:last-child { border-bottom: none; }
 .item-info { display: flex; align-items: center; gap: 0.75rem; }
-.item-name { font-size: 0.95rem; font-weight: 600; margin: 0 0 0.2rem; }
-.item-meta { font-size: 0.825rem; color: #94a3b8; }
-.item-price { font-weight: 700; color: #34d399; }
+.item-name { font-size: 0.95rem; font-weight: 600; color: #0f172a; margin: 0 0 0.2rem; }
+.item-meta { font-size: 0.825rem; color: #64748b; }
+.item-price { font-weight: 700; color: #15803d; }
 
 .fulfillment-footer {
-  background: rgba(15, 23, 42, 0.4);
+  background: #f8fafc;
   padding: 0.85rem 1.25rem;
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: #475569;
+  border-top: 1px solid #e2e8f0;
 }
 
 /* Payment Sidebar Card */
 .payment-card {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 1rem;
   padding: 1.75rem;
   position: sticky;
   top: 90px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
-.card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.25rem; }
+.card-title { font-size: 1.2rem; font-weight: 700; color: #0f172a; margin-bottom: 1.25rem; }
 .payment-meta { display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; }
-.meta-row { display: flex; justify-content: space-between; color: #94a3b8; }
-.divider { height: 1px; background: rgba(255, 255, 255, 0.08); margin: 1.25rem 0; }
+.meta-row { display: flex; justify-content: space-between; color: #64748b; }
+.divider { height: 1px; background: #e2e8f0; margin: 1.25rem 0; }
 
 .chapa-badge {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+  background: #dcfce7;
+  color: #15803d;
   font-size: 0.8rem;
   font-weight: 700;
   padding: 0.3rem 0.65rem;
@@ -389,9 +391,9 @@ function getStatusBadgeClass(status) {
 }
 
 .confirmed-box {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
   padding: 1rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;
@@ -399,9 +401,9 @@ function getStatusBadgeClass(status) {
 }
 
 .cancelled-box {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
   padding: 1rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;
@@ -415,10 +417,10 @@ function getStatusBadgeClass(status) {
   font-size: 0.75rem;
   font-weight: 700;
 }
-.badge--success { background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3); }
-.badge--warning { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
-.badge--danger  { background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
-.badge--info    { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
+.badge--success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.badge--warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.badge--danger  { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.badge--info    { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
 
 /* Buttons */
 .btn {
@@ -426,19 +428,19 @@ function getStatusBadgeClass(status) {
   padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600;
   text-decoration: none; cursor: pointer; border: none;
 }
-.btn--primary { background: #10b981; color: #064e3b; }
-.btn--primary:hover { background: #34d399; }
+.btn--primary { background: #10b981; color: #ffffff; }
+.btn--primary:hover { background: #059669; }
 .btn--danger-outline {
   background: transparent;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #ef4444;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
 }
-.btn--danger-outline:hover { background: rgba(239, 68, 68, 0.1); }
+.btn--danger-outline:hover { background: #fee2e2; }
 .btn--block { width: 100%; }
 .btn--lg { padding: 0.9rem 1.75rem; font-size: 1.05rem; }
 
-.text-success { color: #34d399; }
-.text-warning { color: #fbbf24; }
+.text-success { color: #15803d; }
+.text-warning { color: #b45309; }
 
 .alert-toast {
   padding: 0.85rem 1.25rem;
@@ -448,8 +450,8 @@ function getStatusBadgeClass(status) {
   align-items: center;
   gap: 0.5rem;
 }
-.alert-toast--success { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; }
-.alert-toast--error { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
+.alert-toast--success { background: #dcfce7; border: 1px solid #bbf7d0; color: #15803d; }
+.alert-toast--error { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
 
 .spinner {
   width: 40px; height: 40px;
