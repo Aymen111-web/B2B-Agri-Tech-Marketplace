@@ -116,9 +116,14 @@ function formatDate(dateStr) {
     <!-- Header -->
     <header class="admin-header">
       <div class="admin-header__inner">
-        <button class="back-btn" @click="router.push('/dashboard')">
-          ← Back to Dashboard
-        </button>
+        <div class="header-nav-btns mb-3">
+          <button class="back-btn" @click="router.push('/dashboard')">
+            ← Back to Dashboard
+          </button>
+          <button class="back-btn active-btn" @click="router.push('/admin/users')">
+            👥 Manage User Accounts & Subscriptions →
+          </button>
+        </div>
         <div class="header-flex">
           <div>
             <h1 class="admin-title">Admin — Capability Review & Approval</h1>

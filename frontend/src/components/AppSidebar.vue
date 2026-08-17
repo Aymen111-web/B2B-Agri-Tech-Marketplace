@@ -119,15 +119,25 @@ async function handleLogout() {
         </router-link>
       </template>
 
-      <router-link
-        v-if="authStore.isAdmin"
-        to="/admin/capability-applications"
-        class="nav-item"
-        :class="{ active: route.path.startsWith('/admin') }"
-      >
-        <span class="nav-icon">🛡️</span>
-        <span class="nav-label">Admin Approvals</span>
-      </router-link>
+      <template v-if="authStore.isAdmin">
+        <router-link
+          to="/admin/capability-applications"
+          class="nav-item"
+          :class="{ active: route.path === '/admin/capability-applications' }"
+        >
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-label">Capability Approvals</span>
+        </router-link>
+
+        <router-link
+          to="/admin/users"
+          class="nav-item"
+          :class="{ active: route.path === '/admin/users' }"
+        >
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">User Accounts & Subscriptions</span>
+        </router-link>
+      </template>
 
       <div class="nav-section-title mt-4">ACCOUNT</div>
 

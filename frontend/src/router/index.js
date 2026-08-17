@@ -114,6 +114,12 @@ const router = createRouter({
       component: () => import('@/views/admin/AdminCapabilityApprovalView.vue'),
       meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin Capability Approvals — Agri Market' },
     },
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: () => import('@/views/admin/AdminUsersView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin User Management & Subscriptions — Agri Market' },
+    },
 
     // ── Catch-all ──────────────────────────────────────
     {
