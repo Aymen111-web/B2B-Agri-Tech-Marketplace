@@ -17,6 +17,7 @@ const activeCapabilities = computed(() => {
 })
 
 const isFarmer = computed(() => activeCapabilities.value.includes('farmer'))
+const isBuyer = computed(() => activeCapabilities.value.includes('buyer'))
 
 async function handleLogout() {
   await authStore.logout()
@@ -75,7 +76,7 @@ async function handleLogout() {
       </router-link>
 
       <router-link
-        v-if="!authStore.isAdmin"
+        v-if="isBuyer && !authStore.isAdmin"
         to="/cart"
         class="nav-item"
         :class="{ active: route.path === '/cart' }"
@@ -88,7 +89,7 @@ async function handleLogout() {
       </router-link>
 
       <router-link
-        v-if="authStore.isAuthenticated && !authStore.isAdmin"
+        v-if="isBuyer && !authStore.isAdmin"
         to="/orders"
         class="nav-item"
         :class="{ active: route.path.startsWith('/orders') }"
