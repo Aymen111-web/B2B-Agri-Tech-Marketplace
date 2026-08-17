@@ -36,12 +36,6 @@ async function handleLogout() {
           <router-link v-if="!auth.isAdmin" to="/capabilities/apply" class="dash-nav__link">
             Capabilities
           </router-link>
-          <router-link v-if="auth.isAdmin" to="/admin/capability-applications" class="dash-nav__link dash-nav__link--admin">
-            🛡️ Admin Approvals
-          </router-link>
-          <router-link v-if="auth.isAdmin" to="/admin/users" class="dash-nav__link dash-nav__link--admin">
-            👥 User Accounts
-          </router-link>
           <span class="dash-nav__user">
             {{ auth.user?.first_name }} {{ auth.user?.second_name }}
           </span>
