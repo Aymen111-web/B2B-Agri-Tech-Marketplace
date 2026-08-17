@@ -89,6 +89,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresFarmer: true, title: 'Farmer Fulfillment Portal — Agri Market' },
     },
     {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('@/views/profile/ProfileView.vue'),
+      meta: { requiresAuth: true, title: 'My Profile — Agri Market' },
+    },
+    {
       path: '/capabilities/apply',
       name: 'capability-apply',
       component: () => import('@/views/capabilities/CapabilityApplyView.vue'),

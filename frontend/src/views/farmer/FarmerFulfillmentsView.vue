@@ -94,6 +94,7 @@ function formatDate(dateStr) {
 function getStatusBadgeClass(status) {
   const s = (status || '').toLowerCase()
   if (s === 'completed' || s === 'accepted') return 'badge--success'
+  if (s === 'buyer_received') return 'badge--info'
   if (s === 'pending') return 'badge--warning'
   if (s === 'rejected' || s === 'cancelled') return 'badge--danger'
   return 'badge--info'
@@ -136,10 +137,17 @@ function getStatusBadgeClass(status) {
           </button>
           <button
             class="tab"
+            :class="{ active: activeTab === 'buyer_received' }"
+            @click="activeTab = 'buyer_received'"
+          >
+            🚚 Buyer Inspected
+          </button>
+          <button
+            class="tab"
             :class="{ active: activeTab === 'completed' }"
             @click="activeTab = 'completed'"
           >
-            🎉 Completed
+            🎉 Settled & Completed
           </button>
           <button
             class="tab"
@@ -279,9 +287,14 @@ function getStatusBadgeClass(status) {
                   </button>
                 </template>
 
+                <!-- Buyer Received Status Note -->
+                <template v-else-if="fulfillment.status === 'buyer_received'">
+                  <span class="badge badge--info font-bold">🚚 Buyer Inspected — Awaiting Direct Settlement Payment</span>
+                </template>
+
                 <!-- Complete Status Badge (If Completed) -->
                 <template v-else-if="fulfillment.status === 'completed'">
-                  <span class="completed-tag">🎉 Handoff Completed</span>
+                  <span class="completed-tag">🎉 Settled 100% via Chapa Subaccount</span>
                 </template>
 
                 <!-- Rejected Status Note -->

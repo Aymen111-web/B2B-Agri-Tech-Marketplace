@@ -35,9 +35,10 @@ async function handleLogout() {
     </div>
 
     <!-- User Profile Badge (If Logged In) -->
-    <div v-if="authStore.isAuthenticated" class="sidebar__user">
+    <router-link v-if="authStore.isAuthenticated" to="/profile" class="sidebar__user">
       <div class="user-avatar">
-        {{ authStore.user?.first_name?.[0] || '👤' }}
+        <img v-if="authStore.user?.profile_photo_url" :src="authStore.user.profile_photo_url" alt="Avatar" class="avatar-img-sm" />
+        <span v-else>{{ authStore.user?.first_name?.[0] || '👤' }}</span>
       </div>
       <div class="user-info">
         <div class="user-name">
@@ -49,7 +50,7 @@ async function handleLogout() {
           <span v-else class="role-badge">Buyer</span>
         </div>
       </div>
-    </div>
+    </router-link>
 
     <!-- Main Navigation Links -->
     <nav class="sidebar__nav">
@@ -129,6 +130,16 @@ async function handleLogout() {
       </router-link>
 
       <div class="nav-section-title mt-4">ACCOUNT</div>
+
+      <router-link
+        v-if="authStore.isAuthenticated"
+        to="/profile"
+        class="nav-item"
+        :class="{ active: route.path === '/profile' }"
+      >
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">My Profile & Settings</span>
+      </router-link>
 
       <router-link
         to="/capabilities/apply"

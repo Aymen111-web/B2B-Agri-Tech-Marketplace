@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useAuthStore } from '@/stores/auth'
+import api from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,6 +11,7 @@ const orderStore = useOrderStore()
 const authStore = useAuthStore()
 
 const isCancelling = ref(false)
+const processingFulfillmentId = ref(null)
 const actionMsg = ref({ type: '', text: '' })
 
 const order = computed(() => orderStore.currentOrder)
@@ -23,7 +25,7 @@ onMounted(async () => {
 
 async function handleCancelOrder() {
   if (!order.value) return
-  if (confirm('Are you sure you want to cancel this order? Stock will be released back to available inventory.')) {
+  if (confirm('Are you sure you want to cancel this order? Reserved stock will be released back.')) {
     isCancelling.value = true
     actionMsg.value = { type: '', text: '' }
 
@@ -38,10 +40,44 @@ async function handleCancelOrder() {
   }
 }
 
-function handlePayNow() {
-  if (!order.value) return
-  // Redirects to Chapa payment initiation (Step 7)
-  router.push(`/orders/${order.value.id}/pay`)
+async function handleConfirmReceived(fulfillmentId) {
+  if (!confirm('Confirm physical inspection and produce receipt for this fulfillment?')) return
+
+  processingFulfillmentId.value = fulfillmentId
+  actionMsg.value = { type: '', text: '' }
+
+  try {
+    const response = await api.post(`/fulfillments/${fulfillmentId}/confirm-received`)
+    actionMsg.value = { type: 'success', text: response.data.message || 'Inspection confirmed! You can now pay the farmer.' }
+    await orderStore.fetchOrderDetails(route.params.id)
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Failed to confirm receipt.'
+    actionMsg.value = { type: 'error', text: msg }
+  } finally {
+    processingFulfillmentId.value = null
+  }
+}
+
+async function handlePayFarmer(fulfillmentId) {
+  processingFulfillmentId.value = fulfillmentId
+  actionMsg.value = { type: '', text: '' }
+
+  try {
+    const response = await api.post(`/fulfillments/${fulfillmentId}/pay`)
+    const checkoutUrl = response.data.checkout_url
+
+    if (checkoutUrl) {
+      actionMsg.value = { type: 'success', text: 'Redirecting to Chapa Hosted Checkout...' }
+      window.location.href = checkoutUrl
+    } else {
+      actionMsg.value = { type: 'error', text: 'Checkout URL was not returned by payment gateway.' }
+    }
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Unable to initiate payment to farmer subaccount.'
+    actionMsg.value = { type: 'error', text: msg }
+  } finally {
+    processingFulfillmentId.value = null
+  }
 }
 
 function formatPrice(val) {
@@ -62,8 +98,8 @@ function formatDate(dateStr) {
 
 function getStatusBadgeClass(status) {
   const s = (status || '').toLowerCase()
-  if (s === 'confirmed' || s === 'completed' || s === 'accepted') return 'badge--success'
-  if (s === 'pending_payment' || s === 'pending') return 'badge--warning'
+  if (s === 'completed' || s === 'buyer_received') return 'badge--success'
+  if (s === 'accepted' || s === 'pending') return 'badge--warning'
   if (s === 'cancelled' || s === 'rejected') return 'badge--danger'
   return 'badge--info'
 }
@@ -142,7 +178,7 @@ function getStatusBadgeClass(status) {
           <div class="detail-grid mt-6">
             <!-- Left Column: Farmer Fulfillments & Items -->
             <div class="fulfillments-col">
-              <h2 class="section-heading">Farmer Fulfillment Records</h2>
+              <h2 class="section-heading">Farmer Direct Settlement Fulfillments</h2>
 
               <div
                 v-for="fulfillment in (order.fulfillments || [])"
@@ -160,7 +196,7 @@ function getStatusBadgeClass(status) {
                     </div>
                   </div>
                   <span :class="['status-badge', getStatusBadgeClass(fulfillment.status)]">
-                    {{ (fulfillment.status || 'PENDING').toUpperCase() }}
+                    {{ (fulfillment.status || 'PENDING').replace('_', ' ').toUpperCase() }}
                   </span>
                 </div>
 
@@ -182,59 +218,84 @@ function getStatusBadgeClass(status) {
                 </div>
 
                 <div class="fulfillment-footer">
-                  <span>Fulfillment Subtotal:</span>
-                  <strong>ETB {{ formatPrice(fulfillment.subtotal_amount) }}</strong>
+                  <div class="subtotal-info">
+                    <span>Fulfillment Amount:</span>
+                    <strong>ETB {{ formatPrice(fulfillment.subtotal_amount) }}</strong>
+                  </div>
+
+                  <!-- Direct Settlement Action Buttons -->
+                  <div class="fulfillment-actions">
+                    <!-- Step 1: Confirm Received (If Accepted by farmer) -->
+                    <template v-if="fulfillment.status === 'accepted'">
+                      <button
+                        @click="handleConfirmReceived(fulfillment.id)"
+                        :disabled="processingFulfillmentId === fulfillment.id"
+                        class="btn btn--success btn--sm"
+                      >
+                        Confirm Received (Inspect Produce) 🚚
+                      </button>
+                    </template>
+
+                    <!-- Step 2: Pay Farmer (If Buyer Received & Pending Payment) -->
+                    <template v-else-if="fulfillment.status === 'buyer_received'">
+                      <div class="chapa-badge">💳 Direct Settlement</div>
+                      <button
+                        @click="handlePayFarmer(fulfillment.id)"
+                        :disabled="processingFulfillmentId === fulfillment.id"
+                        class="btn btn--primary btn--sm"
+                      >
+                        Pay Farmer via Chapa →
+                      </button>
+                    </template>
+
+                    <!-- Step 3: Completed -->
+                    <template v-else-if="fulfillment.status === 'completed'">
+                      <span class="text-success font-bold">🎉 Settled 100% to Farmer Subaccount</span>
+                    </template>
+
+                    <!-- Pending Farmer Acceptance -->
+                    <template v-else-if="fulfillment.status === 'pending'">
+                      <span class="text-warning">⏳ Awaiting Farmer Acceptance</span>
+                    </template>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Right Column: Payment & Order Actions -->
+            <!-- Right Column: Payment Policy Summary -->
             <div class="summary-col">
               <div class="payment-card">
-                <h3 class="card-title">Payment & Status</h3>
+                <h3 class="card-title">Direct Settlement Info</h3>
 
                 <div class="payment-meta">
                   <div class="meta-row">
-                    <span>Payment Status:</span>
-                    <strong :class="order.payment?.status === 'confirmed' ? 'text-success' : 'text-warning'">
-                      {{ (order.payment?.status || 'PENDING').toUpperCase() }}
-                    </strong>
+                    <span>Model:</span>
+                    <strong>Direct Chapa Subaccount</strong>
                   </div>
                   <div class="meta-row">
-                    <span>Payment Channel:</span>
-                    <span>Chapa Hosted Checkout</span>
+                    <span>Platform Commission:</span>
+                    <strong class="text-success">0 ETB (100% to Farmer)</strong>
                   </div>
-                  <div v-if="order.payment?.confirmed_at" class="meta-row">
-                    <span>Confirmed At:</span>
-                    <span>{{ formatDate(order.payment.confirmed_at) }}</span>
+                  <div class="meta-row">
+                    <span>Logistics:</span>
+                    <span>Buyer Transportation</span>
                   </div>
                 </div>
 
                 <div class="divider"></div>
 
-                <!-- Pay Button (If pending payment) -->
-                <div v-if="order.status === 'pending_payment'" class="action-box">
-                  <div class="chapa-badge">💳 Chapa Payment</div>
-                  <button @click="handlePayNow" class="btn btn--primary btn--block btn--lg">
-                    Pay Now via Chapa (ETB {{ formatPrice(order.total_amount) }}) →
-                  </button>
-
-                  <button
-                    @click="handleCancelOrder"
-                    :disabled="isCancelling"
-                    class="btn btn--danger-outline btn--block mt-3"
-                  >
-                    Cancel Order & Release Stock
-                  </button>
+                <div class="info-box">
+                  🔍 <strong>Inspection First:</strong> You inspect produce upon physical delivery, click <strong>"Confirm Received"</strong>, and then click <strong>"Pay Farmer"</strong> to trigger Chapa checkout.
                 </div>
 
-                <div v-else-if="order.status === 'confirmed'" class="confirmed-box">
-                  ✅ Payment Confirmed via Signed Chapa Webhook! Fulfillment processing is active.
-                </div>
-
-                <div v-else-if="order.status === 'cancelled'" class="cancelled-box">
-                  🛑 This order was cancelled. Reserved stock has been released back to farmers.
-                </div>
+                <button
+                  v-if="order.status === 'pending_payment' || order.status === 'processing'"
+                  @click="handleCancelOrder"
+                  :disabled="isCancelling"
+                  class="btn btn--danger-outline btn--block mt-4"
+                >
+                  Cancel Order & Release Stock
+                </button>
               </div>
             </div>
           </div>
