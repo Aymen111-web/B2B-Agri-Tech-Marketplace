@@ -33,11 +33,14 @@ async function handleLogout() {
           <router-link to="/listings" class="dash-nav__link">
             Browse Marketplace
           </router-link>
-          <router-link to="/capabilities/apply" class="dash-nav__link">
+          <router-link v-if="!auth.isAdmin" to="/capabilities/apply" class="dash-nav__link">
             Capabilities
           </router-link>
           <router-link v-if="auth.isAdmin" to="/admin/capability-applications" class="dash-nav__link dash-nav__link--admin">
             🛡️ Admin Approvals
+          </router-link>
+          <router-link v-if="auth.isAdmin" to="/admin/users" class="dash-nav__link dash-nav__link--admin">
+            👥 User Accounts
           </router-link>
           <span class="dash-nav__user">
             {{ auth.user?.first_name }} {{ auth.user?.second_name }}
@@ -71,8 +74,8 @@ async function handleLogout() {
         <!-- Capability Cards Grid -->
         <div class="cards-grid">
           
-          <!-- Farmer Card -->
-          <div class="dash-card" :class="{ 'dash-card--active': hasFarmerCapability }">
+          <!-- Farmer Card (Non-Admin only) -->
+          <div v-if="!auth.isAdmin" class="dash-card" :class="{ 'dash-card--active': hasFarmerCapability }">
             <div class="dash-card__header">
               <span class="dash-card__icon">🌾</span>
               <span class="dash-card__status" :class="hasFarmerCapability ? 'status--granted' : 'status--none'">
@@ -102,8 +105,8 @@ async function handleLogout() {
             </div>
           </div>
 
-          <!-- Buyer Card -->
-          <div class="dash-card" :class="{ 'dash-card--active': hasBuyerCapability }">
+          <!-- Buyer Card (Non-Admin only) -->
+          <div v-if="!auth.isAdmin" class="dash-card" :class="{ 'dash-card--active': hasBuyerCapability }">
             <div class="dash-card__header">
               <span class="dash-card__icon">🏬</span>
               <span class="dash-card__status" :class="hasBuyerCapability ? 'status--granted' : 'status--none'">
@@ -147,13 +150,32 @@ async function handleLogout() {
                 System Admin
               </span>
             </div>
-            <h3 class="dash-card__title">Admin Governance & Approvals</h3>
+            <h3 class="dash-card__title">Capability Approvals</h3>
             <p class="dash-card__desc">
-              Review capability applications from farmers and business buyers, oversee accounts, and manage platform logs.
+              Review capability applications from farmers and business buyers, verify trade licenses, and grant platform access.
             </p>
             <div class="dash-card__actions">
               <button class="btn btn--admin" @click="router.push('/admin/capability-applications')">
-                Review Pending Applications
+                Review Pending Applications →
+              </button>
+            </div>
+          </div>
+
+          <!-- Admin Users Card (If Admin) -->
+          <div v-if="auth.isAdmin" class="dash-card dash-card--admin-portal">
+            <div class="dash-card__header">
+              <span class="dash-card__icon">👥</span>
+              <span class="dash-card__status status--admin">
+                System Admin
+              </span>
+            </div>
+            <h3 class="dash-card__title">User Accounts & Subscriptions</h3>
+            <p class="dash-card__desc">
+              Manage all registered farmer and buyer accounts, audit Chapa Subaccounts, and toggle active/inactive subscription statuses.
+            </p>
+            <div class="dash-card__actions">
+              <button class="btn btn--admin" @click="router.push('/admin/users')">
+                Manage User Accounts →
               </button>
             </div>
           </div>

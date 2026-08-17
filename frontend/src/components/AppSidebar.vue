@@ -75,6 +75,7 @@ async function handleLogout() {
       </router-link>
 
       <router-link
+        v-if="!authStore.isAdmin"
         to="/cart"
         class="nav-item"
         :class="{ active: route.path === '/cart' }"
@@ -87,7 +88,7 @@ async function handleLogout() {
       </router-link>
 
       <router-link
-        v-if="authStore.isAuthenticated"
+        v-if="authStore.isAuthenticated && !authStore.isAdmin"
         to="/orders"
         class="nav-item"
         :class="{ active: route.path.startsWith('/orders') }"
@@ -97,9 +98,9 @@ async function handleLogout() {
       </router-link>
 
       <!-- Role-Based Portals -->
-      <div v-if="isFarmer || authStore.isAdmin" class="nav-section-title mt-4">PORTALS</div>
+      <div v-if="(isFarmer && !authStore.isAdmin) || authStore.isAdmin" class="nav-section-title mt-4">PORTALS</div>
 
-      <template v-if="isFarmer">
+      <template v-if="isFarmer && !authStore.isAdmin">
         <router-link
           to="/farmer/listings"
           class="nav-item"
@@ -152,6 +153,7 @@ async function handleLogout() {
       </router-link>
 
       <router-link
+        v-if="!authStore.isAdmin"
         to="/capabilities/apply"
         class="nav-item"
         :class="{ active: route.path === '/capabilities/apply' }"
