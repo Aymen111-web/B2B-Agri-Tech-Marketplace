@@ -77,14 +77,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 });
 
-////// Fulfillments — Farmer (authenticated, requires farmer capability) /////
+////// Fulfillments — Farmer & Buyer /////
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/fulfillments',                [OrderFulfillmentController::class, 'index']);
-    Route::get('/fulfillments/{id}',           [OrderFulfillmentController::class, 'show']);
-    Route::post('/fulfillments/{id}/accept',   [OrderFulfillmentController::class, 'accept']);
-    Route::post('/fulfillments/{id}/reject',   [OrderFulfillmentController::class, 'reject']);
-    Route::post('/fulfillments/{id}/complete', [OrderFulfillmentController::class, 'complete']);
+    Route::get('/fulfillments',                          [OrderFulfillmentController::class, 'index']);
+    Route::get('/fulfillments/{id}',                     [OrderFulfillmentController::class, 'show']);
+    Route::post('/fulfillments/{id}/accept',             [OrderFulfillmentController::class, 'accept']);
+    Route::post('/fulfillments/{id}/reject',             [OrderFulfillmentController::class, 'reject']);
+    Route::post('/fulfillments/{id}/complete',           [OrderFulfillmentController::class, 'complete']);
+    Route::post('/fulfillments/{id}/confirm-received',   [OrderFulfillmentController::class, 'confirmReceived']);
+    Route::post('/fulfillments/{id}/pay',                [PaymentController::class, 'initiateFulfillmentPayment']);
 });
 
 ////// Payments — Buyer (authenticated, requires buyer capability) /////
@@ -118,8 +120,9 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 ////// User Profile (authenticated) /////
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/profile',  [UserController::class, 'profile']);
-    Route::put('/profile',  [UserController::class, 'updateProfile']);
+    Route::get('/profile',   [UserController::class, 'profile']);
+    Route::put('/profile',   [UserController::class, 'updateProfile']);
+    Route::post('/profile',  [UserController::class, 'updateProfile']); // Support multipart photo uploads
 });
 
 ////// Admin — User Management /////

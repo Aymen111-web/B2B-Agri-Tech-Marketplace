@@ -22,6 +22,12 @@ class User extends Authenticatable
         'password',
         'is_admin',
         'account_status',
+        'chapa_subaccount_id',
+        'bank_code',
+        'bank_name',
+        'account_number',
+        'account_name',
+        'profile_photo_path',
     ];
 
     protected $hidden = [
@@ -79,5 +85,23 @@ class User extends Authenticatable
     public function auditLogs()
     {
         return $this->hasMany(AuditLog::class);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->account_status === 'active';
+    }
+
+    public function isFarmer(): bool
+    {
+        return $this->capabilities()
+            ->where('capability_type', 'farmer')
+            ->where('status', 'active')
+            ->exists();
+    }
+
+    public function hasPaymentDestination(): bool
+    {
+        return ! empty($this->chapa_subaccount_id) && ! empty($this->account_number);
     }
 }

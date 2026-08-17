@@ -46,9 +46,10 @@ class OrderPolicy
      */
     private function hasActiveBuyerCapability(User $user): bool
     {
-        return $user->capabilities()
-            ->where('capability_type', 'buyer')
-            ->where('status', 'active')
-            ->exists();
+        return $user->account_status === 'active'
+            && $user->capabilities()
+                ->where('capability_type', 'buyer')
+                ->where('status', 'active')
+                ->exists();
     }
 }

@@ -114,51 +114,27 @@ class PayoutController extends Controller
     }
 
     /**
-     * Create a payout — admin action, typically triggered by a batch settlement job.
+     * Create a payout — DECOMMISSIONED in favor of Chapa Direct Settlement.
      *
      * POST /api/admin/payouts
      */
     public function store(StorePayoutRequest $request): JsonResponse
     {
-        $this->authorize('create', Payout::class);
-
-        $validated = $request->validated();
-
-        // Verify the fulfillment belongs to the stated farmer.
-        $fulfillment = OrderFulfillment::findOrFail($validated['order_fulfillment_id']);
-
-        if ((int) $fulfillment->farmer_id !== (int) $validated['farmer_id']) {
-            return response()->json([
-                'message' => 'Fulfillment does not belong to this farmer.',
-            ], 422);
-        }
-
-        $payout = Payout::create($validated);
-
-        return response()->json(new PayoutResource($payout), 201);
+        return response()->json([
+            'message' => 'Manual payouts have been decommissioned. Direct settlement occurs automatically via Chapa Subaccounts upon payment confirmation.',
+        ], 400);
     }
 
     /**
-     * Update a payout's status — admin only.
+     * Update a payout's status — DECOMMISSIONED in favor of Chapa Direct Settlement.
      *
      * PATCH /api/admin/payouts/{payout}/status
      */
     public function updateStatus(UpdatePayoutStatusRequest $request, Payout $payout): JsonResponse
     {
-        $this->authorize('update', $payout);
-
-        $validated = $request->validated();
-
-        $payout->update($validated);
-
-        if ($validated['status'] === 'processed') {
-            $payout->update(['processed_at' => now()]);
-        }
-
         return response()->json([
-            'message' => 'Payout status updated.',
-            'payout'  => new PayoutResource($payout->fresh()),
-        ]);
+            'message' => 'Manual payout updates have been decommissioned. Direct settlement occurs automatically via Chapa Subaccounts.',
+        ], 400);
     }
 
     /**

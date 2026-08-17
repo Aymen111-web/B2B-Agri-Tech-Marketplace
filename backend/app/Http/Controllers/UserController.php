@@ -33,19 +33,72 @@ class UserController extends Controller
      *
      * PUT /api/profile
      */
-    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    public function updateProfile(UpdateProfileRequest $request, \App\Services\ChapaService $chapaService): JsonResponse
     {
         $this->authorize('updateProfile', User::class);
 
+        /** @var User $user */
         $user = Auth::user();
-
         $validated = $request->validated();
 
-        $user->update($validated);
+        // 1. Password Change Validation
+        if (! empty($validated['new_password'])) {
+            if (! \Illuminate\Support\Facades\Hash::check($validated['current_password'] ?? '', $user->password)) {
+                return response()->json([
+                    'message' => 'The current password provided is incorrect.',
+                ], 422);
+            }
+            $user->password = $validated['new_password'];
+        }
+
+        // 2. Profile Photo Upload
+        if ($request->hasFile('profile_photo')) {
+            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+            $user->profile_photo_path = $path;
+        }
+
+        // 3. Name & Phone Update
+        if (isset($validated['first_name'])) {
+            $user->first_name = $validated['first_name'];
+        }
+        if (isset($validated['second_name'])) {
+            $user->second_name = $validated['second_name'];
+        }
+        if (isset($validated['phone'])) {
+            $user->phone = $validated['phone'];
+        }
+
+        // 4. Farmer Payment Destination & Chapa Subaccount Sync
+        if (isset($validated['bank_code']) || isset($validated['account_number']) || isset($validated['account_name'])) {
+            if (isset($validated['bank_code'])) {
+                $user->bank_code = $validated['bank_code'];
+            }
+            if (isset($validated['bank_name'])) {
+                $user->bank_name = $validated['bank_name'];
+            }
+            if (isset($validated['account_number'])) {
+                $user->account_number = $validated['account_number'];
+            }
+            if (isset($validated['account_name'])) {
+                $user->account_name = $validated['account_name'];
+            }
+
+            if (! empty($user->account_number) && ! empty($user->account_name) && ! empty($user->bank_code)) {
+                $subId = $chapaService->createSubaccount($user, [
+                    'bank_code'      => $user->bank_code,
+                    'account_number' => $user->account_number,
+                    'account_name'   => $user->account_name,
+                ]);
+
+                $user->chapa_subaccount_id = $subId;
+            }
+        }
+
+        $user->save();
 
         return response()->json([
             'message' => 'Profile updated successfully.',
-            'user'    => new UserResource($user->fresh()),
+            'user'    => new UserResource($user->fresh(['capabilities', 'capabilityApplications'])),
         ]);
     }
 

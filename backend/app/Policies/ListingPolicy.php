@@ -47,9 +47,10 @@ class ListingPolicy
      */
     private function hasActiveFarmerCapability(User $user): bool
     {
-        return $user->capabilities()
-            ->where('capability_type', 'farmer')
-            ->where('status', 'active')
-            ->exists();
+        return $user->account_status === 'active'
+            && $user->capabilities()
+                ->where('capability_type', 'farmer')
+                ->where('status', 'active')
+                ->exists();
     }
 }

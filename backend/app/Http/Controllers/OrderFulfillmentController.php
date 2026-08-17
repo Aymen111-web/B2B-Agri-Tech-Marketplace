@@ -203,22 +203,48 @@ class OrderFulfillmentController extends Controller
     }
 
     /**
+     * Confirm physical receipt of produce by the buyer.
+     *
+     * POST /api/fulfillments/{id}/confirm-received
+     *
+     * The buyer confirms physical inspection & handoff.
+     * Status transitions to 'buyer_received', enabling the direct settlement "Pay Farmer" button.
+     */
+    public function confirmReceived(int $id): JsonResponse
+    {
+        $fulfillment = OrderFulfillment::findOrFail($id);
+
+        $this->authorize('confirmReceived', $fulfillment);
+
+        if ($fulfillment->status !== 'accepted') {
+            return response()->json([
+                'message' => 'Only accepted fulfillments can be marked as received by the buyer.',
+            ], 422);
+        }
+
+        $fulfillment->update([
+            'status' => 'buyer_received',
+        ]);
+
+        $this->syncOrderStatus($fulfillment->order_id);
+
+        return response()->json([
+            'message'     => 'Produce inspection confirmed! You can now proceed to pay the farmer.',
+            'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
+                'order', 'items.listing', 'farmer',
+            ])),
+        ]);
+    }
+
+    /**
      * Synchronise the parent order's aggregate status based on the current
      * state of all its fulfillments.
-     *
-     * Status logic:
-     * - All completed → "completed"
-     * - Mix of completed and rejected (none pending/accepted) → "partially_fulfilled"
-     * - All rejected → "cancelled"
-     * - At least one accepted and none pending → "processing"
-     * - Otherwise remains unchanged (still has pending fulfillments).
      */
     private function syncOrderStatus(int $orderId): void
     {
         $order = Order::findOrFail($orderId);
 
-        // Only sync orders that are past payment (not pending_payment or already cancelled).
-        if (in_array($order->status, ['pending_payment', 'cancelled'], true)) {
+        if ($order->status === 'cancelled') {
             return;
         }
 
@@ -228,16 +254,18 @@ class OrderFulfillmentController extends Controller
             return;
         }
 
-        $allCompleted = $statuses->every(fn ($s) => $s === 'completed');
-        $allRejected  = $statuses->every(fn ($s) => $s === 'rejected');
-        $hasPending   = $statuses->contains('pending');
+        $allCompleted     = $statuses->every(fn ($s) => $s === 'completed');
+        $allRejected      = $statuses->every(fn ($s) => $s === 'rejected');
+        $hasPending       = $statuses->contains('pending');
+        $hasBuyerReceived = $statuses->contains('buyer_received');
 
         if ($allCompleted) {
             $order->update(['status' => 'completed']);
         } elseif ($allRejected) {
             $order->update(['status' => 'cancelled']);
+        } elseif ($hasBuyerReceived) {
+            $order->update(['status' => 'processing']);
         } elseif (! $hasPending) {
-            // No pending left — either a mix of completed/rejected or all accepted.
             $hasCompleted = $statuses->contains('completed');
             $hasRejected  = $statuses->contains('rejected');
 
@@ -247,7 +275,6 @@ class OrderFulfillmentController extends Controller
                 $order->update(['status' => 'processing']);
             }
         }
-        // If there are still pending fulfillments, order status stays as-is.
     }
 
     /**

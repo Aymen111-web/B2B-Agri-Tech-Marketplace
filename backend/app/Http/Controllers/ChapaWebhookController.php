@@ -219,11 +219,42 @@ class ChapaWebhookController extends Controller
             'gateway_metadata' => $this->extractSafeMetadata($payload),
         ]);
 
-        // Advance the order status from pending_payment → payment_confirmed.
-        $order = $payment->order;
+        // If payment is linked to an order fulfillment, mark handoff/settlement completed & log payout
+        if ($payment->order_fulfillment_id) {
+            $fulfillment = \App\Models\OrderFulfillment::find($payment->order_fulfillment_id);
 
-        if ($order && $order->status === 'pending_payment') {
-            $order->update(['status' => 'payment_confirmed']);
+            if ($fulfillment) {
+                $fulfillment->update([
+                    'status'       => 'completed',
+                    'completed_at' => now(),
+                ]);
+
+                // Auto-create read-only settlement payout record for farmer
+                \App\Models\Payout::firstOrCreate(
+                    ['order_fulfillment_id' => $fulfillment->id],
+                    [
+                        'farmer_id'    => $fulfillment->farmer_id,
+                        'amount'       => $payment->amount,
+                        'status'       => 'processed',
+                        'reference'    => $payment->chapa_tx_ref,
+                        'processed_at' => now(),
+                    ]
+                );
+            }
+        }
+
+        // Advance parent order status
+        $order = $payment->order;
+        if ($order) {
+            $incompleteCount = $order->fulfillments()
+                ->whereNotIn('status', ['completed', 'rejected'])
+                ->count();
+
+            if ($incompleteCount === 0) {
+                $order->update(['status' => 'completed']);
+            } else {
+                $order->update(['status' => 'processing']);
+            }
         }
     }
 
