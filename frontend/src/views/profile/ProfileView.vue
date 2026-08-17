@@ -2,7 +2,6 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import AppSidebar from '@/components/AppSidebar.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -174,13 +173,9 @@ async function savePaymentDestination() {
 </script>
 
 <template>
-  <div class="app-layout">
-    <AppSidebar />
-
-    <div class="main-wrapper">
-      <main class="profile-page">
-        <!-- Header -->
-        <header class="profile-header">
+  <div class="profile-page">
+    <!-- Header -->
+    <header class="profile-header">
           <div class="header-inner">
             <div class="user-hero">
               <div class="avatar-box">
@@ -375,15 +370,11 @@ async function savePaymentDestination() {
           </div>
 
         </div>
-      </main>
-    </div>
   </div>
 </template>
 
 <style scoped>
-.app-layout { display: flex; min-height: 100vh; background: var(--surface); color: var(--text-primary); }
-.main-wrapper { flex: 1; margin-left: 260px; }
-.profile-page { padding-bottom: 4rem; }
+.profile-page { min-height: 100vh; padding-bottom: 4rem; background: var(--surface); }
 
 /* Header Banner */
 .profile-header {

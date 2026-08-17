@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
-import AppSidebar from '@/components/AppSidebar.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -104,13 +103,9 @@ function formatDate(dateStr) {
 </script>
 
 <template>
-  <div class="app-layout">
-    <AppSidebar />
-
-    <div class="main-wrapper">
-      <main class="admin-users-page">
-        <!-- Header -->
-        <header class="admin-header">
+  <div class="admin-users-page">
+    <!-- Header -->
+    <header class="admin-header">
           <div class="header-inner">
             <div class="header-flex">
               <div>
@@ -266,15 +261,11 @@ function formatDate(dateStr) {
           </div>
 
         </div>
-      </main>
-    </div>
   </div>
 </template>
 
 <style scoped>
-.app-layout { display: flex; min-height: 100vh; background: var(--surface); color: var(--text-primary); }
-.main-wrapper { flex: 1; margin-left: 260px; }
-.admin-users-page { padding-bottom: 4rem; }
+.admin-users-page { min-height: 100vh; padding-bottom: 4rem; background: var(--surface); }
 
 .admin-header {
   background: #1e293b;
