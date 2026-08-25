@@ -12,6 +12,7 @@ class Listing extends Model
     protected $fillable = [
         'farmer_id',
         'category_id',
+        'batch_number',
         'title',
         'description',
         'unit',
@@ -19,13 +20,24 @@ class Listing extends Model
         'quantity_available',
         'quantity_reserved',
         'status',
+        'harvest_date',
+        'quality_grade',
+        'minimum_order_quantity',
+        'price_valid_from',
+        'price_valid_until',
+        'reference_market_price',
     ];
 
     protected $casts = [
-        'price_per_unit' => 'decimal:2',
-        'quantity_available' => 'decimal:3',
-        'quantity_reserved' => 'decimal:3',
-        'deleted_at' => 'datetime',
+        'price_per_unit'         => 'decimal:2',
+        'quantity_available'     => 'decimal:3',
+        'quantity_reserved'      => 'decimal:3',
+        'minimum_order_quantity' => 'decimal:3',
+        'reference_market_price' => 'decimal:2',
+        'price_valid_from'      => 'datetime',
+        'price_valid_until'     => 'datetime',
+        'harvest_date'           => 'date',
+        'deleted_at'             => 'datetime',
     ];
 
     public function farmer()
