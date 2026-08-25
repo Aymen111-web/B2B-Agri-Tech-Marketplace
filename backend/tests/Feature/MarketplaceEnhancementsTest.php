@@ -48,7 +48,10 @@ class MarketplaceEnhancementsTest extends TestCase
             'status'          => 'active',
         ]);
 
-        $this->category = Category::create(['name' => 'Vegetables', 'slug' => 'vegetables']);
+        $this->category = Category::firstOrCreate(
+            ['name' => 'Vegetables'],
+            ['slug' => 'vegetables']
+        );
 
         $this->listing = Listing::create([
             'farmer_id'          => $this->farmer->id,
