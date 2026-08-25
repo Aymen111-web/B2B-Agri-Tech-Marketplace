@@ -16,14 +16,7 @@ return new class extends Migration
             // Aggregate status, derived from payment + all order_fulfillments.
             // pending_payment -> payment_confirmed -> processing
             //   -> completed | partially_fulfilled | cancelled
-            $table->enum('status', [
-                'pending_payment',
-                'payment_confirmed',
-                'processing',
-                'partially_fulfilled',
-                'completed',
-                'cancelled',
-            ])->default('pending_payment');
+            $table->string('status', 30)->default('pending_payment');
 
             $table->decimal('total_amount', 14, 2);
             $table->string('currency', 3)->default('ETB');

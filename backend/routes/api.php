@@ -71,10 +71,11 @@ Route::middleware('auth:sanctum')->group(function () {
 ////// Orders — Buyer (authenticated, requires buyer capability) /////
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/orders',              [OrderController::class, 'index']);
-    Route::get('/orders/{id}',         [OrderController::class, 'show']);
-    Route::post('/orders/checkout',    [OrderController::class, 'checkout']);
-    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
+    Route::get('/orders',                          [OrderController::class, 'index']);
+    Route::get('/orders/{id}',                     [OrderController::class, 'show']);
+    Route::post('/orders/checkout',                [OrderController::class, 'checkout']);
+    Route::post('/orders/{id}/cancel',             [OrderController::class, 'cancel']);
+    Route::post('/orders/{id}/verify-delivery-pin', [OrderController::class, 'verifyDeliveryPin']);
 });
 
 ////// Fulfillments — Farmer (authenticated, requires farmer capability) /////
@@ -85,6 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/fulfillments/{id}/accept',   [OrderFulfillmentController::class, 'accept']);
     Route::post('/fulfillments/{id}/reject',   [OrderFulfillmentController::class, 'reject']);
     Route::post('/fulfillments/{id}/complete', [OrderFulfillmentController::class, 'complete']);
+    Route::post('/fulfillments/{id}/inspect',  [OrderFulfillmentController::class, 'inspect']);
 });
 
 ////// Payments — Buyer (authenticated, requires buyer capability) /////

@@ -9,7 +9,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['name', 'email']);
+            if (Schema::hasColumn('users', 'name')) {
+                $table->dropColumn('name');
+            }
+            if (Schema::hasColumn('users', 'email')) {
+                try {
+                    $table->dropUnique(['email']);
+                } catch (\Throwable $e) {
+                    // Ignore if unique index doesn't exist
+                }
+                $table->dropColumn('email');
+            }
         });
     }
 

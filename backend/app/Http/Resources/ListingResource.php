@@ -24,8 +24,15 @@ class ListingResource extends JsonResource
             'price_per_unit'     => $this->price_per_unit,
             'quantity_available' => $this->quantity_available,
             'quantity_reserved'  => $this->quantity_reserved,
-            'status'             => $this->status,
-            'created_at'         => $this->created_at,
+            'status'                 => $this->status,
+            'batch_number'           => $this->batch_number,
+            'harvest_date'           => $this->harvest_date?->format('Y-m-d'),
+            'quality_grade'          => $this->quality_grade,
+            'minimum_order_quantity' => $this->minimum_order_quantity,
+            'price_valid_from'       => $this->price_valid_from,
+            'price_valid_until'      => $this->price_valid_until,
+            'reference_market_price' => $this->reference_market_price,
+            'created_at'             => $this->created_at,
             'updated_at'         => $this->updated_at,
 
             // Conditionally loaded relationships

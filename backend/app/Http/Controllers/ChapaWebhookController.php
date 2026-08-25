@@ -209,22 +209,8 @@ class ChapaWebhookController extends Controller
      */
     private function confirmPayment(Payment $payment, array $payload): void
     {
-        if ($payment->status !== 'pending') {
-            return;
-        }
-
-        $payment->update([
-            'status'           => 'confirmed',
-            'confirmed_at'     => now(),
-            'gateway_metadata' => $this->extractSafeMetadata($payload),
-        ]);
-
-        // Advance the order status from pending_payment → payment_confirmed.
-        $order = $payment->order;
-
-        if ($order && $order->status === 'pending_payment') {
-            $order->update(['status' => 'payment_confirmed']);
-        }
+        $paymentService = new \App\Services\PaymentService();
+        $paymentService->confirmPayment($payment, $this->extractSafeMetadata($payload));
     }
 
     /**

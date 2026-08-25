@@ -17,12 +17,19 @@ class StoreListingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id'        => ['nullable', 'integer', 'exists:categories,id'],
-            'title'              => ['required', 'string', 'max:255'],
-            'description'        => ['nullable', 'string', 'max:2000'],
-            'unit'               => ['required', 'string', 'in:kg,quintal,ton,piece,liter,dozen'],
-            'price_per_unit'     => ['required', 'numeric', 'min:0.01'],
-            'quantity_available' => ['required', 'numeric', 'min:0'],
+            'category_id'            => ['nullable', 'integer', 'exists:categories,id'],
+            'title'                  => ['required', 'string', 'max:255'],
+            'description'            => ['nullable', 'string', 'max:2000'],
+            'unit'                   => ['required', 'string', 'in:kg,quintal,ton,piece,liter,dozen'],
+            'price_per_unit'         => ['required', 'numeric', 'min:0.01'],
+            'quantity_available'     => ['required', 'numeric', 'min:0'],
+            'batch_number'           => ['nullable', 'string', 'max:50'],
+            'harvest_date'           => ['nullable', 'date'],
+            'quality_grade'          => ['nullable', 'string', 'max:20'],
+            'minimum_order_quantity' => ['nullable', 'numeric', 'min:0.001'],
+            'price_valid_from'       => ['nullable', 'date'],
+            'price_valid_until'      => ['nullable', 'date', 'after_or_equal:price_valid_from'],
+            'reference_market_price' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 
