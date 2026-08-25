@@ -133,6 +133,18 @@ class PayoutController extends Controller
             ], 422);
         }
 
+        if ($fulfillment->payout_status !== 'eligible') {
+            return response()->json([
+                'message' => 'Fulfillment is not yet eligible for payout. Buyer inspection and delivery approval required.',
+            ], 422);
+        }
+
+        if (Payout::where('order_fulfillment_id', $fulfillment->id)->whereIn('status', ['pending', 'processed'])->exists()) {
+            return response()->json([
+                'message' => 'Payout already exists or is pending for this fulfillment.',
+            ], 422);
+        }
+
         $payout = Payout::create($validated);
 
         return response()->json(new PayoutResource($payout), 201);

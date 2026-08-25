@@ -9,4 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('orders:expire-reservations')->everyMinute();
+Schedule::command('payments:reconcile-pending')->everyTenMinutes();
 
