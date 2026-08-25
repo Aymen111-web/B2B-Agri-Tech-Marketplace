@@ -10,17 +10,15 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('first_name');
+            $table->string('second_name');
 
             // Phone is the primary identity/login credential (doc: "Phone-based
             // registration and OTP login").
             $table->string('phone', 13)->unique();
             $table->timestamp('phone_verified_at')->nullable();
 
-            $table->string('email')->nullable()->unique();
-
             // Nullable: primary auth is phone + OTP, not password-based.
-            // Keep the column for optional future password/passkey login.
             $table->string('password')->nullable();
 
             // Admin is a privilege that exists SEPARATELY from the farmer/buyer
