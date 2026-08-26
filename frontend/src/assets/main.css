@@ -337,7 +337,7 @@ a {
    Standardized Tabs & Pills
 ────────────────────────────────────────── */
 .filter-tabs,
-.category-pills,
+/* UI Tabs (Segmented Control for light surfaces) */
 .ui-tabs {
   display: flex;
   align-items: center;
@@ -351,7 +351,6 @@ a {
 
 .tab-btn,
 .tab,
-.pill,
 .ui-tab {
   display: inline-flex;
   align-items: center;
@@ -371,7 +370,6 @@ a {
 
 .tab-btn:hover,
 .tab:hover,
-.pill:hover,
 .ui-tab:hover {
   color: var(--text-primary);
   background: rgba(0, 0, 0, 0.04);
@@ -379,7 +377,6 @@ a {
 
 .tab-btn.active,
 .tab.active,
-.pill.active,
 .ui-tab.active {
   background: var(--surface);
   color: var(--brand-green-dark);
@@ -389,9 +386,50 @@ a {
 
 [data-theme="dark"] .tab-btn.active,
 [data-theme="dark"] .tab.active,
-[data-theme="dark"] .pill.active {
+[data-theme="dark"] .ui-tab.active {
   background: var(--surface-card);
   color: var(--brand-green);
+}
+
+/* Category Filter Pills (High-contrast chips) */
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.95rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(4px);
+  user-select: none;
+}
+
+.pill:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.pill.active {
+  background: #fbbf24 !important;
+  color: #0f172a !important;
+  border-color: #fbbf24 !important;
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(251, 191, 36, 0.4);
 }
 
 /* ──────────────────────────────────────────

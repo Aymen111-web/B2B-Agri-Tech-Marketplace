@@ -369,23 +369,37 @@ function getCategoryIcon(catName) {
   color: var(--text-primary);
 }
 
-.category-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
 .pill {
-  background: rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.9);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
   border-radius: var(--radius-full);
-  padding: 0.3rem 0.85rem;
+  padding: 0.35rem 0.95rem;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
+  backdrop-filter: blur(4px);
+  user-select: none;
 }
-.pill.active, .pill:hover {
-  background: var(--brand-gold);
-  color: #0f172a;
-  border-color: var(--brand-gold);
-  font-weight: 700;
+.pill:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  transform: translateY(-1px);
+}
+.pill.active {
+  background: #fbbf24 !important;
+  color: #0f172a !important;
+  border-color: #fbbf24 !important;
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(251, 191, 36, 0.4);
 }
 
 .listings-main { padding: 2rem 1.5rem 3.5rem; }
