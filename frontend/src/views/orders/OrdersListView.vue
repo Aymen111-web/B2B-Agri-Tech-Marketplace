@@ -51,83 +51,62 @@ function getStatusBadgeClass(status) {
 
 <template>
   <div class="orders-page">
-    <!-- Navbar -->
-    <nav class="top-nav">
-      <div class="top-nav__inner">
-        <router-link to="/" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
-        </router-link>
+    <div class="page-container">
 
-        <div class="top-nav__right">
-          <router-link to="/cart" class="top-nav__link">
-            🛒 Cart
-          </router-link>
-          <router-link to="/listings" class="top-nav__link">
-            Browse Marketplace
-          </router-link>
-          <router-link v-if="authStore.isAuthenticated" to="/dashboard" class="top-nav__link">
-            Dashboard
-          </router-link>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Header -->
-    <header class="orders-header">
-      <div class="orders-header__inner">
+      <!-- Header Section -->
+      <div class="orders-header-card">
         <div class="header-badge">📋 Order History</div>
         <h1 class="header-title">My Produce Orders</h1>
         <p class="header-sub">
           Track fulfillment status across verified Ethiopian farmers and pay via Chapa hosted checkout.
         </p>
 
-        <!-- Status Filter Tabs -->
-        <div class="filter-tabs">
-          <button
-            class="tab"
-            :class="{ active: activeTab === '' }"
-            @click="activeTab = ''"
-          >
-            All Orders
-          </button>
-          <button
-            class="tab"
-            :class="{ active: activeTab === 'pending_payment' }"
-            @click="activeTab = 'pending_payment'"
-          >
-            ⏳ Pending Payment
-          </button>
-          <button
-            class="tab"
-            :class="{ active: activeTab === 'confirmed' }"
-            @click="activeTab = 'confirmed'"
-          >
-            ✅ Confirmed
-          </button>
-          <button
-            class="tab"
-            :class="{ active: activeTab === 'completed' }"
-            @click="activeTab = 'completed'"
-          >
-            🎉 Completed
-          </button>
-          <button
-            class="tab"
-            :class="{ active: activeTab === 'cancelled' }"
-            @click="activeTab = 'cancelled'"
-          >
-            🛑 Cancelled
-          </button>
+        <!-- Status Filter Action Bar -->
+        <div class="filter-bar border-0 shadow-none p-0 mt-3">
+          <div class="filter-group">
+            <button
+              class="btn-filter"
+              :class="activeTab === '' ? 'btn-filter--primary' : 'btn-filter--clear'"
+              @click="activeTab = ''"
+            >
+              All Orders
+            </button>
+            <button
+              class="btn-filter"
+              :class="activeTab === 'pending_payment' ? 'btn-filter--primary' : 'btn-filter--clear'"
+              @click="activeTab = 'pending_payment'"
+            >
+              ⏳ Pending Payment
+            </button>
+            <button
+              class="btn-filter"
+              :class="activeTab === 'confirmed' ? 'btn-filter--primary' : 'btn-filter--clear'"
+              @click="activeTab = 'confirmed'"
+            >
+              ✅ Confirmed
+            </button>
+            <button
+              class="btn-filter"
+              :class="activeTab === 'completed' ? 'btn-filter--primary' : 'btn-filter--clear'"
+              @click="activeTab = 'completed'"
+            >
+              🎉 Completed
+            </button>
+            <button
+              class="btn-filter"
+              :class="activeTab === 'cancelled' ? 'btn-filter--primary' : 'btn-filter--clear'"
+              @click="activeTab = 'cancelled'"
+            >
+              🛑 Cancelled
+            </button>
+          </div>
         </div>
       </div>
-    </header>
 
-    <!-- Main Orders List -->
-    <main class="orders-main">
-      <div class="orders-container">
-
+      <!-- Main Orders List -->
+      <div class="orders-main-content">
         <!-- Error Alert -->
-        <div v-if="orderStore.error" class="alert alert--error mb-6">
+        <div v-if="orderStore.error" class="banner banner--error mb-4">
           <span>⚠️</span> {{ orderStore.error }}
         </div>
 
@@ -142,9 +121,9 @@ function getStatusBadgeClass(status) {
           <div class="empty-icon">📦</div>
           <h2>No Produce Orders Found</h2>
           <p>You haven't placed any orders matching this status filter yet.</p>
-          <router-link to="/listings" class="btn btn--primary btn--lg mt-4">
+          <button class="btn-filter btn-filter--primary mt-4" @click="router.push('/listings')">
             Explore Produce Marketplace
-          </router-link>
+          </button>
         </div>
 
         <!-- Orders Grid / List -->
@@ -164,7 +143,11 @@ function getStatusBadgeClass(status) {
                 </div>
               </div>
 
-              <span :class="['status-badge', getStatusBadgeClass(order.status)]">
+              <span class="pill-badge" :class="{
+                'pill-badge--green': order.status === 'confirmed' || order.status === 'completed',
+                'pill-badge--gold': order.status === 'pending_payment' || order.status === 'pending',
+                'pill-badge--red': order.status === 'cancelled' || order.status === 'rejected'
+              }">
                 {{ (order.status || 'PENDING').replace('_', ' ').toUpperCase() }}
               </span>
             </div>
@@ -196,7 +179,8 @@ function getStatusBadgeClass(status) {
         </div>
 
       </div>
-    </main>
+
+    </div>
   </div>
 </template>
 
@@ -208,100 +192,73 @@ function getStatusBadgeClass(status) {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Nav */
-.top-nav {
-  background: #10b981;
-  padding: 0 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+<style scoped>
+.orders-page {
+  padding: 1.5rem;
+  background: var(--surface);
+  min-height: calc(100vh - 60px);
 }
-.top-nav__inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.top-nav__brand {
-  font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none;
-}
-.top-nav__brand strong { color: #ecfdf5; }
-.top-nav__right { display: flex; gap: 1.25rem; align-items: center; }
-.top-nav__link { color: rgba(255, 255, 255, 0.9); text-decoration: none; font-weight: 500; }
-.top-nav__link:hover { color: #fff; }
 
-/* Header */
-.orders-header {
-  background: #ffffff;
-  padding: 2.5rem 1.5rem 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+.page-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
-.orders-header__inner { max-width: 1000px; margin: 0 auto; }
+
+.orders-header-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
 .header-badge {
   display: inline-block;
-  background: #dcfce7;
-  color: #15803d; font-weight: 700; font-size: 0.85rem;
-  padding: 0.35rem 0.85rem; border-radius: 9999px; margin-bottom: 0.75rem;
-  border: 1px solid #bbf7d0;
-}
-.header-title { font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; }
-.header-sub { color: #64748b; font-size: 1rem; margin-bottom: 2rem; }
-
-/* Filter Tabs */
-.filter-tabs {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-}
-.tab {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  padding: 0.5rem 1.1rem;
+  background: #e8f0fe;
+  color: #1a73e8;
+  font-weight: 800;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
-}
-.tab:hover { background: #e2e8f0; color: #0f172a; }
-.tab.active {
-  background: #10b981;
-  color: #ffffff;
-  border-color: #10b981;
+  margin-bottom: 0.5rem;
 }
 
-/* Main Content */
-.orders-main { max-width: 1000px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+.header-title { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.35rem; }
+.header-sub { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
+
+.orders-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
 .state-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
   padding: 4rem 2rem;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 .empty-card .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
 
-.orders-list { display: flex; flex-direction: column; gap: 1.25rem; }
+.orders-list { display: flex; flex-direction: column; gap: 1rem; }
 
-/* Order Card */
 .order-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
-  padding: 1.5rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
 }
 .order-card:hover {
-  background: #ffffff;
-  border-color: #10b981;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12);
+  border-color: var(--brand-blue);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
@@ -309,78 +266,61 @@ function getStatusBadgeClass(status) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 .order-id-group { display: flex; align-items: center; gap: 0.85rem; }
-.order-icon { font-size: 1.75rem; }
-.order-number { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0; }
-.placed-date { font-size: 0.825rem; color: #64748b; }
+.order-icon { font-size: 1.6rem; }
+.order-number { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0; }
+.placed-date { font-size: 0.8rem; color: var(--text-muted); }
 
 .order-card__body {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 .info-pill {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 0.5rem 0.85rem;
-  border-radius: 0.5rem;
-  font-size: 0.85rem;
-  color: #64748b;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  color: var(--text-secondary);
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
-.info-pill strong { color: #0f172a; }
+.info-pill strong { color: var(--text-primary); }
 
 .order-card__footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px dashed #e2e8f0;
-  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
+  padding-top: 0.85rem;
 }
-.total-wrap { font-size: 0.9rem; color: #64748b; }
-.total-amount { font-size: 1.2rem; font-weight: 800; color: #15803d; margin-left: 0.5rem; }
+.total-wrap { font-size: 0.875rem; color: var(--text-secondary); }
+.total-amount { font-size: 1.15rem; font-weight: 800; color: #1e8e3e; margin-left: 0.5rem; }
 
 .btn-text {
   background: none;
   border: none;
-  color: #10b981;
-  font-weight: 700;
-  font-size: 0.9rem;
+  color: var(--brand-blue);
+  font-weight: 800;
+  font-size: 0.875rem;
+  cursor: pointer;
 }
 
-/* Status Badges */
-.status-badge {
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-.badge--success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-.badge--warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-.badge--danger  { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-.badge--info    { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-
-.text-success { color: #15803d; }
-.text-warning { color: #b45309; }
-
-/* Buttons */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600;
-  text-decoration: none; cursor: pointer; border: none;
-}
-.btn--primary { background: #10b981; color: #ffffff; }
-.btn--primary:hover { background: #059669; }
-.btn--lg { padding: 0.9rem 1.75rem; font-size: 1.05rem; }
+.banner--error { background: #fce8e6; color: #d93025; border: 1px solid #f8bbd0; padding: 0.85rem 1.25rem; border-radius: var(--radius-sm); }
+.text-success { color: #1e8e3e; }
+.text-warning { color: #f2994a; }
+.mb-4 { margin-bottom: 1rem; }
+.mt-4 { margin-top: 1rem; }
 
 .spinner {
-  width: 40px; height: 40px;
-  border: 3px solid rgba(16, 185, 129, 0.2);
-  border-top-color: #10b981; border-radius: 50%;
+  width: 36px; height: 36px;
+  border: 3px solid rgba(11, 79, 156, 0.2);
+  border-top-color: var(--brand-blue);
+  border-radius: 50%;
   animation: spin 0.8s linear infinite; margin: 0 auto 1rem;
 }
 @keyframes spin { to { transform: rotate(360deg); } }

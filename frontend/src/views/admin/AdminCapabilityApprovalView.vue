@@ -10,6 +10,7 @@ const router = useRouter()
 
 const selectedStatus = ref('pending')
 const selectedType = ref('')
+const hideCards = ref(false)
 
 const showRejectModal = ref(false)
 const selectedAppForReject = ref(null)
@@ -34,13 +35,13 @@ async function loadApplications() {
   await capabilityStore.fetchAdminApplications(params)
 }
 
-function handleStatusFilter(status) {
-  selectedStatus.value = status
+function handleApplyFilter() {
   loadApplications()
 }
 
-function handleTypeFilter(event) {
-  selectedType.value = event.target.value
+function handleClearFilter() {
+  selectedStatus.value = ''
+  selectedType.value = ''
   loadApplications()
 }
 
@@ -109,107 +110,149 @@ function formatDate(dateStr) {
     minute: '2-digit'
   })
 }
+
+/* Computed KPI Metrics */
+const totalAppsCount = computed(() => capabilityStore.adminApplications.length)
+const pendingCount = computed(() => capabilityStore.adminApplications.filter(a => a.status === 'pending').length)
+const approvedFarmerCount = computed(() => capabilityStore.adminApplications.filter(a => a.status === 'approved' && a.capability_type === 'farmer').length)
+const approvedBuyerCount = computed(() => capabilityStore.adminApplications.filter(a => a.status === 'approved' && a.capability_type === 'buyer').length)
+const rejectedCount = computed(() => capabilityStore.adminApplications.filter(a => a.status === 'rejected').length)
+
+/* Donut Calculations */
+const pendingPercent = computed(() => totalAppsCount.value ? Math.round((pendingCount.value / totalAppsCount.value) * 100) : 0)
+const approvedPercent = computed(() => totalAppsCount.value ? Math.round(((approvedFarmerCount.value + approvedBuyerCount.value) / totalAppsCount.value) * 100) : 0)
+const rejectedPercent = computed(() => totalAppsCount.value ? Math.round((rejectedCount.value / totalAppsCount.value) * 100) : 0)
 </script>
 
 <template>
-  <div class="admin-cap-view">
-    <!-- Header -->
-    <header class="admin-header">
-      <div class="admin-header__inner">
-        <button class="back-btn" @click="router.push('/dashboard')">
-          ← Back to Dashboard
-        </button>
-        <div class="header-flex">
-          <div>
-            <h1 class="admin-title">Admin — Capability Review & Approval</h1>
-            <p class="admin-sub">
-              Review applicant verification details and grant Farmer or Business Buyer capabilities.
-            </p>
-          </div>
-          <span class="admin-badge">🛡️ Admin Mode</span>
-        </div>
+  <div class="admin-dashboard-page">
+    <div class="page-container">
+      
+      <!-- Banners -->
+      <div v-if="bannerSuccess" class="banner banner--success">
+        ✅ {{ bannerSuccess }}
       </div>
-    </header>
+      <div v-if="bannerError" class="banner banner--error">
+        ⚠️ {{ bannerError }}
+      </div>
 
-    <main class="admin-main">
-      <div class="admin-container">
-
-        <!-- Banners -->
-        <div v-if="bannerSuccess" class="banner banner--success">
-          ✅ {{ bannerSuccess }}
-        </div>
-        <div v-if="bannerError" class="banner banner--error">
-          ⚠️ {{ bannerError }}
-        </div>
-
-        <!-- Filter Controls -->
-        <div class="controls-card">
-          <div class="filter-tabs">
-            <button
-              class="tab-btn"
-              :class="{ active: selectedStatus === 'pending' }"
-              @click="handleStatusFilter('pending')"
-            >
-              Pending Approval
-            </button>
-            <button
-              class="tab-btn"
-              :class="{ active: selectedStatus === 'approved' }"
-              @click="handleStatusFilter('approved')"
-            >
-              Approved
-            </button>
-            <button
-              class="tab-btn"
-              :class="{ active: selectedStatus === 'rejected' }"
-              @click="handleStatusFilter('rejected')"
-            >
-              Rejected
-            </button>
-            <button
-              class="tab-btn"
-              :class="{ active: selectedStatus === '' }"
-              @click="handleStatusFilter('')"
-            >
-              All Applications
-            </button>
+      <!-- Filter Controls Action Bar -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <div class="filter-field">
+            <select v-model="selectedStatus" class="filter-select" id="status-filter-select">
+              <option value="">All Statuses</option>
+              <option value="pending">⏳ Pending Approval</option>
+              <option value="approved">✅ Approved</option>
+              <option value="rejected">🛑 Rejected</option>
+            </select>
           </div>
 
-          <div class="type-filter">
-            <label for="type-select">Filter by Type:</label>
-            <select id="type-select" :value="selectedType" @change="handleTypeFilter">
+          <div class="filter-field">
+            <select v-model="selectedType" class="filter-select" id="type-filter-select">
               <option value="">All Capability Types</option>
               <option value="farmer">🌾 Farmer</option>
               <option value="buyer">🏬 Business Buyer</option>
             </select>
           </div>
+
+          <button class="btn-filter btn-filter--primary" @click="handleApplyFilter">
+            <span>🔍 Filter</span>
+          </button>
+          
+          <button class="btn-filter btn-filter--clear" @click="handleClearFilter">
+            <span>❌ Clear</span>
+          </button>
         </div>
 
-        <!-- Applications Table / Cards -->
-        <div class="table-card">
+        <div class="toggle-switch-wrap">
+          <label class="switch">
+            <input type="checkbox" v-model="hideCards" />
+            <span class="slider"></span>
+          </label>
+          <span>Hide Cards</span>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards (Hideable via Toggle) -->
+      <div v-if="!hideCards" class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <span class="kpi-label">Pending Approval</span>
+            <span class="kpi-value">{{ pendingCount }}</span>
+          </div>
+          <div class="kpi-icon-box kpi-icon-box--yellow">⚡</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <span class="kpi-label">Approved Farmers</span>
+            <span class="kpi-value">{{ approvedFarmerCount }}</span>
+          </div>
+          <div class="kpi-icon-box kpi-icon-box--green">🌾</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-info">
+            <span class="kpi-label">Approved Buyers</span>
+            <span class="kpi-value">{{ approvedBuyerCount }}</span>
+          </div>
+          <div class="kpi-icon-box kpi-icon-box--blue">👤</div>
+        </div>
+
+        <div class="kpi-card kpi-card--accent-mint">
+          <div class="kpi-info">
+            <span class="kpi-label">Total Applications</span>
+            <span class="kpi-value">{{ totalAppsCount }}</span>
+          </div>
+          <div class="kpi-icon-box kpi-icon-box--teal">📜</div>
+        </div>
+      </div>
+
+      <!-- Main Section Grid: Royal Blue Table + Donut Chart -->
+      <div class="dashboard-main-grid">
+        
+        <!-- Deep Royal Blue Table Card -->
+        <div class="royal-table-card flex-table">
+          <div class="royal-table-header">
+            <div class="royal-table-title">
+              <span>📋 Candidate Capability Applications</span>
+              <span class="live-dot-wrap">
+                <span class="live-dot"></span> Live
+              </span>
+            </div>
+            <div class="royal-table-actions">
+              <button class="royal-table-btn" @click="loadApplications" title="Reload Applications">
+                🔄 Reload
+              </button>
+            </div>
+          </div>
+
           <div v-if="capabilityStore.loading" class="state-msg">
-            Loading applications...
+            <div class="spinner"></div>
+            <span>Loading applications...</span>
           </div>
 
           <div v-else-if="capabilityStore.adminApplications.length === 0" class="state-msg">
-            No capability applications found matching current criteria.
+            <span>No capability applications found matching criteria.</span>
           </div>
 
           <div v-else class="app-table-wrap">
-            <table class="app-table">
+            <table class="royal-table">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>Applicant</th>
                   <th>Phone Number</th>
-                  <th>Requested Capability</th>
-                  <th>Submission Date</th>
-                  <th>Verification Info / Documents</th>
-                  <th>Status</th>
+                  <th>Type</th>
+                  <th>Submitted Date</th>
+                  <th>Status Progress</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="app in capabilityStore.adminApplications" :key="app.id">
+                <tr v-for="(app, idx) in capabilityStore.adminApplications" :key="app.id">
+                  <td class="font-bold">{{ idx + 1 }}</td>
                   <td>
                     <div class="user-info">
                       <span class="user-name">
@@ -218,47 +261,52 @@ function formatDate(dateStr) {
                       <span class="user-id">ID: #{{ app.user_id }}</span>
                     </div>
                   </td>
-                  <td>{{ app.user?.phone || '-' }}</td>
+                  <td class="font-semibold">{{ app.user?.phone || '-' }}</td>
                   <td>
-                    <span class="cap-type-badge" :class="`cap-type-badge--${app.capability_type}`">
-                      {{ app.capability_type === 'farmer' ? '🌾 Farmer' : '🏬 Business Buyer' }}
+                    <span class="cap-type-pill" :class="`cap-type-pill--${app.capability_type}`">
+                      {{ app.capability_type === 'farmer' ? '🌾 Farmer' : '🏬 Buyer' }}
                     </span>
                   </td>
                   <td class="date-cell">{{ formatDate(app.created_at) }}</td>
-                  <td>
-                    <div v-if="app.supporting_documents" class="doc-list">
-                      <div v-for="(val, key) in app.supporting_documents" :key="key" class="doc-row">
-                        <strong>{{ key.replace(/_/g, ' ') }}:</strong> {{ val }}
+                  <td class="progress-cell">
+                    <div class="progress-flex">
+                      <span class="pill-badge" :class="{
+                        'pill-badge--orange': app.status === 'pending',
+                        'pill-badge--green': app.status === 'approved',
+                        'pill-badge--red': app.status === 'rejected'
+                      }">
+                        {{ app.status.toUpperCase() }}
+                      </span>
+                      <div class="progress-bar-wrap">
+                        <div class="progress-bar-fill" :class="{
+                          'progress-bar-fill--gold': app.status === 'pending',
+                          'progress-bar-fill--green': app.status === 'approved',
+                          'progress-bar-fill--blue': app.status === 'rejected'
+                        }" :style="{ width: app.status === 'approved' ? '100%' : (app.status === 'pending' ? '50%' : '10%') }"></div>
                       </div>
                     </div>
-                    <span v-else class="text-muted">No documents attached</span>
-                  </td>
-                  <td>
-                    <span class="status-pill" :class="`status-pill--${app.status}`">
-                      {{ app.status.toUpperCase() }}
-                    </span>
                   </td>
                   <td>
                     <div v-if="app.status === 'pending'" class="action-btns">
                       <button
-                        class="btn-approve"
+                        class="btn-action btn-action--approve"
                         :disabled="processingId === app.id"
                         @click="handleApprove(app)"
                       >
                         Approve
                       </button>
                       <button
-                        class="btn-reject"
+                        class="btn-action btn-action--reject"
                         :disabled="processingId === app.id"
                         @click="openRejectModal(app)"
                       >
                         Reject
                       </button>
                     </div>
-                    <span v-else-if="app.status === 'approved'" class="text-success font-semibold">
-                      Granted ✓
+                    <span v-else-if="app.status === 'approved'" class="text-granted font-bold">
+                      Approved ✓
                     </span>
-                    <span v-else-if="app.status === 'rejected'" class="text-danger font-semibold">
+                    <span v-else-if="app.status === 'rejected'" class="text-rejected font-bold">
                       Rejected ✗
                     </span>
                   </td>
@@ -268,8 +316,56 @@ function formatDate(dateStr) {
           </div>
         </div>
 
+        <!-- Donut & Percent Visual Analytics Card -->
+        <div class="donut-card side-analytics">
+          <h3 class="donut-card-title">Candidate Status in Percent</h3>
+          <div class="donut-flex">
+            <svg class="donut-chart-svg" viewBox="0 0 42 42">
+              <circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#e2e8f0" stroke-width="6"></circle>
+              
+              <!-- Pending segment (Orange) -->
+              <circle
+                class="donut-segment"
+                cx="21" cy="21" r="15.91549430918954"
+                fill="transparent"
+                stroke="#f59e0b"
+                stroke-width="6"
+                :stroke-dasharray="`${pendingPercent} ${100 - pendingPercent}`"
+                stroke-dashoffset="0"
+              ></circle>
+              
+              <!-- Approved segment (Green) -->
+              <circle
+                class="donut-segment"
+                cx="21" cy="21" r="15.91549430918954"
+                fill="transparent"
+                stroke="#10b981"
+                stroke-width="6"
+                :stroke-dasharray="`${approvedPercent} ${100 - approvedPercent}`"
+                :stroke-dashoffset="`-${pendingPercent}`"
+              ></circle>
+            </svg>
+
+            <div class="donut-legend">
+              <div class="legend-item">
+                <span class="legend-dot legend-dot--orange"></span>
+                <span>Pending ({{ pendingPercent }}%)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot legend-dot--green"></span>
+                <span>Approved ({{ approvedPercent }}%)</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot legend-dot--red"></span>
+                <span>Rejected ({{ rejectedPercent }}%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </main>
+
+    </div>
 
     <!-- Rejection Reason Modal -->
     <div v-if="showRejectModal" class="modal-overlay">
@@ -309,183 +405,117 @@ function formatDate(dateStr) {
 </template>
 
 <style scoped>
-.admin-cap-view {
-  min-height: 100vh;
-  background: var(--surface-alt);
-  padding-bottom: 4rem;
+.admin-dashboard-page {
+  padding: 1.5rem;
+  background: var(--surface);
+  min-height: calc(100vh - 60px);
 }
 
-.admin-header {
-  background: #1e293b;
-  color: #fff;
-  padding: 2rem 1.5rem;
-}
-.admin-header__inner {
-  max-width: 1200px;
+.page-container {
+  max-width: 1300px;
   margin: 0 auto;
-}
-.back-btn {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.4rem 0.9rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  margin-bottom: 1rem;
-}
-.back-btn:hover { background: rgba(255, 255, 255, 0.25); }
-
-.header-flex {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 1.25rem;
 }
-.admin-title { font-size: 1.75rem; font-weight: 700; }
-.admin-sub { color: #94a3b8; font-size: 0.95rem; margin-top: 0.25rem; }
-.admin-badge {
-  background: #334155;
-  color: #fbbf24;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid #475569;
-}
-
-.admin-main { padding: 2rem 1.5rem 0; }
-.admin-container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
 
 .banner {
-  padding: 0.9rem 1.25rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 700;
 }
-.banner--success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.banner--error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.banner--success { background: #e6f4ea; color: #1e8e3e; border: 1px solid #b7e1cd; }
+.banner--error   { background: #fce8e6; color: #d93025; border: 1px solid #f8bbd0; }
 
-.controls-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
+/* Dashboard Main Grid Layout */
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.live-dot-wrap {
+  display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.filter-tabs { display: flex; gap: 0.5rem; }
-.tab-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #f8fafc;
-  font-size: 0.875rem;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.85);
+  margin-left: 0.75rem;
   font-weight: 600;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.state-msg {
+  padding: 3rem;
+  text-align: center;
   color: var(--text-secondary);
-  cursor: pointer;
-}
-.tab-btn.active {
-  background: var(--brand-green);
-  color: #fff;
-  border-color: var(--brand-green);
-}
-
-.type-filter { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; }
-.type-filter select {
-  padding: 0.45rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.875rem;
-}
-
-.table-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-}
-
-.state-msg { padding: 3rem; text-align: center; color: var(--text-secondary); }
-
-.app-table-wrap { overflow-x: auto; }
-.app-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-.app-table th {
-  background: #f8fafc;
-  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
   font-weight: 600;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border);
-}
-.app-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  vertical-align: top;
 }
 
-.user-name { font-weight: 600; display: block; color: var(--text-primary); }
-.user-id { font-size: 0.75rem; color: var(--text-secondary); }
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(11, 79, 156, 0.2);
+  border-top-color: var(--brand-blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.cap-type-badge {
+.user-info { display: flex; flex-direction: column; }
+.user-name { font-weight: 700; color: var(--text-primary); }
+.user-id { font-size: 0.725rem; color: var(--text-muted); }
+
+.cap-type-pill {
   display: inline-block;
-  padding: 0.25rem 0.65rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
-.cap-type-badge--farmer { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.cap-type-badge--buyer  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+.cap-type-pill--farmer { background: #e6f4ea; color: #1e8e3e; }
+.cap-type-pill--buyer  { background: #e8f0fe; color: #1a73e8; }
 
 .date-cell { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; }
 
-.doc-list { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.825rem; }
-.doc-row strong { text-transform: capitalize; color: var(--text-secondary); }
+.progress-cell { min-width: 170px; }
+.progress-flex { display: flex; flex-direction: column; gap: 0.35rem; }
 
-.status-pill {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-.status-pill--pending  { background: #fef3c7; color: #92400e; }
-.status-pill--approved { background: #dcfce7; color: #166534; }
-.status-pill--rejected { background: #fee2e2; color: #991b1b; }
-
-.action-btns { display: flex; gap: 0.5rem; }
-.btn-approve {
-  padding: 0.4rem 0.8rem;
-  background: #166534;
-  color: #fff;
+.action-btns { display: flex; gap: 0.4rem; }
+.btn-action {
+  padding: 0.35rem 0.75rem;
   border: none;
   border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 800;
   cursor: pointer;
+  transition: all 0.2s;
 }
-.btn-approve:hover:not(:disabled) { background: #14532d; }
+.btn-action--approve { background: #0b4f9c; color: #ffffff; }
+.btn-action--approve:hover:not(:disabled) { background: #083b76; }
+.btn-action--reject  { background: #e53935; color: #ffffff; }
+.btn-action--reject:hover:not(:disabled)  { background: #c62828; }
 
-.btn-reject {
-  padding: 0.4rem 0.8rem;
-  background: #991b1b;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-reject:hover:not(:disabled) { background: #7f1d1d; }
-
-.text-success { color: #166534; }
-.text-danger  { color: #991b1b; }
-.font-semibold { font-weight: 600; }
-.text-muted   { color: var(--text-secondary); font-size: 0.8rem; }
+.text-granted { color: #1e8e3e; }
+.text-rejected { color: #d93025; }
 
 /* Modal */
 .modal-overlay {
@@ -499,45 +529,49 @@ function formatDate(dateStr) {
   z-index: 1000;
 }
 .modal-card {
-  background: #fff;
-  border-radius: 8px;
+  background: var(--surface-card);
+  border-radius: var(--radius-md);
   padding: 1.75rem;
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-lg);
 }
-.modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
-.modal-sub   { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.25rem; }
+.modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-primary); }
+.modal-sub   { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem; }
 
 .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.5rem; }
-.form-group label { font-size: 0.85rem; font-weight: 600; }
+.form-group label { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 .form-group textarea {
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   outline: none;
+  background: var(--surface-card);
+  color: var(--text-primary);
 }
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; }
 .btn-cancel {
   padding: 0.6rem 1.2rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
   cursor: pointer;
 }
 .btn-confirm-reject {
   padding: 0.6rem 1.2rem;
   border: none;
-  border-radius: 6px;
-  background: #991b1b;
+  border-radius: var(--radius-sm);
+  background: #e53935;
   color: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 700;
   cursor: pointer;
 }
 .btn-confirm-reject:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
+
