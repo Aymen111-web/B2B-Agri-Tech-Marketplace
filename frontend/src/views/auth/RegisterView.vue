@@ -94,19 +94,8 @@ function goBack() {
 <template>
   <AuthLayout
     title="Create your account"
-    subtitle="Join Ethiopia's premier agricultural trade portal"
+    subtitle="Join Ethiopia's premier agri marketplace"
   >
-    <!-- Visual Step Tracker -->
-    <div class="auth-steps">
-      <div class="step-pill" :class="{ active: step === 1, done: step > 1 }">
-        <span class="step-num">1</span> Account Details
-      </div>
-      <div class="step-divider"></div>
-      <div class="step-pill" :class="{ active: step === 2 }">
-        <span class="step-num">2</span> Phone OTP Verification
-      </div>
-    </div>
-
     <!-- ── Step 1: Details ── -->
     <form
       v-if="step === 1"
@@ -306,57 +295,6 @@ function goBack() {
 
 <style scoped>
 @import '@/assets/auth-form.css';
-
-.auth-steps {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.step-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  background: var(--surface-alt);
-  padding: 0.3rem 0.65rem;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-}
-
-.step-pill.active {
-  color: #ffffff;
-  background: var(--brand-green);
-  border-color: var(--brand-green);
-}
-
-.step-pill.done {
-  color: var(--brand-green-dark);
-  background: var(--brand-green-light);
-  border-color: var(--brand-green);
-}
-
-.step-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.15);
-  font-size: 0.7rem;
-}
-
-.step-divider {
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
 
 .otp-info {
   text-align: center;

@@ -1,6 +1,5 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import ThemeToggle from '@/components/ThemeToggle.vue'
 
 defineProps({
   title:    { type: String, required: true },
@@ -10,57 +9,45 @@ defineProps({
 
 <template>
   <div class="auth-layout">
-    <!-- Left panel — executive brand panel -->
+    <!-- Left panel — decorative -->
     <aside class="auth-layout__panel" aria-hidden="true">
       <div class="auth-layout__panel-inner">
         <RouterLink to="/" class="auth-layout__brand">
           <span class="auth-layout__logo">🌿</span>
           <span class="auth-layout__name">Agri<strong>Market</strong></span>
         </RouterLink>
-
         <div class="auth-layout__tagline">
-          Ethiopia's Premier B2B<br/>Agricultural Trade Portal
+          Ethiopia's trusted B2B<br/>agricultural marketplace
         </div>
-
         <div class="auth-layout__cards">
           <div class="auth-card">
             <span>🌾</span>
             <div>
-              <div class="auth-card__label">Direct Wholesale Produce</div>
-              <div class="auth-card__price">Grade-A Teff & Wheat</div>
+              <div class="auth-card__label">Wheat — Grade A</div>
+              <div class="auth-card__price">ETB 48 / kg</div>
             </div>
           </div>
           <div class="auth-card auth-card--offset">
             <span>☕</span>
             <div>
-              <div class="auth-card__label">Verified Origin</div>
-              <div class="auth-card__price">Export-Grade Sidama Coffee</div>
+              <div class="auth-card__label">Sidama Coffee</div>
+              <div class="auth-card__price">ETB 320 / kg</div>
             </div>
           </div>
           <div class="auth-card">
-            <span>🔬</span>
+            <span>🫘</span>
             <div>
-              <div class="auth-card__label">Inspected Quality</div>
-              <div class="auth-card__price">Guaranteed Batch Freshness</div>
+              <div class="auth-card__label">White Sesame</div>
+              <div class="auth-card__price">ETB 95 / kg</div>
             </div>
           </div>
         </div>
-
         <div class="auth-layout__stats">
-          <div class="auth-layout__stat">
-            <strong>2,400+</strong>
-            <span>Verified Farmers</span>
-          </div>
+          <div class="auth-layout__stat"><strong>2,400+</strong><span>Farmers</span></div>
           <div class="auth-layout__divider"></div>
-          <div class="auth-layout__stat">
-            <strong>890+</strong>
-            <span>Wholesale Buyers</span>
-          </div>
+          <div class="auth-layout__stat"><strong>890+</strong><span>Buyers</span></div>
           <div class="auth-layout__divider"></div>
-          <div class="auth-layout__stat">
-            <strong>9</strong>
-            <span>Trade Hubs</span>
-          </div>
+          <div class="auth-layout__stat"><strong>9</strong><span>Regions</span></div>
         </div>
       </div>
     </aside>
@@ -68,13 +55,9 @@ defineProps({
     <!-- Right panel — form -->
     <main class="auth-layout__form">
       <div class="auth-layout__form-inner">
-        <div class="auth-top-bar">
-          <RouterLink to="/" class="auth-layout__back">
-            ← Back to Home
-          </RouterLink>
-          <ThemeToggle />
-        </div>
-
+        <RouterLink to="/" class="auth-layout__back">
+          ← Back to Home
+        </RouterLink>
         <div class="auth-layout__header">
           <h1 class="auth-layout__title">{{ title }}</h1>
           <p v-if="subtitle" class="auth-layout__subtitle">{{ subtitle }}</p>
@@ -142,18 +125,12 @@ defineProps({
   overflow-y: auto;
 }
 .auth-layout__form-inner { width: 100%; max-width: 440px; }
-.auth-top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-}
 .auth-layout__back {
   display: inline-block; color: var(--text-muted); font-size: .85rem;
-  transition: color .2s; text-decoration: none; font-weight: 600;
+  margin-bottom: 2.5rem; transition: color .2s; text-decoration: none;
 }
 .auth-layout__back:hover { color: var(--brand-green); }
 .auth-layout__header { margin-bottom: 2rem; }
-.auth-layout__title  { font-size: 1.8rem; color: var(--text-primary); margin-bottom: .4rem; font-weight: 800; }
+.auth-layout__title  { font-size: 1.8rem; color: var(--text-primary); margin-bottom: .4rem; }
 .auth-layout__subtitle { color: var(--text-secondary); font-size: .95rem; }
 </style>
