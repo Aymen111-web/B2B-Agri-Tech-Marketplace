@@ -12,7 +12,7 @@ const activeCapabilities = computed(() => {
 })
 
 const hasFarmerCapability = computed(() => activeCapabilities.value.includes('farmer'))
-const hasBuyerCapability  = computed(() => activeCapabilities.value.includes('buyer'))
+const hasBuyerCapability = computed(() => activeCapabilities.value.includes('buyer'))
 
 async function handleLogout() {
   await auth.logout()
@@ -21,88 +21,80 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="dashboard-page">
-    <div class="dash-container">
-
-      <!-- Welcome Hero Banner -->
-      <div class="dash-welcome-card">
-        <div class="welcome-left">
-          <h1 class="welcome-title">
-            Welcome back, {{ auth.user?.first_name || 'User' }}! 👋
-          </h1>
-          <p class="welcome-sub">
-            Account Status: <span class="status-pill-badge status-pill-badge--green">{{ auth.user?.account_status || 'Active' }}</span>
-          </p>
+  <div class="dashboard">
+    <nav class="dash-nav">
+      <div class="dash-nav__inner">
+        <div class="dash-nav__left">
+          <router-link to="/dashboard" class="dash-nav__brand">
+            🌿 Agri<strong>Market</strong>
+          </router-link>
         </div>
-        <div v-if="auth.isAdmin" class="admin-mode-tag">
-          🛡️ Administrator Account
-        </div>
-      </div>
-
-      <!-- KPI Summary Cards Grid -->
-      <div class="kpi-grid">
-        <div class="kpi-card" :class="{ 'kpi-card--accent-mint': hasFarmerCapability }">
-          <div class="kpi-info">
-            <span class="kpi-label">Farmer Produce Portal</span>
-            <span class="kpi-value">{{ hasFarmerCapability ? 'ACTIVE' : 'INACTIVE' }}</span>
-          </div>
-          <div class="kpi-icon-box kpi-icon-box--green">🌾</div>
-        </div>
-
-        <div class="kpi-card" :class="{ 'kpi-card--accent-mint': hasBuyerCapability }">
-          <div class="kpi-info">
-            <span class="kpi-label">Business Buyer Portal</span>
-            <span class="kpi-value">{{ hasBuyerCapability ? 'ACTIVE' : 'INACTIVE' }}</span>
-          </div>
-          <div class="kpi-icon-box kpi-icon-box--blue">🏬</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-info">
-            <span class="kpi-label">Active Capabilities</span>
-            <span class="kpi-value">{{ activeCapabilities.length }}</span>
-          </div>
-          <div class="kpi-icon-box kpi-icon-box--yellow">📜</div>
-        </div>
-
-        <div class="kpi-card" v-if="auth.isAdmin">
-          <div class="kpi-info">
-            <span class="kpi-label">Admin Governance</span>
-            <span class="kpi-value">READY</span>
-          </div>
-          <div class="kpi-icon-box kpi-icon-box--teal">🛡️</div>
+        <div class="dash-nav__right">
+          <router-link to="/listings" class="dash-nav__link">
+            Browse Marketplace
+          </router-link>
+          <router-link to="/capabilities/apply" class="dash-nav__link">
+            Capabilities
+          </router-link>
+          <router-link v-if="auth.isAdmin" to="/admin/capability-applications" class="dash-nav__link dash-nav__link--admin">
+            🛡️ Admin Approvals
+          </router-link>
+          <span class="dash-nav__user">
+            {{ auth.user?.first_name }} {{ auth.user?.second_name }}
+          </span>
+          <button id="logout-btn" class="dash-nav__logout" @click="handleLogout">
+            Sign Out
+          </button>
         </div>
       </div>
+    </nav>
 
-      <!-- Main Section: Capabilities Portals & Donut Analytics -->
-      <div class="dash-main-grid">
+    <main class="dash-main">
+      <div class="dash-content">
+        <!-- Welcome banner -->
+        <div class="dash-welcome">
+          <div class="dash-welcome__header">
+            <div>
+              <h1 class="dash-welcome__title">
+                Welcome back, {{ auth.user?.first_name }}! 👋
+              </h1>
+              <p class="dash-welcome__sub">
+                Account Status: <span class="status-badge">{{ auth.user?.account_status }}</span>
+              </p>
+            </div>
+            <div v-if="auth.isAdmin" class="admin-tag">
+              Administrator
+            </div>
+          </div>
+        </div>
 
-        <!-- Portals Grid -->
-        <div class="portals-column">
+        <!-- Capability Cards Grid -->
+        <div class="cards-grid">
           
-          <!-- Farmer Portal Card -->
-          <div class="portal-card" :class="{ 'portal-card--active': hasFarmerCapability }">
-            <div class="portal-header">
-              <span class="portal-icon">🌾</span>
-              <span class="pill-badge" :class="hasFarmerCapability ? 'pill-badge--green' : 'pill-badge--gold'">
-                {{ hasFarmerCapability ? 'ACTIVE CAPABILITY' : 'NOT GRANTED' }}
+          <!-- Farmer Card -->
+          <div class="dash-card" :class="{ 'dash-card--active': hasFarmerCapability }">
+            <div class="dash-card__header">
+              <span class="dash-card__icon">🌾</span>
+              <span class="dash-card__status" :class="hasFarmerCapability ? 'status--granted' : 'status--none'">
+                {{ hasFarmerCapability ? 'Active Capability' : 'Not Granted' }}
               </span>
             </div>
-            <h3 class="portal-title">Farmer Produce Portal</h3>
-            <p class="portal-desc">
-              List available crops, manage stock levels, configure unit pricing, and process buyer fulfillment orders.
+            <h3 class="dash-card__title">Farmer Produce Portal</h3>
+            <p class="dash-card__desc">
+              List available crops, manage stock, set prices, and process buyer fulfillment orders.
             </p>
-            <div class="portal-footer">
+            <div class="dash-card__actions">
               <button
                 v-if="!hasFarmerCapability"
-                class="btn-filter btn-filter--primary"
+                class="btn btn--primary"
                 @click="router.push('/capabilities/apply')"
               >
                 Apply for Farmer Capability
               </button>
+
               <button
                 v-else
-                class="btn-filter btn-filter--primary"
+                class="btn btn--primary"
                 @click="router.push('/farmer/listings')"
               >
                 Manage Produce Listings →
@@ -110,235 +102,163 @@ async function handleLogout() {
             </div>
           </div>
 
-          <!-- Buyer Portal Card -->
-          <div class="portal-card" :class="{ 'portal-card--active': hasBuyerCapability }">
-            <div class="portal-header">
-              <span class="portal-icon">🏬</span>
-              <span class="pill-badge" :class="hasBuyerCapability ? 'pill-badge--green' : 'pill-badge--gold'">
-                {{ hasBuyerCapability ? 'ACTIVE CAPABILITY' : 'NOT GRANTED' }}
+          <!-- Buyer Card -->
+          <div class="dash-card" :class="{ 'dash-card--active': hasBuyerCapability }">
+            <div class="dash-card__header">
+              <span class="dash-card__icon">🏬</span>
+              <span class="dash-card__status" :class="hasBuyerCapability ? 'status--granted' : 'status--none'">
+                {{ hasBuyerCapability ? 'Active Capability' : 'Not Granted' }}
               </span>
             </div>
-            <h3 class="portal-title">Business Buyer Portal</h3>
-            <p class="portal-desc">
-              Browse verified farmer produce listings, manage shopping cart items, place multi-farmer orders, and settle payments.
+            <h3 class="dash-card__title">Business Buyer Portal</h3>
+            <p class="dash-card__desc">
+              Browse verified farmer listings, manage cart items, place multi-farmer orders, and pay securely.
             </p>
-            <div class="portal-footer buyer-actions">
+            <div class="dash-card__actions">
               <button
                 v-if="!hasBuyerCapability"
-                class="btn-filter btn-filter--primary"
+                class="btn btn--primary"
                 @click="router.push('/capabilities/apply')"
               >
                 Apply for Buyer Capability
               </button>
-              <template v-else>
+              <div v-else class="buyer-actions-flex">
                 <button
-                  class="btn-filter btn-filter--primary"
+                  class="btn btn--primary"
                   @click="router.push('/orders')"
                 >
                   My Orders →
                 </button>
                 <button
-                  class="btn-filter btn-filter--clear"
+                  class="btn btn--outline"
                   @click="router.push('/cart')"
                 >
                   View Cart 🛒
                 </button>
-              </template>
+              </div>
             </div>
           </div>
 
-          <!-- Admin Portal Card -->
-          <div v-if="auth.isAdmin" class="portal-card portal-card--admin">
-            <div class="portal-header">
-              <span class="portal-icon">🛡️</span>
-              <span class="pill-badge pill-badge--blue">
-                SYSTEM ADMIN
+          <!-- Admin Portal Card (If Admin) -->
+          <div v-if="auth.isAdmin" class="dash-card dash-card--admin-portal">
+            <div class="dash-card__header">
+              <span class="dash-card__icon">🛡️</span>
+              <span class="dash-card__status status--admin">
+                System Admin
               </span>
             </div>
-            <h3 class="portal-title">Admin Governance & Approvals</h3>
-            <p class="portal-desc">
-              Review applicant verification documents, grant Farmer or Business Buyer capabilities, oversee accounts, and manage platform logs.
+            <h3 class="dash-card__title">Admin Governance & Approvals</h3>
+            <p class="dash-card__desc">
+              Review capability applications from farmers and business buyers, oversee accounts, and manage platform logs.
             </p>
-            <div class="portal-footer">
-              <button class="btn-filter btn-filter--primary" @click="router.push('/admin/capability-applications')">
-                Review Pending Applications →
+            <div class="dash-card__actions">
+              <button class="btn btn--admin" @click="router.push('/admin/capability-applications')">
+                Review Pending Applications
               </button>
             </div>
           </div>
 
         </div>
 
-        <!-- Right Side: Status Overview Donut Card & Table Quick Access -->
-        <div class="side-column">
-          
-          <div class="donut-card">
-            <h3 class="donut-card-title">Portal Capability Status</h3>
-            <div class="donut-flex">
-              <svg class="donut-chart-svg" viewBox="0 0 42 42">
-                <circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#e2e8f0" stroke-width="6"></circle>
-                <circle
-                  class="donut-segment"
-                  cx="21" cy="21" r="15.91549430918954"
-                  fill="transparent"
-                  stroke="#10b981"
-                  stroke-width="6"
-                  :stroke-dasharray="`${activeCapabilities.length * 50} ${100 - activeCapabilities.length * 50}`"
-                  stroke-dashoffset="0"
-                ></circle>
-              </svg>
-
-              <div class="donut-legend">
-                <div class="legend-item">
-                  <span class="legend-dot legend-dot--green"></span>
-                  <span>Granted ({{ activeCapabilities.length }})</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-dot legend-dot--orange"></span>
-                  <span>Available ({{ 2 - activeCapabilities.length }})</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Royal Table Shortcuts Card -->
-          <div class="royal-table-card mt-4">
-            <div class="royal-table-header">
-              <span class="royal-table-title">⚡ Quick Portals Navigation</span>
-            </div>
-            <table class="royal-table">
-              <tbody>
-                <tr>
-                  <td class="font-bold">🌾 Marketplace</td>
-                  <td class="text-right">
-                    <button class="royal-table-btn" @click="router.push('/listings')">Browse →</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="font-bold">📋 My Orders</td>
-                  <td class="text-right">
-                    <button class="royal-table-btn" @click="router.push('/orders')">View →</button>
-                  </td>
-                </tr>
-                <tr v-if="auth.isAdmin">
-                  <td class="font-bold">🛡️ Governance</td>
-                  <td class="text-right">
-                    <button class="royal-table-btn" @click="router.push('/admin/capability-applications')">Manage →</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-
       </div>
-
-    </div>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.dashboard-page {
-  padding: 1.5rem;
-  background: var(--surface);
-  min-height: calc(100vh - 60px);
-}
+.dashboard { min-height: 100vh; display: flex; flex-direction: column; background: var(--surface-alt); }
 
-.dash-container {
-  max-width: 1250px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+.dash-nav {
+  background: #064e3b;
+  padding: 0 1.5rem;
+  box-shadow: var(--shadow-xs);
 }
+.dash-nav__inner {
+  max-width: 1200px; margin: 0 auto; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.dash-nav__brand { color: #fff; font-size: 1.15rem; font-weight: 700; text-decoration: none; }
+.dash-nav__brand strong { color: var(--brand-gold); }
+.dash-nav__right { display: flex; align-items: center; gap: 1rem; }
+.dash-nav__link {
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+.dash-nav__link:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.dash-nav__link--admin { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
 
-.dash-welcome-card {
+.dash-nav__user { color: rgba(255,255,255,.8); font-size: 0.85rem; font-weight: 600; }
+.dash-nav__logout {
+  background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.2);
+  border-radius: var(--radius-xs); padding: 0.35rem 0.85rem; font-size: 0.8125rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s ease;
+}
+.dash-nav__logout:hover { background: rgba(255,255,255,.22); }
+
+.dash-main { flex: 1; padding: 2rem 1.5rem; }
+.dash-content { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+
+.dash-welcome {
   background: var(--surface-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 1.5rem 1.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-xs);
+}
+.dash-welcome__header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.dash-welcome__title { font-size: 1.4rem; color: var(--text-primary); margin-bottom: 0.25rem; font-weight: 700; }
+.dash-welcome__sub { color: var(--text-secondary); font-size: 0.875rem; }
+.status-badge { font-weight: 700; color: var(--brand-green-dark); letter-spacing: 0.02em; }
+.admin-tag {
+  background: var(--brand-gold-light); color: var(--brand-gold-dark);
+  padding: 0.3rem 0.75rem; border-radius: var(--radius-full);
+  font-weight: 700; font-size: 0.75rem; border: 1px solid var(--brand-gold-border);
 }
 
-.welcome-title { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
-.welcome-sub { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem; font-weight: 600; }
-
-.status-pill-badge {
-  display: inline-block;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-.status-pill-badge--green { background: #e6f4ea; color: #1e8e3e; }
-
-.admin-mode-tag {
-  background: #fef7e0;
-  color: #f2994a;
-  padding: 0.45rem 0.9rem;
-  border-radius: var(--radius-sm);
-  font-weight: 800;
-  font-size: 0.85rem;
-  border: 1px solid #fde68a;
-}
-
-.dash-main-grid {
+.cards-grid {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 1.25rem;
-  align-items: start;
-}
-
-@media (max-width: 1024px) {
-  .dash-main-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.portals-column {
-  display: flex;
-  flex-direction: column;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.25rem;
 }
 
-.portal-card {
+.dash-card {
   background: var(--surface-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.dash-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: rgba(16, 185, 129, 0.3); }
 
-.portal-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+.dash-card--active { border-color: var(--brand-green-border); background: var(--surface-card); }
+.dash-card--admin-portal { border-color: var(--border); background: var(--surface-card); }
+
+.dash-card__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
+.dash-card__icon {
+  width: 44px; height: 44px; border-radius: var(--radius-sm);
+  background: var(--surface-alt); display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; border: 1px solid var(--border-subtle);
 }
+.dash-card__status { font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: var(--radius-full); }
+.status--granted { background: var(--brand-green-light); color: var(--brand-green-dark); border: 1px solid var(--brand-green-border); }
+.status--none    { background: var(--surface-alt); color: var(--text-muted); border: 1px solid var(--border); }
+.status--admin   { background: var(--brand-gold-light); color: var(--brand-gold-dark); border: 1px solid var(--brand-gold-border); }
 
-.portal-card--active { border-color: #b7e1cd; }
-.portal-card--admin  { border-color: var(--border); }
+.dash-card__title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem; }
+.dash-card__desc  { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 1.25rem; flex: 1; }
 
-.portal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.85rem;
-}
+.dash-card__actions { margin-top: auto; }
 
-.portal-icon { font-size: 1.8rem; }
-.portal-title { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; }
-.portal-desc  { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem; }
+.buyer-actions-flex { display: flex; gap: 0.6rem; }
+.buyer-actions-flex .btn { flex: 1; }
 
-.portal-footer { margin-top: auto; }
-.buyer-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-
-.mt-4 { margin-top: 1rem; }
-.text-right { text-align: right; }
+.text-granted { font-size: 0.85rem; font-weight: 600; color: var(--brand-green-dark); }
 </style>
-

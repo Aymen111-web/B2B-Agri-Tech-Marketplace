@@ -5,13 +5,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 import { useThemeStore } from '@/stores/theme'
 
-const props = defineProps({
-  isOpen: {
-    type: Boolean,
-    default: true
-  }
-})
-
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -32,8 +25,33 @@ async function handleLogout() {
 </script>
 
 <template>
-  <aside class="sidebar" :class="{ 'sidebar--collapsed': !isOpen }">
-    <!-- Navigation Links -->
+  <aside class="sidebar">
+    <!-- Brand -->
+    <div class="sidebar__brand">
+      <router-link to="/" class="brand-link">
+        <span class="brand-icon">🌿</span>
+        <span class="brand-text">Agri<strong>Market</strong></span>
+      </router-link>
+    </div>
+
+    <!-- User Profile Badge (If Logged In) -->
+    <div v-if="authStore.isAuthenticated" class="sidebar__user">
+      <div class="user-avatar">
+        {{ authStore.user?.first_name?.[0] || '👤' }}
+      </div>
+      <div class="user-info">
+        <div class="user-name">
+          {{ authStore.user?.first_name }} {{ authStore.user?.second_name }}
+        </div>
+        <div class="user-role">
+          <span v-if="authStore.isAdmin" class="role-badge role-badge--admin">Admin</span>
+          <span v-else-if="isFarmer" class="role-badge role-badge--farmer">Farmer</span>
+          <span v-else class="role-badge">Buyer</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Navigation Links -->
     <nav class="sidebar__nav">
       <div class="nav-section-title">MAIN MENU</div>
 
@@ -107,10 +125,10 @@ async function handleLogout() {
         :class="{ active: route.path.startsWith('/admin') }"
       >
         <span class="nav-icon">🛡️</span>
-        <span class="nav-label">Admin Governance</span>
+        <span class="nav-label">Admin Approvals</span>
       </router-link>
 
-      <div class="nav-section-title mt-4">ACCOUNT & SETTINGS</div>
+      <div class="nav-section-title mt-4">ACCOUNT</div>
 
       <router-link
         to="/capabilities/apply"
@@ -124,6 +142,7 @@ async function handleLogout() {
 
     <!-- Bottom Actions: Theme Switcher & Logout -->
     <div class="sidebar__footer">
+      <!-- Theme Switcher Box -->
       <div class="theme-box">
         <span class="theme-label">Theme Mode:</span>
         <button
@@ -136,6 +155,7 @@ async function handleLogout() {
         </button>
       </div>
 
+      <!-- Auth Action -->
       <button
         v-if="authStore.isAuthenticated"
         @click="handleLogout"
@@ -156,123 +176,170 @@ async function handleLogout() {
 
 <style scoped>
 .sidebar {
-  width: 250px;
-  height: calc(100vh - 60px);
+  width: 260px;
+  height: 100vh;
   position: fixed;
-  top: 60px;
+  top: 0;
   left: 0;
   background: var(--sidebar-bg);
   border-right: 1px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
   z-index: 200;
-  transition: transform 0.25s ease, width 0.25s ease;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+  transition: background 0.3s, border-color 0.3s;
 }
 
-.sidebar--collapsed {
-  transform: translateX(-100%);
+.sidebar__brand {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--sidebar-border);
 }
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+}
+.brand-icon { font-size: 1.6rem; }
+.brand-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.brand-text strong { color: var(--brand-green); }
+
+/* User Card */
+.sidebar__user {
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--sidebar-border);
+}
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--brand-green);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.user-info { flex: 1; overflow: hidden; }
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-role { margin-top: 0.15rem; }
+.role-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: var(--border);
+  color: var(--text-secondary);
+}
+.role-badge--farmer { background: var(--brand-green-light); color: var(--brand-green-dark); }
+.role-badge--admin  { background: var(--brand-gold-light); color: #92400e; }
 
 /* Nav Links */
 .sidebar__nav {
   flex: 1;
-  padding: 1.25rem 0.85rem;
+  padding: 1.25rem 1rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.35rem;
 }
-
 .nav-section-title {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
-  padding: 0.6rem 0.75rem 0.25rem;
-  text-transform: uppercase;
+  padding: 0.5rem 0.75rem 0.25rem;
 }
 .mt-4 { margin-top: 1rem; }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: var(--radius-sm);
+  gap: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-xs);
   color: var(--sidebar-text);
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  border-left: 3px solid transparent;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
 }
-
 .nav-item:hover {
   background: var(--sidebar-item-hover);
   color: var(--text-primary);
 }
-
 .nav-item.active {
-  background: var(--brand-blue-light);
+  background: var(--brand-green-light);
   color: var(--sidebar-text-active);
   font-weight: 700;
-  border-left-color: var(--brand-blue);
 }
 
 .nav-icon { font-size: 1.1rem; }
 .nav-label { flex: 1; }
 
 .cart-badge {
-  background: var(--brand-blue);
+  background: var(--brand-green);
   color: #fff;
   font-size: 0.75rem;
-  font-weight: 800;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
 }
 
 /* Footer / Theme Switcher */
 .sidebar__footer {
-  padding: 1rem;
+  padding: 0.85rem 1rem;
   border-top: 1px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  background: var(--surface-alt);
+  gap: 0.6rem;
 }
 
 .theme-box {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--surface-card);
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-sm);
+  background: var(--surface-alt);
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-xs);
   border: 1px solid var(--sidebar-border);
 }
-
 .theme-label {
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 0.78125rem;
+  font-weight: 600;
   color: var(--text-secondary);
 }
 
 .theme-toggle-btn {
-  background: var(--surface-alt);
+  background: var(--surface-card);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  padding: 0.3rem 0.65rem;
-  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-xs);
 }
-
 .theme-toggle-btn:hover {
-  border-color: var(--brand-blue);
-  color: var(--brand-blue);
+  transform: translateY(-1px);
+  border-color: var(--brand-green);
 }
 
 .logout-btn, .login-btn {
@@ -281,33 +348,28 @@ async function handleLogout() {
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.6rem;
-  border-radius: var(--radius-sm);
+  padding: 0.55rem;
+  border-radius: var(--radius-xs);
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
-
 .logout-btn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--error);
 }
-
 .logout-btn:hover {
   background: var(--error-bg);
 }
-
 .login-btn {
-  background: var(--brand-blue);
+  background: var(--brand-green);
   color: #fff;
   border: none;
 }
-
 .login-btn:hover {
-  background: var(--brand-blue-dark);
+  background: var(--brand-green-dark);
 }
 </style>
-
