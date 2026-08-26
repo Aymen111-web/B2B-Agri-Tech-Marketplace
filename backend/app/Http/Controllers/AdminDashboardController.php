@@ -9,92 +9,88 @@ use App\Models\Listing;
 use App\Models\Order;
 use App\Models\PaymentException;
 use App\Models\Payout;
-use App\Models\UserCapability;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class AdminDashboardController extends Controller
 {
     /**
-     * Get aggregated metrics, stats, recent activity, and pending queue for Admin Home dashboard.
+     * Get aggregated stats and real-time feeds for the Admin Dashboard.
      *
      * GET /api/admin/dashboard/stats
      */
-    public function stats(Request $request): JsonResponse
+    public function stats(): JsonResponse
     {
-        // 1. Financial & Volume KPIs
-        $totalGmv = Order::whereIn('status', ['paid', 'processing', 'fulfilled', 'completed'])
-            ->sum('total_amount');
+        $this->authorize('viewStats', User::class);
 
+        // GMV: sum total_amount of orders that are paid or not cancelled/expired
+        $totalGmv = Order::whereNotIn('status', ['cancelled', 'expired'])->sum('total_amount');
         $totalOrders = Order::count();
 
-        // 2. Capabilities & User Base KPIs
-        $verifiedFarmers = UserCapability::where('capability_type', 'farmer')
-            ->where('status', 'active')
-            ->count();
-
-        $verifiedBuyers = UserCapability::where('capability_type', 'buyer')
-            ->where('status', 'active')
-            ->count();
+        $totalFarmers = User::whereHas('capabilities', fn ($q) => $q->where('capability_type', 'farmer')->where('status', 'active'))->count();
+        $totalBuyers  = User::whereHas('capabilities', fn ($q) => $q->where('capability_type', 'buyer')->where('status', 'active'))->count();
 
         $pendingApplicationsCount = CapabilityApplication::where('status', 'pending')->count();
+        $activeListingsCount      = Listing::where('status', 'active')->count();
 
-        // 3. Inventory & Operations KPIs
-        $activeListingsCount = Listing::where('status', 'active')->count();
-
-        $pendingPayoutsCount = Payout::where('status', 'pending')->count();
-        $pendingPayoutsAmount = Payout::where('status', 'pending')->sum('amount');
+        $pendingPayoutsCount   = Payout::where('status', 'pending')->count();
+        $pendingPayoutsAmount  = Payout::where('status', 'pending')->sum('amount');
 
         $paymentExceptionsCount = PaymentException::whereIn('status', ['pending', 'investigating'])->count();
 
-        // 4. Recent Audit Logs / Activity Stream (latest 8)
+        // Recent Audit Activity Feed (last 8)
         $recentActivity = AuditLog::with(['user:id,first_name,second_name,phone,is_admin'])
             ->orderByDesc('created_at')
-            ->limit(8)
-            ->get();
+            ->take(8)
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id'             => $log->id,
+                    'action'         => $log->action,
+                    'auditable_type' => class_basename($log->auditable_type),
+                    'auditable_id'   => $log->auditable_id,
+                    'user'           => $log->user ? [
+                        'id'         => $log->user->id,
+                        'name'       => trim($log->user->first_name . ' ' . $log->user->second_name),
+                        'is_admin'   => (bool)$log->user->is_admin,
+                    ] : null,
+                    'ip_address'     => $log->ip_address,
+                    'created_at'     => $log->created_at->toIso8601String(),
+                ];
+            });
 
-        // 5. Pending Applications Preview (latest 5)
-        $pendingApplications = CapabilityApplication::with(['user:id,first_name,second_name,phone'])
+        // Pending Applications Preview for 1-Click Approvals (top 5)
+        $pendingApplicationsPreview = CapabilityApplication::with(['user:id,first_name,second_name,phone'])
             ->where('status', 'pending')
             ->orderByDesc('created_at')
-            ->limit(5)
+            ->take(5)
             ->get();
 
-        // 6. Produce Distribution by Category
-        $categoryDistribution = Category::withCount(['listings' => function ($q) {
-            $q->where('status', 'active');
-        }])
-        ->get()
-        ->map(function ($cat) {
-            $totalQty = Listing::where('category_id', $cat->id)
-                ->where('status', 'active')
-                ->sum('quantity_available');
-
-            return [
-                'id'                 => $cat->id,
-                'name'               => $cat->name,
-                'slug'               => $cat->slug,
-                'listings_count'     => $cat->listings_count,
-                'total_quantity_kg'  => (float) $totalQty,
-            ];
-        });
+        // Category Distribution with listing counts
+        $categoryDistribution = Category::withCount(['listings' => fn ($q) => $q->where('status', 'active')])
+            ->get()
+            ->map(fn ($cat) => [
+                'id'             => $cat->id,
+                'name'           => $cat->name,
+                'slug'           => $cat->slug,
+                'active_listings'=> $cat->listings_count,
+            ]);
 
         return response()->json([
             'kpis' => [
                 'total_gmv'                 => (float) $totalGmv,
-                'total_orders'              => $totalOrders,
-                'verified_farmers'          => $verifiedFarmers,
-                'verified_buyers'           => $verifiedBuyers,
-                'pending_applications'      => $pendingApplicationsCount,
-                'active_listings'           => $activeListingsCount,
-                'pending_payouts_count'     => $pendingPayoutsCount,
+                'total_orders'              => (int) $totalOrders,
+                'total_farmers'             => (int) $totalFarmers,
+                'total_buyers'              => (int) $totalBuyers,
+                'pending_applications'      => (int) $pendingApplicationsCount,
+                'active_listings'           => (int) $activeListingsCount,
+                'pending_payouts_count'     => (int) $pendingPayoutsCount,
                 'pending_payouts_amount'    => (float) $pendingPayoutsAmount,
-                'payment_exceptions_count'  => $paymentExceptionsCount,
+                'payment_exceptions_count'  => (int) $paymentExceptionsCount,
             ],
-            'recent_activity'             => $recentActivity,
-            'pending_applications'        => $pendingApplications,
-            'category_distribution'       => $categoryDistribution,
+            'recent_activity'               => $recentActivity,
+            'pending_approvals_preview'     => $pendingApplicationsPreview,
+            'category_distribution'         => $categoryDistribution,
         ]);
     }
 }

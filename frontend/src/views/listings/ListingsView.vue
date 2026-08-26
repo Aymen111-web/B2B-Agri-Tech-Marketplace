@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useListingStore } from '@/stores/listing'
 import { useAuthStore } from '@/stores/auth'
@@ -14,6 +14,7 @@ const route = useRoute()
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const selectedSort = ref('newest')
+const inStockOnly = ref(false)
 const addingCartId = ref(null)
 const cartMessage = ref({ type: '', text: '' })
 
@@ -47,9 +48,22 @@ function handleSearch() {
   loadListings()
 }
 
+function clearSearch() {
+  searchQuery.value = ''
+  loadListings()
+}
+
 function handleSortChange() {
   loadListings()
 }
+
+const filteredListings = computed(() => {
+  let list = listingStore.listings || []
+  if (inStockOnly.value) {
+    list = list.filter(item => item.status === 'active' && item.quantity_available > 0)
+  }
+  return list
+})
 
 async function handleAddToCart(item) {
   if (!auth.isAuthenticated) {
@@ -65,7 +79,7 @@ async function handleAddToCart(item) {
   if (res.success) {
     cartMessage.value = { type: 'success', text: `Added ${item.title} to your cart!` }
   } else {
-    cartMessage.value = { type: 'error', text: res.message }
+    cartMessage.value = { type: 'error', text: res.message || 'Failed to add item to cart.' }
   }
 
   setTimeout(() => {
@@ -73,43 +87,66 @@ async function handleAddToCart(item) {
   }, 4000)
 }
 
+async function handleLogout() {
+  await auth.logout()
+  router.push('/login')
+}
+
 function formatPrice(val) {
   if (val === undefined || val === null) return '0.00'
   return Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return null
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 function getCategoryIcon(catName) {
   const name = (catName || '').toLowerCase()
-  if (name.includes('grain') || name.includes('cereal') || name.includes('wheat')) return '🌾'
+  if (name.includes('grain') || name.includes('cereal') || name.includes('wheat') || name.includes('teff')) return '🌾'
   if (name.includes('vegetable') || name.includes('tomato')) return '🥦'
   if (name.includes('fruit') || name.includes('avocado')) return '🍎'
   if (name.includes('coffee')) return '☕'
-  if (name.includes('pulse') || name.includes('bean')) return '🫘'
-  if (name.includes('oil')) return '🌻'
+  if (name.includes('pulse') || name.includes('bean') || name.includes('lentil')) return '🫘'
+  if (name.includes('oil') || name.includes('seed') || name.includes('sesame')) return '🌻'
   if (name.includes('dairy') || name.includes('milk')) return '🥛'
-  if (name.includes('honey') || name.includes('bee')) return '🍯'
+  if (name.includes('honey') || name.includes('spice')) return '🍯'
   return '📦'
 }
 </script>
 
 <template>
   <div class="listings-page">
-    <!-- Navbar -->
+    
+    <!-- Top Navigation Bar -->
     <nav class="top-nav">
       <div class="top-nav__inner">
-        <router-link to="/" class="top-nav__brand">
+        <router-link to="/dashboard" class="top-nav__brand">
           🌿 Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
           <router-link to="/listings" class="top-nav__link active">
-            Browse Produce
+            Browse Marketplace
           </router-link>
           <router-link v-if="auth.isAuthenticated" to="/cart" class="top-nav__link cart-link">
             🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
           </router-link>
+          <router-link v-if="auth.isAuthenticated" to="/orders" class="top-nav__link">
+            My Orders
+          </router-link>
           <router-link v-if="auth.isAuthenticated" to="/dashboard" class="top-nav__link">
             Dashboard
           </router-link>
+          <span v-if="auth.isAuthenticated" class="user-pill">
+            👤 {{ auth.user?.first_name }}
+          </span>
+          <button v-if="auth.isAuthenticated" @click="handleLogout" class="top-nav__logout">
+            Sign Out
+          </button>
           <router-link v-else to="/login" class="top-nav__btn">
             Sign In
           </router-link>
@@ -117,96 +154,122 @@ function getCategoryIcon(catName) {
       </div>
     </nav>
 
+    <!-- Floating Toast Notification -->
+    <div v-if="cartMessage.text" :class="['toast-alert', cartMessage.type === 'error' ? 'toast-alert--error' : 'toast-alert--success']">
+      <span class="toast-icon">{{ cartMessage.type === 'error' ? '⚠️' : '✅' }}</span>
+      <span class="toast-text">{{ cartMessage.text }}</span>
+    </div>
+
     <!-- Search Hero Header -->
     <header class="listings-hero">
       <div class="listings-hero__inner">
-        <h1 class="hero-title">Ethiopian Farmers Produce Marketplace</h1>
+        
+        <!-- Marketplace Trust Badges -->
+        <div class="hero-badges-row">
+          <span class="trust-badge">🌾 100% Verified Ethiopian Farmers</span>
+          <span class="trust-badge">🔬 Guaranteed Quality Inspection</span>
+          <span class="trust-badge">🚚 Batch Delivery Traceability</span>
+        </div>
+
+        <h1 class="hero-title">Ethiopian B2B Produce Exchange</h1>
         <p class="hero-sub">
-          Direct trade from verified Ethiopian farmers with transparent pricing and real-time stock levels.
+          Direct wholesale trade connecting verified agricultural producers with commercial buyers across Ethiopia.
         </p>
 
-        <!-- Search & Filter Controls -->
+        <!-- Search & Control Panel Bar -->
         <div class="search-box">
           <div class="search-input-wrap">
             <span class="search-icon">🔍</span>
             <input
               type="text"
               v-model="searchQuery"
-              placeholder="Search produce (e.g. White Wheat, Tomatoes, Harar Coffee)..."
+              placeholder="Search produce by title or crop type (e.g. White Teff, Harar Coffee, Organic Tomatoes)..."
               @keyup.enter="handleSearch"
             />
-            <button class="search-btn" @click="handleSearch">Search</button>
+            <button v-if="searchQuery" class="clear-btn" @click="clearSearch" title="Clear search">✕</button>
+            <button class="search-btn" @click="handleSearch">Search Produce</button>
           </div>
 
-          <div class="sort-wrap">
-            <label for="sort-select">Sort by:</label>
-            <select id="sort-select" v-model="selectedSort" @change="handleSortChange">
-              <option value="newest">Newest First</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="oldest">Oldest First</option>
-            </select>
+          <div class="filter-controls">
+            <!-- Sort Selector -->
+            <div class="control-group">
+              <label for="sort-select">Sort By:</label>
+              <select id="sort-select" v-model="selectedSort" @change="handleSortChange">
+                <option value="newest">Newest Listed</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="oldest">Oldest Listed</option>
+              </select>
+            </div>
+
+            <!-- In-Stock Toggle -->
+            <label class="stock-toggle-label">
+              <input type="checkbox" v-model="inStockOnly" />
+              <span>In-Stock Only</span>
+            </label>
           </div>
         </div>
 
-        <!-- Category Filter Pills -->
-        <div class="category-pills">
-          <button
-            class="pill"
-            :class="{ active: selectedCategory === '' }"
-            @click="handleCategorySelect('')"
-          >
-            All Produce
-          </button>
-          <button
-            v-for="cat in listingStore.categories"
-            :key="cat.id"
-            class="pill"
-            :class="{ active: selectedCategory === cat.id }"
-            @click="handleCategorySelect(cat.id)"
-          >
-            {{ getCategoryIcon(cat.name) }} {{ cat.name }}
-          </button>
+        <!-- Category Filter Pill Carousel -->
+        <div class="category-pills-wrap">
+          <div class="category-pills">
+            <button
+              class="pill"
+              :class="{ active: selectedCategory === '' }"
+              @click="handleCategorySelect('')"
+            >
+              🌱 All Produce Categories
+            </button>
+            <button
+              v-for="cat in listingStore.categories"
+              :key="cat.id"
+              class="pill"
+              :class="{ active: selectedCategory === cat.id }"
+              @click="handleCategorySelect(cat.id)"
+            >
+              {{ getCategoryIcon(cat.name) }} {{ cat.name }}
+            </button>
+          </div>
         </div>
+
       </div>
     </header>
 
-    <!-- Produce Grid Section -->
+    <!-- Produce Cards Section -->
     <main class="listings-main">
       <div class="listings-container">
 
-        <!-- Toast Notification Alert -->
-        <div v-if="cartMessage.text" :class="['toast-alert', cartMessage.type === 'error' ? 'toast-alert--error' : 'toast-alert--success']">
-          <span>{{ cartMessage.type === 'error' ? '⚠️' : '✅' }}</span>
-          <span>{{ cartMessage.text }}</span>
-        </div>
-
+        <!-- Loading State -->
         <div v-if="listingStore.loading" class="state-box">
           <div class="spinner"></div>
-          <p>Loading fresh produce listings...</p>
+          <p class="state-title">Fetching verified produce listings...</p>
+          <p class="state-sub">Gathering crop stock and live pricing from Ethiopian farms</p>
         </div>
 
-        <div v-else-if="listingStore.listings.length === 0" class="state-box empty-state">
+        <!-- Empty State -->
+        <div v-else-if="filteredListings.length === 0" class="state-box empty-state">
           <div class="empty-icon">🌾</div>
-          <h3>No produce listings found</h3>
-          <p>Try searching for a different crop or clearing your category filters.</p>
-          <button class="reset-btn" @click="handleCategorySelect(''); searchQuery = ''; loadListings()">
-            Clear Filters
+          <h3 class="state-title">No produce listings found</h3>
+          <p class="state-sub">Try searching for a different crop name or reset your category filters.</p>
+          <button class="reset-btn" @click="handleCategorySelect(''); searchQuery = ''; inStockOnly = false; loadListings()">
+            🔄 Reset All Filters
           </button>
         </div>
 
+        <!-- Produce Cards Grid -->
         <div v-else class="produce-grid">
           <div
-            v-for="item in listingStore.listings"
+            v-for="item in filteredListings"
             :key="item.id"
             class="produce-card"
             @click="router.push(`/listings/${item.id}`)"
           >
+            <!-- Card Header Tags -->
             <div class="card-badge-wrap">
               <span class="category-tag">
                 {{ getCategoryIcon(item.category?.name) }} {{ item.category?.name || 'Produce' }}
               </span>
-              <span v-if="item.status === 'active'" class="stock-tag status--in-stock">
+              <span v-if="item.status === 'active' && item.quantity_available > 0" class="stock-tag status--in-stock">
                 In Stock
               </span>
               <span v-else class="stock-tag status--sold-out">
@@ -214,45 +277,72 @@ function getCategoryIcon(catName) {
               </span>
             </div>
 
+            <!-- Title & Batch Info -->
             <h3 class="produce-title">{{ item.title }}</h3>
-            <p class="produce-desc">{{ item.description || 'Fresh produce harvested by verified Ethiopian farm.' }}</p>
-
-            <div class="farmer-info">
-              <span class="farmer-icon">👨‍🌾</span>
-              <span class="farmer-name">
-                {{ item.farmer?.first_name }} {{ item.farmer?.second_name }}
+            
+            <div class="batch-meta-row">
+              <span v-if="item.batch_number" class="batch-code">
+                Batch #{{ item.batch_number }}
               </span>
-              <span class="verified-icon" title="Verified Farmer">✓</span>
+              <span v-if="item.quality_grade" class="grade-chip">
+                {{ item.quality_grade }}
+              </span>
+              <span v-if="item.harvest_date" class="harvest-date">
+                Harvested {{ formatDate(item.harvest_date) }}
+              </span>
             </div>
 
+            <p class="produce-desc">
+              {{ item.description || 'Fresh produce batch direct from verified Ethiopian farm with guaranteed quality inspection.' }}
+            </p>
+
+            <!-- Farmer Profile Info Box -->
+            <div class="farmer-info">
+              <span class="farmer-avatar">👨‍🌾</span>
+              <div class="farmer-details">
+                <span class="farmer-name">
+                  {{ item.farmer?.first_name }} {{ item.farmer?.second_name }}
+                </span>
+                <span class="farmer-verified">✓ Verified Supplier</span>
+              </div>
+            </div>
+
+            <!-- Price & Stock Footer -->
             <div class="card-footer">
               <div class="price-wrap">
                 <span class="price-val">{{ formatPrice(item.price_per_unit) }} ETB</span>
                 <span class="unit-val">/ {{ item.unit }}</span>
               </div>
-              <div class="qty-avail">
-                Available: <strong>{{ item.quantity_available }} {{ item.unit }}s</strong>
+              <div class="qty-info-row">
+                <span class="qty-avail">Stock: <strong>{{ item.quantity_available }} {{ item.unit }}s</strong></span>
+                <span v-if="item.minimum_order_quantity" class="moq-tag">
+                  Min Order: {{ item.minimum_order_quantity }} {{ item.unit }}s
+                </span>
               </div>
             </div>
 
+            <!-- Interactive Action Buttons -->
             <div class="card-actions">
               <button
-                v-if="item.status === 'active'"
+                v-if="item.status === 'active' && item.quantity_available > 0"
                 class="add-cart-btn"
                 :disabled="addingCartId === item.id"
                 @click.stop="handleAddToCart(item)"
               >
-                🛒 Add to Cart
+                <span v-if="addingCartId === item.id" class="btn-spinner"></span>
+                <span v-else>🛒 Add to Cart</span>
               </button>
               <button class="view-btn">
-                Details →
+                Inspect Batch →
               </button>
             </div>
+
           </div>
         </div>
 
       </div>
     </main>
+
   </div>
 </template>
 
@@ -262,6 +352,7 @@ function getCategoryIcon(catName) {
   background: var(--surface-alt);
 }
 
+/* Top Navigation Bar */
 .top-nav {
   background: #064e3b;
   padding: 0 1.5rem;
@@ -288,44 +379,130 @@ function getCategoryIcon(catName) {
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-xs);
   transition: all 0.15s ease;
 }
-.top-nav__link.active, .top-nav__link:hover { color: #fff; }
-.top-nav__btn {
+.top-nav__link.active, .top-nav__link:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+.cart-link {
+  position: relative;
+}
+.cart-badge {
+  background: var(--brand-gold);
+  color: #0f172a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
+  margin-left: 0.25rem;
+}
+.user-pill {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.top-nav__logout {
   background: rgba(255,255,255,0.12);
   color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius-xs);
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.top-nav__logout:hover { background: rgba(255,255,255,0.22); }
+.top-nav__btn {
+  background: var(--brand-gold);
+  color: #0f172a;
   padding: 0.35rem 0.85rem;
   border-radius: var(--radius-xs);
   text-decoration: none;
   font-size: 0.8125rem;
-  font-weight: 600;
-  border: 1px solid rgba(255,255,255,0.2);
-  transition: all 0.15s ease;
+  font-weight: 700;
 }
-.top-nav__btn:hover { background: rgba(255,255,255,0.2); }
 
+/* Floating Toast Alert */
+.toast-alert {
+  position: fixed;
+  top: 75px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-lg);
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.toast-alert--success { background: #065f46; color: #ffffff; border: 1px solid #34d399; }
+.toast-alert--error   { background: #991b1b; color: #ffffff; border: 1px solid #f87171; }
+
+/* Search Hero Header */
 .listings-hero {
-  background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+  background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
   color: #fff;
-  padding: 2.5rem 1.5rem 2rem;
+  padding: 2.25rem 1.5rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .listings-hero__inner {
   max-width: 1200px;
   margin: 0 auto;
 }
-.hero-title { font-size: 1.65rem; font-weight: 700; margin-bottom: 0.35rem; }
-.hero-sub { color: rgba(255,255,255,0.85); font-size: 0.9rem; margin-bottom: 1.5rem; max-width: 650px; }
 
+.hero-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+.trust-badge {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.01em;
+}
+.hero-sub {
+  color: #94a3b8;
+  font-size: 0.925rem;
+  margin-bottom: 1.5rem;
+  max-width: 720px;
+  line-height: 1.5;
+}
+
+/* Search Box & Controls */
 .search-box {
   display: flex;
-  gap: 0.85rem;
+  gap: 1rem;
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: 1.25rem;
 }
 .search-input-wrap {
   flex: 1;
-  min-width: 280px;
+  min-width: 300px;
   display: flex;
   align-items: center;
   background: var(--surface-card);
@@ -344,12 +521,20 @@ function getCategoryIcon(catName) {
   color: var(--text-primary);
   background: transparent;
 }
+.clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+}
 .search-btn {
   background: var(--brand-green);
   color: #fff;
   border: none;
   border-radius: var(--radius-xs);
-  padding: 0.5rem 1.15rem;
+  padding: 0.55rem 1.25rem;
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
@@ -357,28 +542,60 @@ function getCategoryIcon(catName) {
 }
 .search-btn:hover { background: var(--brand-green-dark); }
 
-.sort-wrap { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: rgba(255,255,255,0.9); font-weight: 600; }
-.sort-wrap select {
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+.control-group select {
   padding: 0.45rem 0.75rem;
   border-radius: var(--radius-xs);
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   font-size: 0.8125rem;
   font-weight: 600;
   outline: none;
-  background: #fff;
+  background: #ffffff;
   color: var(--text-primary);
 }
 
+.stock-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  user-select: none;
+}
+.stock-toggle-label input[type="checkbox"] {
+  accent-color: var(--brand-green);
+  width: 16px;
+  height: 16px;
+}
+
+/* Category Pills Carousel */
+.category-pills-wrap {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
 .category-pills {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
-  margin-top: 0.75rem;
+  white-space: nowrap;
 }
 .pill {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
   border-radius: var(--radius-full);
   padding: 0.35rem 0.95rem;
   font-size: 0.8125rem;
@@ -389,10 +606,9 @@ function getCategoryIcon(catName) {
   user-select: none;
 }
 .pill:hover {
-  background: rgba(255, 255, 255, 0.35) !important;
+  background: rgba(255, 255, 255, 0.28) !important;
   color: #ffffff !important;
   border-color: #ffffff !important;
-  transform: translateY(-1px);
 }
 .pill.active {
   background: #fbbf24 !important;
@@ -402,7 +618,8 @@ function getCategoryIcon(catName) {
   box-shadow: 0 3px 10px rgba(251, 191, 36, 0.4);
 }
 
-.listings-main { padding: 2rem 1.5rem 3.5rem; }
+/* Produce Grid Section */
+.listings-main { padding: 2rem 1.5rem 4rem; }
 .listings-container { max-width: 1200px; margin: 0 auto; }
 
 .state-box {
@@ -411,25 +628,39 @@ function getCategoryIcon(catName) {
   padding: 3.5rem 2rem;
   text-align: center;
   border: 1px solid var(--border);
-  color: var(--text-secondary);
 }
-.empty-icon { font-size: 3rem; margin-bottom: 0.85rem; }
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand-green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.state-title { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem; }
+.state-sub   { font-size: 0.875rem; color: var(--text-secondary); }
+.empty-icon  { font-size: 3rem; margin-bottom: 0.85rem; }
 .reset-btn {
-  margin-top: 1rem;
+  margin-top: 1.25rem;
   background: var(--brand-green);
   color: #fff;
   border: none;
-  padding: 0.5rem 1.15rem;
+  padding: 0.55rem 1.25rem;
   border-radius: var(--radius-xs);
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
 }
 
+/* Produce Grid & Card Layout */
 .produce-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.35rem;
 }
 
 .produce-card {
@@ -442,28 +673,64 @@ function getCategoryIcon(catName) {
   box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
 }
 .produce-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-md);
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(16, 185, 129, 0.4);
 }
 
 .card-badge-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
 .category-tag {
   background: var(--surface-alt);
   color: var(--text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   padding: 0.2rem 0.6rem;
   border-radius: var(--radius-full);
   border: 1px solid var(--border);
 }
-.stock-tag { font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: var(--radius-full); }
-.status--in-stock  { background: var(--brand-green-light); color: var(--brand-green-dark); border: 1px solid var(--brand-green-border); }
-.status--sold-out { background: var(--error-bg); color: var(--error-dark); border: 1px solid var(--error-border); }
+.stock-tag { font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: var(--radius-full); }
+.status--in-stock { background: var(--brand-green-light); color: var(--brand-green-dark); border: 1px solid var(--brand-green-border); }
+.status--sold-out  { background: var(--error-bg); color: var(--error-dark); border: 1px solid var(--error-border); }
 
-.produce-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem; }
+.produce-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+  line-height: 1.3;
+}
+
+.batch-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+.batch-code {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+.grade-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--brand-gold-dark);
+  background: var(--brand-gold-light);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+.harvest-date {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
 .produce-desc {
   font-size: 0.85rem;
   color: var(--text-secondary);
@@ -478,17 +745,18 @@ function getCategoryIcon(catName) {
 .farmer-info {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   font-size: 0.8125rem;
-  color: var(--text-secondary);
   background: var(--surface-alt);
-  padding: 0.45rem 0.7rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--radius-xs);
   margin-bottom: 1rem;
   border: 1px solid var(--border-subtle);
 }
-.farmer-name { font-weight: 600; color: var(--text-primary); }
-.verified-icon { color: var(--brand-green); font-weight: 700; }
+.farmer-avatar { font-size: 1.1rem; }
+.farmer-details { display: flex; flex-direction: column; }
+.farmer-name { font-weight: 700; color: var(--text-primary); font-size: 0.825rem; }
+.farmer-verified { color: var(--brand-green-dark); font-size: 0.72rem; font-weight: 700; }
 
 .card-footer {
   margin-top: auto;
@@ -497,10 +765,18 @@ function getCategoryIcon(catName) {
   margin-bottom: 0.85rem;
 }
 .price-wrap { display: flex; align-items: baseline; gap: 0.25rem; }
-.price-val { font-size: 1.25rem; font-weight: 800; color: var(--brand-green-dark); }
-.unit-val { font-size: 0.8125rem; color: var(--text-secondary); }
-.qty-avail { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
+.price-val { font-size: 1.3rem; font-weight: 800; color: var(--brand-green-dark); letter-spacing: -0.01em; }
+.unit-val { font-size: 0.8125rem; color: var(--text-secondary); font-weight: 600; }
+.qty-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78125rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
 .qty-avail strong { color: var(--text-primary); }
+.moq-tag { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); }
 
 .card-actions {
   display: flex;
@@ -509,7 +785,7 @@ function getCategoryIcon(catName) {
 }
 .add-cart-btn {
   flex: 1;
-  padding: 0.45rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   background: var(--brand-green);
   color: #fff;
   border: none;
@@ -520,18 +796,29 @@ function getCategoryIcon(catName) {
   white-space: nowrap;
   transition: all 0.15s ease;
   box-shadow: var(--shadow-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .add-cart-btn:hover:not(:disabled) {
   background: var(--brand-green-dark);
   transform: translateY(-1px);
 }
 .add-cart-btn:disabled {
-  opacity: 0.55;
+  opacity: 0.6;
   cursor: not-allowed;
+}
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
 }
 
 .view-btn {
-  padding: 0.45rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);

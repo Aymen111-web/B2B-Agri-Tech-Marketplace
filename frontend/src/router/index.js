@@ -96,11 +96,11 @@ const router = createRouter({
     },
     {
       path: '/admin',
-      redirect: '/admin/capability-applications',
+      redirect: '/dashboard',
     },
     {
       path: '/admin/dashboard',
-      redirect: '/admin/capability-applications',
+      redirect: '/dashboard',
     },
     {
       path: '/admin/capability-applications',
