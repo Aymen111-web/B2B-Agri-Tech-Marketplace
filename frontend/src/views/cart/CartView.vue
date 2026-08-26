@@ -55,6 +55,12 @@ function getCategoryIcon(unit) {
   if (u === 'crate') return '📦'
   return '🥦'
 }
+
+function formatPrice(val) {
+  if (val === undefined || val === null) return '0'
+  const num = Number(val)
+  return num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { maximumFractionDigits: 2 })
+}
 import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
@@ -214,7 +220,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 
                   <div class="item-subtotal">
                     <div class="subtotal-amount">
-                      ETB {{ (Number(item.price_snapshot || item.listing?.price_per_unit || 0) * Number(item.quantity)).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                      ETB {{ formatPrice(Number(item.price_snapshot || item.listing?.price_per_unit || 0) * Number(item.quantity)) }}
                     </div>
                   </div>
 
@@ -247,7 +253,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
                 </div>
                 <div class="summary-row summary-row--highlight">
                   <span>Subtotal</span>
-                  <span>ETB {{ cartStore.cartTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
+                  <span>ETB {{ formatPrice(cartStore.cartTotal) }}</span>
                 </div>
                 <div class="summary-row">
                   <span>Platform Fee</span>
@@ -260,7 +266,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
               <div class="summary-total">
                 <span>Total Payable</span>
                 <span class="total-amount">
-                  ETB {{ cartStore.cartTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                  ETB {{ formatPrice(cartStore.cartTotal) }}
                 </span>
               </div>
 

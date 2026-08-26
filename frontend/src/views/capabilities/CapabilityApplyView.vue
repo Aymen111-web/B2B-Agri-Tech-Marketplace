@@ -602,15 +602,51 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
   background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: var(--radius-xs);
+  outline: none !important;
+  user-select: none;
+}
+.badge-item:hover, .badge-info:hover {
+  outline: none !important;
+  box-shadow: none !important;
 }
 .badge-item--active {
   background: var(--brand-green-light);
   border-color: var(--brand-green-border);
 }
 .badge-icon { font-size: 1.5rem; }
-.badge-info { display: flex; flex-direction: column; }
-.badge-label { font-weight: 700; font-size: 0.875rem; color: var(--text-primary); }
-.badge-status { font-size: 0.78125rem; color: var(--text-secondary); }
+.badge-info {
+  display: flex;
+  flex-direction: column;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+.badge-label {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.badge-status {
+  font-size: 0.78125rem;
+  color: var(--text-secondary);
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.badge-info:hover, .badge-label:hover, .badge-status:hover {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
 .badge-item--active .badge-status { color: var(--brand-green-dark); font-weight: 700; }
 
 .type-selector { display: flex; gap: 0.6rem; margin-bottom: 1.15rem; }

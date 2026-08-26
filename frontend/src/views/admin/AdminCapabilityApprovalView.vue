@@ -134,7 +134,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             Marketplace
           </router-link>
           <router-link to="/admin/capability-applications" class="top-nav__link active">
-            🛡️ Admin Approvals
+            🛡️ Approvals
           </router-link>
           <ThemeToggle />
           <span class="user-pill">

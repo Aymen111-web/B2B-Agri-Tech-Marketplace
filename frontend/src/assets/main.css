@@ -103,6 +103,37 @@
   padding: 0;
 }
 
+*:focus,
+*:focus-visible,
+*:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+::selection {
+  background: var(--brand-green-light);
+  color: var(--brand-green-dark);
+}
+
+.badge-item,
+.badge-info,
+.badge-label,
+.badge-status,
+.status-card,
+.form-card,
+.history-card,
+.top-nav,
+.sidebar,
+button,
+.btn,
+.nav-item,
+.card,
+.status-badges {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
 html {
   scroll-behavior: smooth;
 }

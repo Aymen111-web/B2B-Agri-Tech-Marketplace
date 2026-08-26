@@ -27,15 +27,12 @@ async function handleLogout() {
 
 <template>
   <aside class="sidebar">
-    <!-- Brand & Top Theme Toggle -->
+    <!-- Brand Logo -->
     <div class="sidebar__brand">
       <router-link to="/" class="brand-link">
         <span class="brand-icon">🌿</span>
         <span class="brand-text">Agri<strong>Market</strong></span>
       </router-link>
-
-      <!-- Segmented Theme Switcher -->
-      <ThemeToggle :compact="true" />
     </div>
 
     <!-- User Profile Badge (If Logged In) -->
@@ -74,7 +71,7 @@ async function handleLogout() {
         :class="{ active: route.path.startsWith('/listings') }"
       >
         <span class="nav-icon">🌾</span>
-        <span class="nav-label">Browse Marketplace</span>
+        <span class="nav-label">Marketplace</span>
       </router-link>
 
       <router-link
@@ -83,7 +80,7 @@ async function handleLogout() {
         :class="{ active: route.path === '/cart' }"
       >
         <span class="nav-icon">🛒</span>
-        <span class="nav-label">Shopping Cart</span>
+        <span class="nav-label">Cart</span>
         <span v-if="cartStore.itemCount > 0" class="cart-badge">
           {{ cartStore.itemCount }}
         </span>
@@ -109,7 +106,7 @@ async function handleLogout() {
           :class="{ active: route.path === '/farmer/listings' }"
         >
           <span class="nav-icon">🌾</span>
-          <span class="nav-label">My Crop Listings</span>
+          <span class="nav-label">Crop Listings</span>
         </router-link>
 
         <router-link
@@ -118,7 +115,7 @@ async function handleLogout() {
           :class="{ active: route.path === '/farmer/fulfillments' }"
         >
           <span class="nav-icon">🚜</span>
-          <span class="nav-label">Fulfillment Orders</span>
+          <span class="nav-label">Fulfillments</span>
         </router-link>
       </template>
 
@@ -129,7 +126,7 @@ async function handleLogout() {
         :class="{ active: route.path.startsWith('/admin') }"
       >
         <span class="nav-icon">🛡️</span>
-        <span class="nav-label">Admin Approvals</span>
+        <span class="nav-label">Approvals</span>
       </router-link>
 
       <div class="nav-section-title mt-4">ACCOUNT</div>

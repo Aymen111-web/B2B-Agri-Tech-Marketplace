@@ -92,8 +92,9 @@ async function handleLogout() {
 }
 
 function formatPrice(val) {
-  if (val === undefined || val === null) return '0.00'
-  return Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  if (val === undefined || val === null) return '0'
+  const num = Number(val)
+  return num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { maximumFractionDigits: 2 })
 }
 
 function formatDate(dateStr) {
@@ -129,6 +130,9 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
           🌿 Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
+          <router-link to="/dashboard" class="top-nav__link">
+            Dashboard
+          </router-link>
           <router-link to="/listings" class="top-nav__link active">
             Marketplace
           </router-link>
@@ -138,8 +142,11 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
           <router-link v-if="auth.isAuthenticated" to="/orders" class="top-nav__link">
             My Orders
           </router-link>
-          <router-link v-if="auth.isAuthenticated" to="/dashboard" class="top-nav__link">
-            Dashboard
+          <router-link to="/capabilities/apply" class="top-nav__link">
+            Capabilities
+          </router-link>
+          <router-link v-if="auth.isAdmin" to="/admin/capability-applications" class="top-nav__link">
+            🛡️ Approvals
           </router-link>
           <ThemeToggle />
           <span v-if="auth.isAuthenticated" class="user-pill">
