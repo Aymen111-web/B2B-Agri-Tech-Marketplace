@@ -3,9 +3,11 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCapabilityStore } from '@/stores/capability'
+import { useCartStore } from '@/stores/cart'
 
 const auth = useAuthStore()
 const capabilityStore = useCapabilityStore()
+const cartStore = useCartStore()
 const router = useRouter()
 
 const selectedType = ref('farmer') // 'farmer' or 'buyer'
@@ -52,6 +54,9 @@ const pendingBuyerApplication = computed(() => {
 
 onMounted(async () => {
   await capabilityStore.fetchMyApplications()
+  if (auth.isAuthenticated) {
+    await cartStore.fetchCart()
+  }
 })
 
 async function handleSubmit() {
@@ -78,7 +83,7 @@ async function handleSubmit() {
     }
 
     await capabilityStore.submitApplication(selectedType.value, docs)
-    successMessage.value = `Your ${selectedType.value === 'farmer' ? 'Farmer' : 'Business Buyer'} capability application has been submitted successfully for admin approval.`
+    successMessage.value = `Your ${selectedType.value === 'farmer' ? 'Farmer' : 'Business Buyer'} capability application has been submitted for admin review.`
     
     // Reset forms
     farmerForm.value = { farm_name: '', region: 'Oromia', location: '', farm_size_hectares: '', primary_crops: '', notes: '' }
@@ -90,33 +95,73 @@ async function handleSubmit() {
   }
 }
 
+async function handleLogout() {
+  await auth.logout()
+  router.push('/login')
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '-'
   return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
     month: 'short',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: 'numeric'
   })
 }
+import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>
   <div class="cap-view">
-    <!-- Header -->
+    
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+      <div class="top-nav__inner">
+        <router-link to="/dashboard" class="top-nav__brand">
+          🌿 Agri<strong>Market</strong>
+        </router-link>
+        <div class="top-nav__right">
+          <router-link to="/listings" class="top-nav__link">
+            Marketplace
+          </router-link>
+          <router-link to="/cart" class="top-nav__link">
+            🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+          </router-link>
+          <router-link v-if="auth.isAuthenticated" to="/orders" class="top-nav__link">
+            My Orders
+          </router-link>
+          <router-link v-if="auth.isAuthenticated" to="/dashboard" class="top-nav__link">
+            Dashboard
+          </router-link>
+          <ThemeToggle />
+          <button v-if="auth.isAuthenticated" @click="handleLogout" class="top-nav__logout">
+            Sign Out
+          </button>
+          <router-link v-else to="/login" class="top-nav__btn">
+            Sign In
+          </router-link>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Header -->
     <header class="cap-header">
       <div class="cap-header__inner">
-        <button class="back-btn" @click="router.push('/dashboard')">
-          ← Back to Dashboard
-        </button>
-        <h1 class="cap-title">Marketplace Capability Applications</h1>
-        <p class="cap-sub">
-          Apply for Farmer or Business Buyer capabilities to start trading on the Ethiopian Farmers Market Platform.
-        </p>
+        <div class="hero-header-flex">
+          <div>
+            <h1 class="hero-title">Marketplace Capabilities</h1>
+            <p class="hero-sub">Apply for Farmer or Business Buyer capabilities to trade on the B2B Produce Exchange</p>
+          </div>
+          <div class="trust-chips">
+            <span class="chip">🌾 Direct Wholesale</span>
+            <span class="chip">🏬 Commercial Buyer</span>
+            <span class="chip">⚡ Quick Admin Review</span>
+          </div>
+        </div>
       </div>
     </header>
 
+    <!-- Main Content -->
     <main class="cap-main">
       <div class="cap-container">
 
@@ -142,9 +187,9 @@ function formatDate(dateStr) {
           </div>
         </div>
 
-        <!-- Application Form -->
+        <!-- Application Form Card -->
         <div class="form-card">
-          <h2 class="section-title">Apply for a Capability</h2>
+          <h2 class="section-title">Apply for Capability</h2>
 
           <!-- Type Selector -->
           <div class="type-selector">
@@ -164,27 +209,27 @@ function formatDate(dateStr) {
             </button>
           </div>
 
-          <!-- Alert Messages -->
-          <div v-if="successMessage" class="alert alert--success">
+          <!-- Alert Banners -->
+          <div v-if="successMessage" class="alert alert-success">
             ✅ {{ successMessage }}
           </div>
-          <div v-if="formError" class="alert alert--error">
+          <div v-if="formError" class="alert alert-error">
             ⚠️ {{ formError }}
           </div>
 
-          <!-- Already Active Alert -->
-          <div v-if="selectedType === 'farmer' && hasFarmerCapability" class="alert alert--info">
+          <!-- Active Info Banners -->
+          <div v-if="selectedType === 'farmer' && hasFarmerCapability" class="alert alert-info">
             ℹ️ You already have an active Farmer capability.
           </div>
-          <div v-else-if="selectedType === 'buyer' && hasBuyerCapability" class="alert alert--info">
+          <div v-else-if="selectedType === 'buyer' && hasBuyerCapability" class="alert alert-info">
             ℹ️ You already have an active Business Buyer capability.
           </div>
 
-          <!-- Pending Application Alert -->
-          <div v-else-if="selectedType === 'farmer' && pendingFarmerApplication" class="alert alert--warning">
+          <!-- Pending Info Banners -->
+          <div v-else-if="selectedType === 'farmer' && pendingFarmerApplication" class="alert alert-warning">
             ⏳ You have a pending Farmer capability application awaiting admin review.
           </div>
-          <div v-else-if="selectedType === 'buyer' && pendingBuyerApplication" class="alert alert--warning">
+          <div v-else-if="selectedType === 'buyer' && pendingBuyerApplication" class="alert alert-warning">
             ⏳ You have a pending Business Buyer capability application awaiting admin review.
           </div>
 
@@ -225,7 +270,7 @@ function formatDate(dateStr) {
               </div>
 
               <div class="form-group">
-                <label for="farm-location">Woreda / Town Location *</label>
+                <label for="farm-location">Woreda / Location *</label>
                 <input
                   id="farm-location"
                   type="text"
@@ -247,22 +292,22 @@ function formatDate(dateStr) {
               </div>
 
               <div class="form-group form-group--full">
-                <label for="farm-crops">Primary Produce / Crops</label>
+                <label for="farm-crops">Primary Crops</label>
                 <input
                   id="farm-crops"
                   type="text"
                   v-model="farmerForm.primary_crops"
-                  placeholder="e.g. Tomatoes, Onions, Wheat, Coffee, Avocado"
+                  placeholder="e.g. Teff, Wheat, Coffee, Tomatoes"
                 />
               </div>
 
               <div class="form-group form-group--full">
-                <label for="farm-notes">Additional Details / Cooperative Info</label>
+                <label for="farm-notes">Additional Verification Notes</label>
                 <textarea
                   id="farm-notes"
-                  rows="3"
+                  rows="2"
                   v-model="farmerForm.notes"
-                  placeholder="Provide any additional details to verify your farm operation..."
+                  placeholder="Provide details to help verify your farm operation..."
                 ></textarea>
               </div>
             </div>
@@ -299,7 +344,7 @@ function formatDate(dateStr) {
                   <option value="processor">Food Processor</option>
                   <option value="exporter">Agricultural Exporter</option>
                   <option value="retailer">Supermarket / Retailer</option>
-                  <option value="institution">Institutional Buyer (School/Hospital)</option>
+                  <option value="institution">Institutional Buyer</option>
                 </select>
               </div>
 
@@ -339,7 +384,7 @@ function formatDate(dateStr) {
                 <label for="buyer-notes">Purchase Volume & Notes</label>
                 <textarea
                   id="buyer-notes"
-                  rows="3"
+                  rows="2"
                   v-model="buyerForm.notes"
                   placeholder="Describe your expected weekly or monthly purchase needs..."
                 ></textarea>
@@ -353,16 +398,19 @@ function formatDate(dateStr) {
 
         </div>
 
-        <!-- Past Applications List -->
+        <!-- Past Applications History -->
         <div class="history-card">
           <h2 class="section-title">Application History</h2>
 
-          <div v-if="capabilityStore.loading" class="loading-state">
-            Loading your applications...
+          <div v-if="capabilityStore.loading" class="state-box">
+            <div class="spinner"></div>
+            <p class="state-title">Loading applications...</p>
           </div>
 
-          <div v-else-if="capabilityStore.myApplications.length === 0" class="empty-state">
-            You have not submitted any capability applications yet.
+          <div v-else-if="capabilityStore.myApplications.length === 0" class="state-box empty-state">
+            <div class="empty-icon">📜</div>
+            <h3 class="state-title">No applications submitted</h3>
+            <p class="state-sub">You have not applied for any trading capabilities yet.</p>
           </div>
 
           <div v-else class="app-list">
@@ -378,21 +426,19 @@ function formatDate(dateStr) {
                     <span class="app-item__title">
                       {{ app.capability_type === 'farmer' ? 'Farmer Capability' : 'Business Buyer Capability' }}
                     </span>
-                    <span class="app-item__date">Submitted on {{ formatDate(app.created_at) }}</span>
+                    <span class="app-item__date">Submitted {{ formatDate(app.created_at) }}</span>
                   </div>
                 </div>
 
-                <span class="status-tag" :class="`status-tag--${app.status}`">
+                <span class="status-badge" :class="`badge--${app.status}`">
                   {{ app.status.toUpperCase() }}
                 </span>
               </div>
 
-              <!-- Rejection Reason if rejected -->
               <div v-if="app.status === 'rejected' && app.rejection_reason" class="rejection-box">
                 <strong>Rejection Reason:</strong> {{ app.rejection_reason }}
               </div>
 
-              <!-- Application Details -->
               <div v-if="app.supporting_documents" class="doc-details">
                 <div v-for="(val, key) in app.supporting_documents" :key="key" class="doc-chip">
                   <span class="doc-chip__key">{{ key.replace('_', ' ') }}:</span>
@@ -412,123 +458,212 @@ function formatDate(dateStr) {
 .cap-view {
   min-height: 100vh;
   background: var(--surface-alt);
-  padding-bottom: 4rem;
 }
 
-.cap-header {
-  background: var(--brand-green);
+/* Navigation Bar */
+.top-nav {
+  background: #064e3b;
+  padding: 0 1.5rem;
+  box-shadow: var(--shadow-xs);
+}
+.top-nav__inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.top-nav__brand {
   color: #fff;
-  padding: 2rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.top-nav__brand strong { color: var(--brand-gold); }
+.top-nav__right { display: flex; align-items: center; gap: 0.85rem; }
+.top-nav__link {
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-size: 0.825rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+.top-nav__link.active, .top-nav__link:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+.cart-badge {
+  background: var(--brand-gold);
+  color: #0f172a;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.08rem 0.4rem;
+  border-radius: var(--radius-full);
+  margin-left: 0.2rem;
+}
+.top-nav__logout {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius-xs);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.top-nav__logout:hover { background: rgba(255,255,255,0.22); }
+.top-nav__btn {
+  background: var(--brand-gold);
+  color: #0f172a;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-xs);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Hero Header */
+.cap-header {
+  background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+  color: #fff;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .cap-header__inner {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
-.back-btn {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.4rem 0.9rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  margin-bottom: 1rem;
-  transition: background 0.2s;
-}
-.back-btn:hover { background: rgba(255, 255, 255, 0.25); }
-.cap-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; }
-.cap-sub { color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; }
 
-.cap-main { padding: 2rem 1.5rem 0; }
-.cap-container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem; }
+.hero-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.hero-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.15rem;
+  letter-spacing: -0.01em;
+}
+.hero-sub {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.trust-chips {
+  display: flex;
+  gap: 0.4rem;
+}
+.chip {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Main Layout */
+.cap-main { padding: 1.5rem 1.5rem 3.5rem; }
+.cap-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.25rem; }
 
 .status-card, .form-card, .history-card {
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 1.75rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-xs);
 }
 
 .section-title {
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--surface-alt);
+  margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.status-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.status-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
 @media (max-width: 600px) { .status-badges { grid-template-columns: 1fr; } }
 
 .badge-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
 }
 .badge-item--active {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+  background: var(--brand-green-light);
+  border-color: var(--brand-green-border);
 }
-.badge-icon { font-size: 1.75rem; }
+.badge-icon { font-size: 1.5rem; }
 .badge-info { display: flex; flex-direction: column; }
-.badge-label { font-weight: 600; font-size: 0.95rem; color: var(--text-primary); }
-.badge-status { font-size: 0.825rem; color: var(--text-secondary); }
-.badge-item--active .badge-status { color: #166534; font-weight: 600; }
+.badge-label { font-weight: 700; font-size: 0.875rem; color: var(--text-primary); }
+.badge-status { font-size: 0.78125rem; color: var(--text-secondary); }
+.badge-item--active .badge-status { color: var(--brand-green-dark); font-weight: 700; }
 
-.type-selector { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+.type-selector { display: flex; gap: 0.6rem; margin-bottom: 1.15rem; }
 .type-btn {
   flex: 1;
-  padding: 0.8rem 1rem;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  background: #fff;
-  font-weight: 600;
-  font-size: 0.95rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  background: var(--surface-alt);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 .type-btn.active {
   border-color: var(--brand-green);
-  background: #f0fdf4;
-  color: var(--brand-green);
+  background: var(--brand-green-light);
+  color: var(--brand-green-dark);
 }
 
 .alert {
-  padding: 0.9rem 1.2rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
 }
-.alert--success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.alert--error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-.alert--info    { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
-.alert--warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.alert-success { background: var(--brand-green-light); color: var(--brand-green-dark); border: 1px solid var(--brand-green-border); }
+.alert-error   { background: var(--error-bg); color: var(--error-dark); border: 1px solid var(--error-border); }
+.alert-info    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.alert-warning { background: var(--brand-gold-light); color: var(--brand-gold-dark); border: 1px solid var(--brand-gold-border); }
 
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  gap: 0.85rem;
+  margin-bottom: 1.15rem;
 }
 @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
 
-.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.3rem; }
 .form-group--full { grid-column: 1 / -1; }
-.form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+.form-group label { font-size: 0.78125rem; font-weight: 600; color: var(--text-primary); }
 .form-group input, .form-group select, .form-group textarea {
-  padding: 0.65rem 0.85rem;
+  padding: 0.5rem 0.65rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.9rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.825rem;
+  font-family: var(--font-sans);
+  background: var(--surface);
+  color: var(--text-primary);
   outline: none;
-  transition: border-color 0.2s;
 }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
   border-color: var(--brand-green);
@@ -536,67 +671,79 @@ function formatDate(dateStr) {
 
 .submit-btn {
   width: 100%;
-  padding: 0.85rem;
+  padding: 0.65rem;
   background: var(--brand-green);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: var(--radius-xs);
+  font-size: 0.875rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.15s ease;
 }
-.submit-btn:hover:not(:disabled) { background: #2d5a3f; }
+.submit-btn:hover:not(:disabled) { background: var(--brand-green-dark); }
 .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.loading-state, .empty-state { text-align: center; color: var(--text-secondary); padding: 2rem; }
+.state-box { padding: 2rem 1.5rem; text-align: center; }
+.empty-icon { font-size: 2rem; margin-bottom: 0.35rem; }
+.state-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.state-sub { font-size: 0.78125rem; color: var(--text-secondary); margin-top: 0.15rem; }
 
-.app-list { display: flex; flex-direction: column; gap: 1rem; }
+.app-list { display: flex; flex-direction: column; gap: 0.75rem; }
 .app-item {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1.25rem;
-  background: #fafafa;
+  border-radius: var(--radius-xs);
+  padding: 0.85rem;
+  background: var(--surface-alt);
 }
 .app-item__main { display: flex; justify-content: space-between; align-items: center; }
-.app-item__type { display: flex; align-items: center; gap: 0.8rem; }
-.app-item__icon { font-size: 1.5rem; }
-.app-item__title { display: block; font-weight: 600; font-size: 1rem; color: var(--text-primary); }
-.app-item__date { font-size: 0.8rem; color: var(--text-secondary); }
+.app-item__type { display: flex; align-items: center; gap: 0.6rem; }
+.app-item__icon { font-size: 1.25rem; }
+.app-item__title { display: block; font-weight: 700; font-size: 0.875rem; color: var(--text-primary); }
+.app-item__date { font-size: 0.75rem; color: var(--text-muted); }
 
-.status-tag {
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
+.status-badge {
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
   font-weight: 700;
+  text-transform: uppercase;
 }
-.status-tag--pending  { background: #fef3c7; color: #92400e; }
-.status-tag--approved { background: #dcfce7; color: #166534; }
-.status-tag--rejected { background: #fee2e2; color: #991b1b; }
+.badge--pending  { background: var(--brand-gold-light); color: var(--brand-gold-dark); }
+.badge--approved { background: var(--brand-green-light); color: var(--brand-green-dark); }
+.badge--rejected { background: var(--error-bg); color: var(--error-dark); }
 
 .rejection-box {
-  margin-top: 0.8rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
-  padding: 0.65rem 0.9rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  margin-top: 0.6rem;
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-dark);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.78125rem;
 }
 
 .doc-details {
-  margin-top: 0.8rem;
+  margin-top: 0.6rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 .doc-chip {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.75rem;
 }
-.doc-chip__key { font-weight: 600; color: var(--text-secondary); text-transform: capitalize; margin-right: 0.25rem; }
+.doc-chip__key { font-weight: 600; color: var(--text-secondary); text-transform: capitalize; margin-right: 0.2rem; }
 .doc-chip__val { color: var(--text-primary); }
+
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand-green); border-radius: 50%;
+  animation: spin 0.8s linear infinite; margin: 0 auto 0.5rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>

@@ -55,6 +55,7 @@ function getCategoryIcon(unit) {
   if (u === 'crate') return '📦'
   return '🥦'
 }
+import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>
@@ -79,6 +80,7 @@ function getCategoryIcon(unit) {
           <router-link v-if="authStore.isAuthenticated" to="/dashboard" class="top-nav__link">
             Dashboard
           </router-link>
+          <ThemeToggle />
           <button v-if="authStore.isAuthenticated" @click="handleLogout" class="top-nav__logout">
             Sign Out
           </button>

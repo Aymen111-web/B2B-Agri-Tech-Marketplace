@@ -116,6 +116,7 @@ function getCategoryIcon(catName) {
   if (name.includes('honey') || name.includes('spice')) return '🍯'
   return '📦'
 }
+import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>
@@ -140,6 +141,7 @@ function getCategoryIcon(catName) {
           <router-link v-if="auth.isAuthenticated" to="/dashboard" class="top-nav__link">
             Dashboard
           </router-link>
+          <ThemeToggle />
           <span v-if="auth.isAuthenticated" class="user-pill">
             👤 {{ auth.user?.first_name }}
           </span>

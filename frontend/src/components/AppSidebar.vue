@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 import { useThemeStore } from '@/stores/theme'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -26,12 +27,15 @@ async function handleLogout() {
 
 <template>
   <aside class="sidebar">
-    <!-- Brand -->
+    <!-- Brand & Top Theme Toggle -->
     <div class="sidebar__brand">
       <router-link to="/" class="brand-link">
         <span class="brand-icon">🌿</span>
         <span class="brand-text">Agri<strong>Market</strong></span>
       </router-link>
+
+      <!-- Segmented Theme Switcher -->
+      <ThemeToggle :compact="true" />
     </div>
 
     <!-- User Profile Badge (If Logged In) -->
@@ -140,22 +144,8 @@ async function handleLogout() {
       </router-link>
     </nav>
 
-    <!-- Bottom Actions: Theme Switcher & Logout -->
+    <!-- Bottom Actions: Logout -->
     <div class="sidebar__footer">
-      <!-- Theme Switcher Box -->
-      <div class="theme-box">
-        <span class="theme-label">Theme Mode:</span>
-        <button
-          @click="themeStore.toggleTheme()"
-          class="theme-toggle-btn"
-          id="theme-toggle-btn"
-        >
-          <span v-if="themeStore.currentTheme === 'light'" class="theme-icon">☀️ Light</span>
-          <span v-else class="theme-icon">🌙 Night</span>
-        </button>
-      </div>
-
-      <!-- Auth Action -->
       <button
         v-if="authStore.isAuthenticated"
         @click="handleLogout"
@@ -190,18 +180,21 @@ async function handleLogout() {
 }
 
 .sidebar__brand {
-  padding: 1.5rem;
+  padding: 1.25rem 1rem;
   border-bottom: 1px solid var(--sidebar-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .brand-link {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
   text-decoration: none;
 }
-.brand-icon { font-size: 1.6rem; }
+.brand-icon { font-size: 1.4rem; }
 .brand-text {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -209,16 +202,16 @@ async function handleLogout() {
 
 /* User Card */
 .sidebar__user {
-  padding: 1rem 1.25rem;
+  padding: 0.85rem 1rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   background: var(--surface-alt);
   border-bottom: 1px solid var(--sidebar-border);
 }
 .user-avatar {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: var(--brand-green);
   color: #fff;
@@ -226,22 +219,22 @@ async function handleLogout() {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 .user-info { flex: 1; overflow: hidden; }
 .user-name {
-  font-size: 0.875rem;
+  font-size: 0.825rem;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.user-role { margin-top: 0.15rem; }
+.user-role { margin-top: 0.1rem; }
 .role-badge {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 0.15rem 0.45rem;
+  padding: 0.1rem 0.4rem;
   border-radius: 4px;
   background: var(--border);
   color: var(--text-secondary);
@@ -252,31 +245,31 @@ async function handleLogout() {
 /* Nav Links */
 .sidebar__nav {
   flex: 1;
-  padding: 1.25rem 1rem;
+  padding: 1rem 0.85rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 .nav-section-title {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  padding: 0.5rem 0.75rem 0.25rem;
+  padding: 0.4rem 0.65rem 0.2rem;
 }
-.mt-4 { margin-top: 1rem; }
+.mt-4 { margin-top: 0.85rem; }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 0.75rem;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
   border-radius: var(--radius-xs);
   color: var(--sidebar-text);
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.825rem;
   transition: all 0.15s ease;
 }
 .nav-item:hover {
@@ -289,57 +282,22 @@ async function handleLogout() {
   font-weight: 700;
 }
 
-.nav-icon { font-size: 1.1rem; }
+.nav-icon { font-size: 1rem; }
 .nav-label { flex: 1; }
 
 .cart-badge {
   background: var(--brand-green);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 0.1rem 0.45rem;
+  padding: 0.08rem 0.4rem;
   border-radius: var(--radius-full);
 }
 
-/* Footer / Theme Switcher */
+/* Footer / Logout */
 .sidebar__footer {
   padding: 0.85rem 1rem;
   border-top: 1px solid var(--sidebar-border);
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.theme-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--surface-alt);
-  padding: 0.45rem 0.75rem;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--sidebar-border);
-}
-.theme-label {
-  font-size: 0.78125rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.theme-toggle-btn {
-  background: var(--surface-card);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: var(--shadow-xs);
-}
-.theme-toggle-btn:hover {
-  transform: translateY(-1px);
-  border-color: var(--brand-green);
 }
 
 .logout-btn, .login-btn {
@@ -348,9 +306,9 @@ async function handleLogout() {
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.55rem;
+  padding: 0.5rem;
   border-radius: var(--radius-xs);
-  font-size: 0.85rem;
+  font-size: 0.825rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
