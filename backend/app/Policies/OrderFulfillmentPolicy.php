@@ -10,52 +10,55 @@ class OrderFulfillmentPolicy
     /**
      * Only users with active farmer capability can list their fulfillments.
      */
+    /**
+     * Authenticated users can list their own fulfillments.
+     */
     public function viewAny(User $user): bool
     {
-        return $this->hasActiveFarmerCapability($user);
+        return true;
     }
 
     /**
-     * Only the assigned farmer can view a fulfillment.
+     * Only the assigned farmer or admin can view a fulfillment.
      */
     public function view(User $user, OrderFulfillment $fulfillment): bool
     {
-        return $this->hasActiveFarmerCapability($user)
-            && $fulfillment->farmer_id === $user->id;
+        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $fulfillment->farmer_id === $user->id);
     }
 
     /**
-     * Only the assigned farmer can accept a fulfillment.
+     * Only the assigned farmer or admin can accept a fulfillment.
      */
     public function accept(User $user, OrderFulfillment $fulfillment): bool
     {
-        return $this->hasActiveFarmerCapability($user)
-            && $fulfillment->farmer_id === $user->id;
+        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $fulfillment->farmer_id === $user->id);
     }
 
     /**
-     * Only the assigned farmer can reject a fulfillment.
+     * Only the assigned farmer or admin can reject a fulfillment.
      */
     public function reject(User $user, OrderFulfillment $fulfillment): bool
     {
-        return $this->hasActiveFarmerCapability($user)
-            && $fulfillment->farmer_id === $user->id;
+        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $fulfillment->farmer_id === $user->id);
     }
 
     /**
-     * Only the assigned farmer can complete a fulfillment.
+     * Only the assigned farmer or admin can complete a fulfillment.
      */
     public function complete(User $user, OrderFulfillment $fulfillment): bool
     {
-        return $this->hasActiveFarmerCapability($user)
-            && $fulfillment->farmer_id === $user->id;
+        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $fulfillment->farmer_id === $user->id);
     }
 
     /**
-     * Check whether the given user has an active farmer capability.
+     * Check whether the given user has an active farmer capability or is an admin.
      */
     private function hasActiveFarmerCapability(User $user): bool
     {
+        if ($user->is_admin) {
+            return true;
+        }
+
         return $user->capabilities()
             ->where('capability_type', 'farmer')
             ->where('status', 'active')
