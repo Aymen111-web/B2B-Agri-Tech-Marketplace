@@ -181,7 +181,7 @@ async function handleLogout() {
 .dash-nav__brand strong { color: var(--brand-gold); }
 .dash-nav__right { display: flex; align-items: center; gap: 1rem; }
 .dash-nav__link {
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.88) !important;
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 600;
@@ -189,8 +189,19 @@ async function handleLogout() {
   border-radius: var(--radius-xs);
   transition: all 0.15s ease;
 }
-.dash-nav__link:hover { background: rgba(255,255,255,0.12); color: #fff; }
-.dash-nav__link--admin { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+.dash-nav__link:hover, .dash-nav__link.router-link-active {
+  background: rgba(255,255,255,0.18) !important;
+  color: #ffffff !important;
+}
+.dash-nav__link--admin {
+  background: rgba(251,191,36,0.18) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(251,191,36,0.3);
+}
+.dash-nav__link--admin:hover, .dash-nav__link--admin.router-link-active {
+  background: #fbbf24 !important;
+  color: #0f172a !important;
+}
 
 .dash-nav__user { color: rgba(255,255,255,.8); font-size: 0.85rem; font-weight: 600; }
 .dash-nav__logout {

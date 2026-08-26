@@ -19,6 +19,11 @@ const processingId = ref(null)
 const bannerSuccess = ref('')
 const bannerError = ref('')
 
+async function handleLogout() {
+  await auth.logout()
+  router.push('/')
+}
+
 onMounted(async () => {
   if (!auth.isAdmin) {
     router.push('/dashboard')
@@ -113,12 +118,37 @@ function formatDate(dateStr) {
 
 <template>
   <div class="admin-cap-view">
+    <!-- Navigation Bar -->
+    <nav class="admin-nav">
+      <div class="admin-nav__inner">
+        <div class="admin-nav__left">
+          <router-link to="/dashboard" class="admin-nav__brand">
+            🌿 Agri<strong>Market</strong>
+          </router-link>
+        </div>
+        <div class="admin-nav__right">
+          <router-link to="/dashboard" class="admin-nav__link">
+            Dashboard
+          </router-link>
+          <router-link to="/listings" class="admin-nav__link">
+            Browse Marketplace
+          </router-link>
+          <router-link to="/admin/capability-applications" class="admin-nav__link admin-nav__link--active">
+            🛡️ Admin Approvals
+          </router-link>
+          <span class="admin-nav__user">
+            {{ auth.user?.first_name }} {{ auth.user?.second_name }}
+          </span>
+          <button class="admin-nav__logout" @click="handleLogout">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </nav>
+
     <!-- Header -->
     <header class="admin-header">
       <div class="admin-header__inner">
-        <button class="back-btn" @click="router.push('/dashboard')">
-          ← Back to Dashboard
-        </button>
         <div class="header-flex">
           <div>
             <h1 class="admin-title">Admin — Capability Review & Approval</h1>
@@ -314,6 +344,45 @@ function formatDate(dateStr) {
   background: var(--surface-alt);
   padding-bottom: 4rem;
 }
+
+.admin-nav {
+  background: #064e3b;
+  padding: 0 1.5rem;
+  box-shadow: var(--shadow-xs);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.admin-nav__inner {
+  max-width: 1200px; margin: 0 auto; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.admin-nav__brand { color: #ffffff !important; font-size: 1.15rem; font-weight: 700; text-decoration: none; }
+.admin-nav__brand strong { color: var(--brand-gold) !important; }
+.admin-nav__right { display: flex; align-items: center; gap: 1rem; }
+.admin-nav__link {
+  color: rgba(255, 255, 255, 0.85) !important;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+.admin-nav__link:hover, .admin-nav__link.router-link-active {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+}
+.admin-nav__link--active {
+  background: rgba(251, 191, 36, 0.2) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+.admin-nav__user { color: rgba(255, 255, 255, 0.8); font-size: 0.85rem; font-weight: 600; }
+.admin-nav__logout {
+  background: rgba(255, 255, 255, 0.12); color: #ffffff !important; border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-xs); padding: 0.35rem 0.85rem; font-size: 0.8125rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s ease;
+}
+.admin-nav__logout:hover { background: rgba(255, 255, 255, 0.22); }
 
 .admin-header {
   background: #0f172a;

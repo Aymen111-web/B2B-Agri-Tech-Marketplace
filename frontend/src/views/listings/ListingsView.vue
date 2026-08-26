@@ -488,81 +488,48 @@ function getCategoryIcon(catName) {
 .qty-avail { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem; }
 .qty-avail strong { color: var(--text-primary); }
 
-.view-btn {
-  width: 100%;
-  padding: 0.55rem;
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xs);
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  transition: all 0.15s ease;
-}
-.produce-card:hover .view-btn {
-  background: var(--brand-green);
-  color: #fff;
-  border-color: var(--brand-green);
-}
-
-.cart-link {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-.cart-badge {
-  background: var(--error);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.1rem 0.45rem;
-  border-radius: var(--radius-full);
-  line-height: 1;
-}
-
-.toast-alert {
-  padding: 0.75rem 1.15rem;
-  border-radius: var(--radius-sm);
-  margin-bottom: 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-.toast-alert--success {
-  background: var(--brand-green-light);
-  color: var(--brand-green-dark);
-  border: 1px solid var(--brand-green-border);
-}
-.toast-alert--error {
-  background: var(--error-bg);
-  color: var(--error-dark);
-  border: 1px solid var(--error-border);
-}
-
 .card-actions {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  align-items: center;
 }
 .add-cart-btn {
   flex: 1;
-  padding: 0.55rem;
+  padding: 0.45rem 0.75rem;
   background: var(--brand-green);
   color: #fff;
   border: none;
   border-radius: var(--radius-xs);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s ease;
+  box-shadow: var(--shadow-xs);
 }
-.add-cart-btn:hover {
+.add-cart-btn:hover:not(:disabled) {
   background: var(--brand-green-dark);
+  transform: translateY(-1px);
 }
 .add-cart-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.view-btn {
+  padding: 0.45rem 0.75rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.view-btn:hover, .produce-card:hover .view-btn {
+  background: var(--brand-green-light);
+  color: var(--brand-green-dark);
+  border-color: var(--brand-green-border);
 }
 </style>
