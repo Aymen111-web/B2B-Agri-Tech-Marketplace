@@ -58,6 +58,7 @@ function getStatusBadgeClass(status) {
   if (s === 'cancelled' || s === 'rejected') return 'badge--danger'
   return 'badge--info'
 }
+import { EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
@@ -68,7 +69,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
     <nav class="top-nav">
       <div class="top-nav__inner">
         <router-link to="/dashboard" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
           <router-link to="/listings" class="top-nav__link">
@@ -169,7 +171,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 
         <!-- Empty State -->
         <div v-else-if="orderStore.orders.length === 0" class="state-card empty-card">
-          <div class="empty-icon">📦</div>
+          <img :src="EMPTY_STATE_IMAGE" class="empty-orders-img" alt="No orders" />
           <h3 class="state-title">No orders found</h3>
           <p class="state-sub">You have no orders matching this filter status.</p>
           <router-link to="/listings" class="btn btn-primary btn-lg mt-3">
@@ -514,4 +516,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
   animation: spin 0.8s linear infinite; margin: 0 auto 0.75rem;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.empty-orders-img { width: 110px; height: 90px; margin: 0 auto 0.75rem; display: block; }
 </style>

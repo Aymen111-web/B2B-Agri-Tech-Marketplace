@@ -315,12 +315,19 @@ import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
+.detail-hero-banner {
+  width: 100%; height: 220px; border-radius: 8px; overflow: hidden;
+  margin-bottom: 1.25rem; background: var(--surface-alt);
+}
+.detail-hero-img { width: 100%; height: 100%; object-fit: cover; }
+
 .card-header-flex { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
 .category-badge {
   background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
   padding: 0.25rem 0.65rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700;
-  display: inline-block; margin-bottom: 0.5rem;
+  display: inline-flex; align-items: center; gap: 0.35rem; margin-bottom: 0.5rem;
 }
+.cat-badge-thumb { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
 .produce-title { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem; }
 .produce-sub { color: var(--text-secondary); font-size: 0.9rem; }
 
@@ -345,6 +352,7 @@ import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
 
 .side-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; border-bottom: 2px solid var(--surface-alt); padding-bottom: 0.5rem; }
 .farmer-profile { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+.avatar-photo { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--brand-green-border); }
 .avatar-icon { font-size: 2.25rem; background: #f0fdf4; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .farmer-fullname { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
 .verified-tag { font-size: 0.75rem; color: var(--brand-green); font-weight: 600; }

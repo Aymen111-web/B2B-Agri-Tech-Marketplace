@@ -1,8 +1,5 @@
-<script setup>
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useCartStore } from '@/stores/cart'
-import { useAuthStore } from '@/stores/auth'
+import { getCropImage, getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -49,11 +46,7 @@ async function handleLogout() {
 }
 
 function getCategoryIcon(unit) {
-  const u = (unit || '').toLowerCase()
-  if (u === 'litre' || u === 'liter') return '🥛'
-  if (u === 'quintal' || u === 'kg' || u === 'ton') return '🌾'
-  if (u === 'crate') return '📦'
-  return '🥦'
+  return getCropImage(unit)
 }
 
 function formatPrice(val) {
@@ -61,7 +54,6 @@ function formatPrice(val) {
   const num = Number(val)
   return num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { maximumFractionDigits: 2 })
 }
-import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>
@@ -71,7 +63,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
     <nav class="top-nav">
       <div class="top-nav__inner">
         <router-link to="/dashboard" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
           <router-link to="/listings" class="top-nav__link">
@@ -106,9 +99,9 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             <p class="hero-sub">Review produce items grouped by farmer and proceed to checkout</p>
           </div>
           <div class="trust-chips">
-            <span class="chip">🌾 Direct Farmer Source</span>
-            <span class="chip">📦 Grouped by Supplier</span>
-            <span class="chip">⚡ Secure Checkout</span>
+            <span class="chip">Direct Farmer Source</span>
+            <span class="chip">Grouped by Supplier</span>
+            <span class="chip">Secure Checkout</span>
           </div>
         </div>
       </div>
@@ -131,7 +124,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 
         <!-- Empty Cart State -->
         <div v-else-if="cartStore.items.length === 0" class="state-card empty-card">
-          <div class="empty-icon">🛒</div>
+          <img :src="EMPTY_STATE_IMAGE" class="empty-cart-img" alt="Empty Cart" />
           <h3 class="state-title">Your cart is empty</h3>
           <p class="state-sub">Browse verified Ethiopian farmer produce and add items to your cart.</p>
           <router-link to="/listings" class="btn btn-primary btn-lg mt-3">
@@ -159,7 +152,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             >
               <div class="farmer-group-header">
                 <div class="farmer-info">
-                  <span class="farmer-avatar">👨‍🌾</span>
+                  <img :src="getAvatarImage('farmer')" class="farmer-avatar-img" alt="Farmer Avatar" />
                   <div>
                     <h3 class="farmer-name">Farmer: {{ group.farmerName }}</h3>
                     <span class="farmer-badge">Direct Supplier</span>
@@ -173,7 +166,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
               <div class="items-list">
                 <div v-for="item in group.items" :key="item.id" class="cart-item-row">
                   <div class="item-visual">
-                    <span class="item-icon">{{ getCategoryIcon(item.listing?.unit) }}</span>
+                    <img :src="getCropImage(item.listing?.title || item.listing?.unit)" class="item-thumb-img" />
                   </div>
 
                   <div class="item-details">
@@ -699,4 +692,10 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
   margin: 0 auto 0.75rem;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.empty-cart-img { width: 110px; height: 90px; margin: 0 auto 0.75rem; display: block; }
+.farmer-avatar-img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--brand-green-border); }
+.item-thumb-img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
 </style>

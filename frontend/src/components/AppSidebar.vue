@@ -6,6 +6,8 @@ import { useCartStore } from '@/stores/cart'
 import { useThemeStore } from '@/stores/theme'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
+import { getAvatarImage } from '@/utils/imageHelper'
+
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -30,15 +32,15 @@ async function handleLogout() {
     <!-- Brand Logo -->
     <div class="sidebar__brand">
       <router-link to="/" class="brand-link">
-        <span class="brand-icon">🌿</span>
+        <img src="/images/agri_placeholder.svg" class="sidebar-brand-img" alt="AgriMarket Logo" />
         <span class="brand-text">Agri<strong>Market</strong></span>
       </router-link>
     </div>
 
     <!-- User Profile Badge (If Logged In) -->
     <div v-if="authStore.isAuthenticated" class="sidebar__user">
-      <div class="user-avatar">
-        {{ authStore.user?.first_name?.[0] || '👤' }}
+      <div class="user-avatar-wrap">
+        <img :src="getAvatarImage(isFarmer ? 'farmer' : 'buyer')" class="user-avatar-img" alt="User Profile" />
       </div>
       <div class="user-info">
         <div class="user-name">
@@ -189,6 +191,7 @@ async function handleLogout() {
   gap: 0.5rem;
   text-decoration: none;
 }
+.sidebar-brand-img { width: 26px; height: 26px; border-radius: 6px; object-fit: cover; }
 .brand-icon { font-size: 1.4rem; }
 .brand-text {
   font-size: 1.15rem;
@@ -206,6 +209,15 @@ async function handleLogout() {
   background: var(--surface-alt);
   border-bottom: 1px solid var(--sidebar-border);
 }
+.user-avatar-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid var(--brand-green-border);
+  flex-shrink: 0;
+}
+.user-avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .user-avatar {
   width: 34px;
   height: 34px;
