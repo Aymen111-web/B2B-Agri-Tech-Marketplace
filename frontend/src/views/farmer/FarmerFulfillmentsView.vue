@@ -75,6 +75,7 @@ async function handleComplete(id) {
   }
 }
 
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
 async function handleLogout() {
@@ -114,7 +115,8 @@ function getStatusBadgeClass(status) {
     <nav class="top-nav">
       <div class="top-nav__inner">
         <router-link to="/dashboard" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
           <router-link to="/dashboard" class="top-nav__link">
@@ -134,7 +136,7 @@ function getStatusBadgeClass(status) {
           </router-link>
           <ThemeToggle />
           <span class="user-pill">
-            👨‍🌾 {{ authStore.user?.first_name }}
+            <img :src="getAvatarImage('farmer')" class="user-pill-avatar" /> {{ authStore.user?.first_name }}
           </span>
           <button @click="handleLogout" class="top-nav__logout">
             Sign Out
@@ -146,7 +148,7 @@ function getStatusBadgeClass(status) {
     <!-- Header -->
     <header class="portal-header">
       <div class="portal-header__inner">
-        <h1 class="header-title">🚜 Produce Fulfillment Orders</h1>
+        <h1 class="header-title">Produce Fulfillment Orders</h1>
         <p class="header-sub">
           Manage buyer orders for your farm produce. Accept orders, release stock on rejection, or confirm handoff.
         </p>
@@ -165,28 +167,28 @@ function getStatusBadgeClass(status) {
             :class="{ active: activeTab === 'pending' }"
             @click="activeTab = 'pending'"
           >
-            ⏳ Pending Action
+            Pending Action
           </button>
           <button
             class="tab"
             :class="{ active: activeTab === 'accepted' }"
             @click="activeTab = 'accepted'"
           >
-            ✅ Accepted
+            Accepted
           </button>
           <button
             class="tab"
             :class="{ active: activeTab === 'completed' }"
             @click="activeTab = 'completed'"
           >
-            🎉 Completed
+            Completed
           </button>
           <button
             class="tab"
             :class="{ active: activeTab === 'rejected' }"
             @click="activeTab = 'rejected'"
           >
-            🛑 Rejected
+            Rejected
           </button>
         </div>
       </div>
@@ -214,7 +216,7 @@ function getStatusBadgeClass(status) {
 
         <!-- Empty State -->
         <div v-else-if="fulfillmentStore.fulfillments.length === 0" class="state-card empty-card">
-          <div class="empty-icon">🌾</div>
+          <img :src="EMPTY_STATE_IMAGE" class="empty-fulfill-img" alt="No orders" />
           <h2>No Fulfillment Orders</h2>
           <p>You do not have any produce fulfillment requests matching this tab filter.</p>
           <router-link to="/farmer/listings" class="btn btn--primary mt-4">
@@ -232,7 +234,7 @@ function getStatusBadgeClass(status) {
             <!-- Card Header -->
             <div class="fulfillment-card__header">
               <div class="order-meta">
-                <span class="order-icon">📦</span>
+                <img src="/images/crops/seeds.svg" class="order-img-icon" alt="Order" />
                 <div>
                   <h3 class="order-number">
                     {{ fulfillment.order?.order_number || `Order #${fulfillment.order_id}` }}
@@ -250,7 +252,7 @@ function getStatusBadgeClass(status) {
 
             <!-- Buyer Summary -->
             <div class="buyer-box">
-              <span class="buyer-icon">👨‍💼</span>
+              <img :src="getAvatarImage('buyer')" class="buyer-avatar-mini" alt="Buyer" />
               <div class="buyer-info">
                 <strong>Buyer:</strong>
                 <span>
@@ -555,4 +557,11 @@ function getStatusBadgeClass(status) {
   animation: spin 0.8s linear infinite; margin: 0 auto 1rem;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.user-pill-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.2rem; }
+.empty-fulfill-img { width: 100px; height: 85px; margin: 0 auto 0.5rem; display: block; }
+.order-img-icon { width: 24px; height: 24px; object-fit: contain; }
+.buyer-avatar-mini { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; vertical-align: middle; }
 </style>

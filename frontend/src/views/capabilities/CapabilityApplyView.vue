@@ -108,6 +108,7 @@ function formatDate(dateStr) {
     year: 'numeric'
   })
 }
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
@@ -118,14 +119,15 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
     <nav class="top-nav">
       <div class="top-nav__inner">
         <router-link to="/dashboard" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
           <router-link to="/listings" class="top-nav__link">
             Marketplace
           </router-link>
           <router-link to="/cart" class="top-nav__link">
-            🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
           </router-link>
           <router-link v-if="auth.isAuthenticated" to="/orders" class="top-nav__link">
             My Orders
@@ -153,9 +155,9 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             <p class="hero-sub">Apply for Farmer or Business Buyer capabilities to trade on the B2B Produce Exchange</p>
           </div>
           <div class="trust-chips">
-            <span class="chip">🌾 Direct Wholesale</span>
-            <span class="chip">🏬 Commercial Buyer</span>
-            <span class="chip">⚡ Quick Admin Review</span>
+            <span class="chip">Direct Wholesale</span>
+            <span class="chip">Commercial Buyer</span>
+            <span class="chip">Quick Admin Review</span>
           </div>
         </div>
       </div>
@@ -170,7 +172,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
           <h2 class="section-title">Your Current Status</h2>
           <div class="status-badges">
             <div class="badge-item" :class="{ 'badge-item--active': hasFarmerCapability }">
-              <span class="badge-icon">🌾</span>
+              <img :src="getAvatarImage('farmer')" class="status-avatar-img" alt="Farmer" />
               <div class="badge-info">
                 <span class="badge-label">Farmer Capability</span>
                 <span class="badge-status">{{ hasFarmerCapability ? 'Active & Approved' : 'Not Granted' }}</span>
@@ -178,7 +180,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             </div>
 
             <div class="badge-item" :class="{ 'badge-item--active': hasBuyerCapability }">
-              <span class="badge-icon">🏬</span>
+              <img :src="getAvatarImage('buyer')" class="status-avatar-img" alt="Buyer" />
               <div class="badge-info">
                 <span class="badge-label">Business Buyer Capability</span>
                 <span class="badge-status">{{ hasBuyerCapability ? 'Active & Approved' : 'Not Granted' }}</span>
@@ -198,14 +200,14 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
               :class="{ active: selectedType === 'farmer' }"
               @click="selectedType = 'farmer'"
             >
-              🌾 Apply as Farmer
+              Apply as Farmer
             </button>
             <button
               class="type-btn"
               :class="{ active: selectedType === 'buyer' }"
               @click="selectedType = 'buyer'"
             >
-              🏬 Apply as Business Buyer
+              Apply as Business Buyer
             </button>
           </div>
 
@@ -408,7 +410,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
           </div>
 
           <div v-else-if="capabilityStore.myApplications.length === 0" class="state-box empty-state">
-            <div class="empty-icon">📜</div>
+            <img :src="EMPTY_STATE_IMAGE" class="empty-cap-apply-img" alt="No applications" />
             <h3 class="state-title">No applications submitted</h3>
             <p class="state-sub">You have not applied for any trading capabilities yet.</p>
           </div>
@@ -421,7 +423,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             >
               <div class="app-item__main">
                 <div class="app-item__type">
-                  <span class="app-item__icon">{{ app.capability_type === 'farmer' ? '🌾' : '🏬' }}</span>
+                  <img :src="getAvatarImage(app.capability_type)" class="app-item-avatar" alt="Capability" />
                   <div>
                     <span class="app-item__title">
                       {{ app.capability_type === 'farmer' ? 'Farmer Capability' : 'Business Buyer Capability' }}
@@ -782,4 +784,10 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
   animation: spin 0.8s linear infinite; margin: 0 auto 0.5rem;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.status-avatar-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.empty-cap-apply-img { width: 95px; height: 80px; margin: 0 auto 0.5rem; display: block; }
+.app-item-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
 </style>

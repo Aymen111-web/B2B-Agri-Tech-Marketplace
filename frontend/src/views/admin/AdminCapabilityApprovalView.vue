@@ -114,6 +114,7 @@ function formatDate(dateStr) {
     minute: '2-digit'
   })
 }
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
@@ -124,7 +125,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
     <nav class="top-nav">
       <div class="top-nav__inner">
         <router-link to="/dashboard" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
           <router-link to="/dashboard" class="top-nav__link">
@@ -134,11 +136,11 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             Marketplace
           </router-link>
           <router-link to="/admin/capability-applications" class="top-nav__link active">
-            🛡️ Approvals
+            Approvals
           </router-link>
           <ThemeToggle />
           <span class="user-pill">
-            🛡️ {{ auth.user?.first_name }}
+            <img :src="getAvatarImage('admin')" class="user-pill-avatar" /> {{ auth.user?.first_name }}
           </span>
           <button @click="handleLogout" class="top-nav__logout">
             Sign Out
@@ -156,9 +158,9 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             <p class="hero-sub">Review and verify Ethiopian farmer & business buyer registration requests</p>
           </div>
           <div class="trust-chips">
-            <span class="chip">🛡️ Admin Verification</span>
-            <span class="chip">📜 License Inspection</span>
-            <span class="chip">⚡ Instant Grant</span>
+            <span class="chip">Admin Verification</span>
+            <span class="chip">License Inspection</span>
+            <span class="chip">Instant Grant</span>
           </div>
         </div>
 
@@ -170,21 +172,21 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
               :class="{ active: selectedStatus === 'pending' }"
               @click="handleStatusFilter('pending')"
             >
-              ⏳ Pending Approval
+              Pending Approval
             </button>
             <button
               class="tab-pill"
               :class="{ active: selectedStatus === 'approved' }"
               @click="handleStatusFilter('approved')"
             >
-              ✅ Approved
+              Approved
             </button>
             <button
               class="tab-pill"
               :class="{ active: selectedStatus === 'rejected' }"
               @click="handleStatusFilter('rejected')"
             >
-              🛑 Rejected
+              Rejected
             </button>
             <button
               class="tab-pill"
@@ -216,8 +218,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             <label for="type-select">Capability Type:</label>
             <select id="type-select" :value="selectedType" @change="handleTypeFilter">
               <option value="">All Capability Types</option>
-              <option value="farmer">🌾 Farmer</option>
-              <option value="buyer">🏬 Business Buyer</option>
+              <option value="farmer">Farmer</option>
+              <option value="buyer">Business Buyer</option>
             </select>
           </div>
           <div class="stats-counter">
@@ -233,7 +235,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
           </div>
 
           <div v-else-if="capabilityStore.adminApplications.length === 0" class="state-box empty-state">
-            <div class="empty-icon">🛡️</div>
+            <img :src="EMPTY_STATE_IMAGE" class="empty-cap-img" alt="No requests" />
             <h3 class="state-title">No capability requests found</h3>
             <p class="state-sub">There are no applications matching the selected filters.</p>
           </div>
@@ -255,10 +257,13 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
                 <tr v-for="app in capabilityStore.adminApplications" :key="app.id">
                   <td>
                     <div class="user-info">
-                      <span class="user-name">
-                        {{ app.user?.first_name }} {{ app.user?.second_name }}
-                      </span>
-                      <span class="user-id">User ID: #{{ app.user_id }}</span>
+                      <img :src="getAvatarImage(app.capability_type)" class="applicant-avatar" alt="User" />
+                      <div>
+                        <span class="user-name">
+                          {{ app.user?.first_name }} {{ app.user?.second_name }}
+                        </span>
+                        <span class="user-id">User ID: #{{ app.user_id }}</span>
+                      </div>
                     </div>
                   </td>
                   <td>
@@ -266,7 +271,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
                   </td>
                   <td>
                     <span class="cap-type-badge" :class="`cap-type-badge--${app.capability_type}`">
-                      {{ app.capability_type === 'farmer' ? '🌾 Farmer' : '🏬 Business Buyer' }}
+                      {{ app.capability_type === 'farmer' ? 'Farmer' : 'Business Buyer' }}
                     </span>
                   </td>
                   <td class="date-cell">{{ formatDate(app.created_at) }}</td>
@@ -708,4 +713,11 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
   animation: spin 0.8s linear infinite; margin: 0 auto 0.75rem;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.user-pill-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.2rem; }
+.empty-cap-img { width: 95px; height: 80px; margin: 0 auto 0.5rem; display: block; }
+.user-info { display: flex; align-items: center; gap: 0.5rem; }
+.applicant-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 </style>
