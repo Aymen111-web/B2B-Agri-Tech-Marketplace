@@ -190,6 +190,7 @@ function formatDate(dateStr) {
     day: 'numeric',
   })
 }
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
 async function handleLogout() {
@@ -204,7 +205,8 @@ async function handleLogout() {
     <nav class="top-nav">
       <div class="top-nav__inner">
         <router-link to="/dashboard" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
           <router-link to="/dashboard" class="top-nav__link">
@@ -224,7 +226,7 @@ async function handleLogout() {
           </router-link>
           <ThemeToggle />
           <span class="user-pill">
-            👨‍🌾 {{ auth.user?.first_name }}
+            <img :src="getAvatarImage('farmer')" class="user-pill-avatar" /> {{ auth.user?.first_name }}
           </span>
           <button @click="handleLogout" class="top-nav__logout">
             Sign Out
@@ -238,14 +240,14 @@ async function handleLogout() {
       <div class="farmer-header__inner">
         <div class="header-flex">
           <div>
-            <h1 class="farmer-title">🌾 Crop Inventory Management</h1>
+            <h1 class="farmer-title">Crop Inventory Management</h1>
             <p class="farmer-sub">
               Manage your harvest listings, adjust ETB rates per unit, and monitor stock availability.
             </p>
           </div>
           <div class="header-actions">
             <router-link to="/farmer/fulfillments" class="btn-fulfillment">
-              🚜 Fulfillment Orders
+              Fulfillment Orders
             </router-link>
             <button class="btn-create" @click="openCreateModal">
               + Publish New Produce
@@ -269,14 +271,14 @@ async function handleLogout() {
         <!-- Summary Stats Cards -->
         <div class="stats-grid">
           <div class="stat-card">
-            <span class="stat-icon">📦</span>
+            <img src="/images/crops/coffee.jpg" class="stat-img-icon crop-circle" alt="Total Listings" />
             <div>
               <span class="stat-val">{{ listingStore.myListings.length }}</span>
               <span class="stat-lbl">Total Produce Listings</span>
             </div>
           </div>
           <div class="stat-card">
-            <span class="stat-icon">🌱</span>
+            <img src="/images/crops/wheat.jpg" class="stat-img-icon crop-circle" alt="In Stock" />
             <div>
               <span class="stat-val">
                 {{ listingStore.myListings.filter(l => l.quantity_available > 0).length }}
@@ -285,7 +287,7 @@ async function handleLogout() {
             </div>
           </div>
           <div class="stat-card">
-            <span class="stat-icon">🔒</span>
+            <img src="/images/crops/seeds.svg" class="stat-img-icon" alt="Reserved" />
             <div>
               <span class="stat-val">
                 {{ listingStore.myListings.reduce((sum, l) => sum + (l.quantity_reserved || 0), 0) }}
@@ -306,7 +308,7 @@ async function handleLogout() {
           </div>
 
           <div v-else-if="listingStore.myListings.length === 0" class="empty-box">
-            <div class="empty-icon">🌾</div>
+            <img :src="EMPTY_STATE_IMAGE" class="empty-farmer-box-img" alt="No produce" />
             <h3>No produce listings yet</h3>
             <p>Click <strong>+ Publish New Produce</strong> above to list your harvest on the platform marketplace.</p>
           </div>
@@ -653,4 +655,11 @@ async function handleLogout() {
 .btn-cancel { padding: 0.6rem 1.2rem; border: 1px solid var(--border); border-radius: 6px; background: #fff; font-weight: 600; cursor: pointer; }
 .btn-submit { padding: 0.6rem 1.25rem; border: none; border-radius: 6px; background: var(--brand-green); color: #fff; font-weight: 600; cursor: pointer; }
 .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.user-pill-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.2rem; }
+.stat-img-icon { width: 32px; height: 32px; object-fit: contain; }
+.stat-img-icon.crop-circle { border-radius: 50%; object-fit: cover; }
+.empty-farmer-box-img { width: 100px; height: 85px; margin: 0 auto 0.5rem; display: block; }
 </style>

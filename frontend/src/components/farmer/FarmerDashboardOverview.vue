@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useListingStore } from '@/stores/listing'
 
+import { getCropImage, getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+
 const auth = useAuthStore()
 const listingStore = useListingStore()
 const router = useRouter()
@@ -54,7 +56,7 @@ function formatDate(dateStr) {
             Certified Farmer Supplier
           </div>
           <h1 class="hero-title">
-            Welcome, {{ auth.user?.first_name }} {{ auth.user?.second_name }} 👋
+            <img :src="getAvatarImage('farmer')" class="farmer-title-avatar" /> Welcome, {{ auth.user?.first_name }} {{ auth.user?.second_name }}
           </h1>
           <p class="hero-sub">
             Ethiopian Produce Exchange Command Center • Manage crops, track reserved stocks & process fulfillments.
@@ -66,10 +68,10 @@ function formatDate(dateStr) {
             + Publish New Crop
           </router-link>
           <router-link to="/farmer/fulfillments" class="action-btn action-btn--glass">
-            🚜 Fulfillment Orders
+            Fulfillment Orders
           </router-link>
           <router-link to="/listings" class="action-btn action-btn--glass">
-            🌾 Produce Exchange
+            Produce Exchange
           </router-link>
         </div>
       </div>
@@ -80,7 +82,7 @@ function formatDate(dateStr) {
       
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <span class="kpi-icon">🌾</span>
+          <img src="/images/crops/wheat.jpg" class="kpi-img-icon crop-circle" alt="Active Stock" />
           <span class="kpi-badge kpi-badge--emerald">Active Stock</span>
         </div>
         <div class="kpi-val">{{ activeListings.length }}</div>
@@ -90,7 +92,7 @@ function formatDate(dateStr) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <span class="kpi-icon">🔒</span>
+          <img src="/images/crops/seeds.svg" class="kpi-img-icon" alt="Reserved" />
           <span class="kpi-badge kpi-badge--amber">Buyer Reserved</span>
         </div>
         <div class="kpi-val">{{ totalReserved }}</div>
@@ -100,7 +102,7 @@ function formatDate(dateStr) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <span class="kpi-icon">💰</span>
+          <img src="/images/crops/coffee.jpg" class="kpi-img-icon crop-circle" alt="Valuation" />
           <span class="kpi-badge kpi-badge--gold">Valuation</span>
         </div>
         <div class="kpi-val">{{ formatPrice(totalInventoryValuation) }} <span class="currency">ETB</span></div>
@@ -110,7 +112,7 @@ function formatDate(dateStr) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <span class="kpi-icon">🚜</span>
+          <img :src="getAvatarImage('farmer')" class="kpi-img-icon avatar-circle" alt="Portal Access" />
           <span class="kpi-badge kpi-badge--emerald">Portal Access</span>
         </div>
         <div class="kpi-val">Approved</div>
@@ -140,7 +142,7 @@ function formatDate(dateStr) {
         </div>
 
         <div v-else-if="listingStore.myListings.length === 0" class="empty-state">
-          <span class="empty-icon">🌾</span>
+          <img :src="EMPTY_STATE_IMAGE" class="empty-farmer-img" alt="No crops" />
           <h3>No crop listings published yet</h3>
           <p>Publish your harvest now to reach verified wholesale business buyers across Ethiopia.</p>
           <router-link to="/farmer/listings" class="action-btn action-btn--gold mt-3">
@@ -531,4 +533,11 @@ function formatDate(dateStr) {
   line-height: 1.45;
 }
 .tips-list strong { color: var(--text-primary); }
+
+/* Image Styling */
+.farmer-title-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; border: 1px solid rgba(255,255,255,0.4); }
+.kpi-img-icon { width: 28px; height: 28px; object-fit: contain; }
+.kpi-img-icon.crop-circle { border-radius: 50%; object-fit: cover; }
+.kpi-img-icon.avatar-circle { border-radius: 50%; object-fit: cover; }
+.empty-farmer-img { width: 100px; height: 85px; margin: 0 auto 0.5rem; display: block; }
 </style>

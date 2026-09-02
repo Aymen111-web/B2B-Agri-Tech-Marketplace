@@ -5,6 +5,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useCapabilityStore } from '@/stores/capability'
 import api from '@/services/api'
 
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+
 const router = useRouter()
 const authStore = useAuthStore()
 const capabilityStore = useCapabilityStore()
@@ -132,10 +134,10 @@ async function quickReject(app) {
         </div>
         <div class="hero-actions">
           <button class="btn btn-refresh" @click="fetchDashboardStats" :disabled="loading">
-            <span :class="{ 'spin-icon': loading }">🔄</span> Refresh Stats
+            Refresh Stats
           </button>
           <router-link to="/admin/capability-applications" class="btn btn-primary-gold">
-            🛡️ Review Approvals Queue
+            Review Approvals Queue
             <span v-if="statsData.kpis.pending_applications > 0" class="badge-count">
               {{ statsData.kpis.pending_applications }}
             </span>
@@ -161,7 +163,7 @@ async function quickReject(app) {
       <!-- GMV Card -->
       <div class="kpi-card kpi-card--emerald">
         <div class="kpi-card__top">
-          <span class="kpi-icon">💰</span>
+          <img src="/images/crops/coffee.jpg" class="admin-kpi-img crop-circle" alt="GMV" />
           <span class="kpi-tag">Gross Volume</span>
         </div>
         <div class="kpi-card__value">
@@ -175,7 +177,7 @@ async function quickReject(app) {
       <!-- Verified Farmers Card -->
       <div class="kpi-card">
         <div class="kpi-card__top">
-          <span class="kpi-icon">🌾</span>
+          <img :src="getAvatarImage('farmer')" class="admin-kpi-img avatar-circle" alt="Farmers" />
           <span class="kpi-tag">Agri Sellers</span>
         </div>
         <div class="kpi-card__value">
@@ -189,7 +191,7 @@ async function quickReject(app) {
       <!-- Verified Buyers Card -->
       <div class="kpi-card">
         <div class="kpi-card__top">
-          <span class="kpi-icon">🏬</span>
+          <img :src="getAvatarImage('buyer')" class="admin-kpi-img avatar-circle" alt="Buyers" />
           <span class="kpi-tag">Wholesale Buyers</span>
         </div>
         <div class="kpi-card__value">
@@ -203,7 +205,7 @@ async function quickReject(app) {
       <!-- Pending Applications Queue -->
       <div class="kpi-card" :class="{ 'kpi-card--warn': statsData.kpis.pending_applications > 0 }">
         <div class="kpi-card__top">
-          <span class="kpi-icon">📋</span>
+          <img src="/images/crops/seeds.svg" class="admin-kpi-img" alt="Approvals" />
           <span class="kpi-tag">Approvals Queue</span>
         </div>
         <div class="kpi-card__value">
@@ -945,4 +947,9 @@ async function quickReject(app) {
   font-size: 0.75rem;
   color: var(--text-secondary);
 }
+
+/* Image Styling */
+.admin-kpi-img { width: 28px; height: 28px; object-fit: contain; }
+.admin-kpi-img.crop-circle { border-radius: 50%; object-fit: cover; }
+.admin-kpi-img.avatar-circle { border-radius: 50%; object-fit: cover; }
 </style>

@@ -6,6 +6,8 @@ import { useCartStore } from '@/stores/cart'
 import { useOrderStore } from '@/stores/order'
 import { useListingStore } from '@/stores/listing'
 
+import { getCropImage, getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+
 const auth = useAuthStore()
 const cartStore = useCartStore()
 const orderStore = useOrderStore()
@@ -71,7 +73,7 @@ function getStatusBadgeClass(status) {
             Verified Commercial Buyer
           </div>
           <h1 class="hero-title">
-            Welcome, {{ auth.user?.first_name }} {{ auth.user?.second_name }} 👋
+            <img :src="getAvatarImage('buyer')" class="buyer-title-avatar" /> Welcome, {{ auth.user?.first_name }} {{ auth.user?.second_name }}
           </h1>
           <p class="hero-sub">
             Ethiopian B2B Produce Sourcing Portal • Order wholesale crops directly from verified farms across Ethiopia.
@@ -80,13 +82,13 @@ function getStatusBadgeClass(status) {
 
         <div class="hero-actions">
           <router-link to="/listings" class="action-btn action-btn--gold">
-            🌾 Produce Marketplace
+            Produce Marketplace
           </router-link>
           <router-link to="/cart" class="action-btn action-btn--glass">
-            🛒 View Cart ({{ cartStore.itemCount }})
+            View Cart ({{ cartStore.itemCount }})
           </router-link>
           <router-link to="/orders" class="action-btn action-btn--glass">
-            📋 My Orders
+            My Orders
           </router-link>
         </div>
       </div>
@@ -97,7 +99,7 @@ function getStatusBadgeClass(status) {
       
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <span class="kpi-icon">📋</span>
+          <img src="/images/crops/seeds.svg" class="kpi-img-icon" alt="Orders" />
           <span class="kpi-badge kpi-badge--emerald">Orders</span>
         </div>
         <div class="kpi-val">{{ orderStore.orders.length }}</div>
@@ -107,7 +109,7 @@ function getStatusBadgeClass(status) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <span class="kpi-icon">🛒</span>
+          <img src="/images/agri_placeholder.svg" class="kpi-img-icon" alt="Cart" />
           <span class="kpi-badge kpi-badge--gold">Cart</span>
         </div>
         <div class="kpi-val">{{ cartStore.itemCount }}</div>
@@ -117,7 +119,7 @@ function getStatusBadgeClass(status) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <span class="kpi-icon">💰</span>
+          <img src="/images/crops/coffee.jpg" class="kpi-img-icon crop-circle" alt="Procurement" />
           <span class="kpi-badge kpi-badge--amber">Procurement</span>
         </div>
         <div class="kpi-val">{{ formatPrice(totalSpent) }} <span class="currency">ETB</span></div>
@@ -127,7 +129,7 @@ function getStatusBadgeClass(status) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <span class="kpi-icon">🛡️</span>
+          <img :src="getAvatarImage('buyer')" class="kpi-img-icon avatar-circle" alt="Privileges" />
           <span class="kpi-badge kpi-badge--emerald">Privileges</span>
         </div>
         <div class="kpi-val">Verified</div>
@@ -144,7 +146,7 @@ function getStatusBadgeClass(status) {
       <div class="content-card">
         <div class="card-header">
           <div>
-            <h2 class="card-title">🌾 Available Wholesale Crops</h2>
+            <h2 class="card-title">Available Wholesale Crops</h2>
             <p class="card-sub">Fresh produce listings available directly from verified Ethiopian farmers</p>
           </div>
           <router-link to="/listings" class="link-btn">
@@ -158,9 +160,14 @@ function getStatusBadgeClass(status) {
 
         <div v-else class="crops-grid">
           <div v-for="item in topCrops" :key="item.id" class="crop-item">
-            <div class="crop-header">
+            <div class="crop-img-wrap">
+              <img :src="getCropImage(item.title || item.category?.name)" class="crop-card-img" :alt="item.title" />
+            </div>
+            <div class="crop-header mt-2">
               <span class="crop-cat">{{ item.category?.name || 'Produce' }}</span>
-              <span class="crop-farmer">🚜 {{ item.farmer?.first_name || 'Farmer' }}</span>
+              <span class="crop-farmer">
+                <img :src="getAvatarImage('farmer')" class="farmer-mini-avatar" /> {{ item.farmer?.first_name || 'Farmer' }}
+              </span>
             </div>
             <h4 class="crop-title">{{ item.title }}</h4>
             <div class="crop-price">
@@ -180,12 +187,12 @@ function getStatusBadgeClass(status) {
         
         <div class="content-card">
           <div class="card-header">
-            <h2 class="card-title">📋 Recent Orders</h2>
+            <h2 class="card-title">Recent Orders</h2>
             <router-link to="/orders" class="link-btn">View All →</router-link>
           </div>
 
           <div v-if="orderStore.orders.length === 0" class="empty-panel">
-            <span>🛒</span>
+            <img :src="EMPTY_STATE_IMAGE" class="empty-mini-img" alt="No orders" />
             <p>No procurement orders placed yet.</p>
             <router-link to="/listings" class="action-btn action-btn--emerald mt-2 w-full">
               Explore Produce Marketplace
@@ -573,4 +580,15 @@ function getStatusBadgeClass(status) {
   line-height: 1.45;
 }
 .tips-list strong { color: var(--text-primary); }
+
+/* Image Styling */
+.buyer-title-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; border: 1px solid rgba(255,255,255,0.4); }
+.kpi-img-icon { width: 28px; height: 28px; object-fit: contain; }
+.kpi-img-icon.crop-circle { border-radius: 50%; object-fit: cover; }
+.kpi-img-icon.avatar-circle { border-radius: 50%; object-fit: cover; }
+.crop-img-wrap { width: 100%; height: 110px; border-radius: 6px; overflow: hidden; background: var(--surface-card); }
+.crop-card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease; }
+.crop-item:hover .crop-card-img { transform: scale(1.04); }
+.farmer-mini-avatar { width: 16px; height: 16px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.2rem; }
+.empty-mini-img { width: 90px; height: 75px; margin: 0 auto 0.5rem; display: block; }
 </style>
