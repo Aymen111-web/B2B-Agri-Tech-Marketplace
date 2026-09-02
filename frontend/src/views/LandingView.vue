@@ -1,6 +1,7 @@
 <script setup>
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { getCropImage } from '@/utils/imageHelper'
 
 const auth = useAuthStore()
 
@@ -13,44 +14,44 @@ const stats = [
 
 const features = [
   {
-    icon: '🌾',
+    image: getCropImage('wheat'),
     title: 'Direct Farm Access',
     desc: 'Connect directly with verified Ethiopian farmers. No middlemen — transparent pricing on every listing.',
   },
   {
-    icon: '🛡️',
+    image: getCropImage('sesame'),
     title: 'Verified Participants',
     desc: 'Every farmer and business buyer goes through an admin approval process before trading.',
   },
   {
-    icon: '💳',
+    image: getCropImage('coffee'),
     title: 'Secure Payments',
     desc: 'Pay safely via Chapa — Ethiopia\'s trusted payment gateway — with full exception management.',
   },
   {
-    icon: '📦',
+    image: getCropImage('vegetable'),
     title: 'Order Fulfillment',
     desc: 'Track every step: from order placement to farmer acceptance, delivery, and payout.',
   },
   {
-    icon: '📊',
+    image: getCropImage('fruit'),
     title: 'Market Intelligence',
     desc: 'Access price histories, category trends, and listings data to make smarter buying decisions.',
   },
   {
-    icon: '🤝',
+    image: getCropImage('honey'),
     title: 'Dispute Resolution',
     desc: 'Built-in payment exception management and admin mediation when things go wrong.',
   },
 ]
 
 const crops = [
-  { name: 'Coffee', emoji: '☕', desc: 'Premium highland beans' },
-  { name: 'Sesame', emoji: '🌻', desc: 'Oil crop exports' },
-  { name: 'Wheat', emoji: '🌾', desc: 'Bread wheat varieties' },
-  { name: 'Tomatoes', emoji: '🍅', desc: 'Fresh farm vegetables' },
-  { name: 'Avocado', emoji: '🥑', desc: 'Highland organic fruits' },
-  { name: 'Honey', emoji: '🍯', desc: 'Pure natural honey' },
+  { name: 'Coffee', image: getCropImage('coffee'), desc: 'Premium highland beans' },
+  { name: 'Sesame', image: getCropImage('sesame'), desc: 'Oil crop exports' },
+  { name: 'Wheat', image: getCropImage('wheat'), desc: 'Bread wheat varieties' },
+  { name: 'Tomatoes', image: getCropImage('vegetable'), desc: 'Fresh farm vegetables' },
+  { name: 'Avocado', image: getCropImage('fruit'), desc: 'Highland organic fruits' },
+  { name: 'Honey', image: getCropImage('honey'), desc: 'Pure natural honey' },
 ]
 </script>
 
@@ -61,7 +62,7 @@ const crops = [
     <nav class="navbar">
       <div class="navbar__inner">
         <RouterLink to="/" class="navbar__brand">
-          <span class="navbar__logo">🌿</span>
+          <img src="/images/agri_placeholder.svg" class="navbar__logo-img" alt="AgriMarket Logo" />
           <span class="navbar__name">Agri<strong>Market</strong></span>
         </RouterLink>
 
@@ -103,7 +104,7 @@ const crops = [
       </div>
       <div class="hero__visual" aria-hidden="true">
         <div class="hero__card hero__card--1">
-          <span class="hero__card-icon">🌾</span>
+          <img :src="getCropImage('wheat')" class="hero__card-thumb" alt="Wheat" />
           <div>
             <div class="hero__card-label">Wheat — Grade A</div>
             <div class="hero__card-price">ETB 48/kg</div>
@@ -111,7 +112,7 @@ const crops = [
           <div class="hero__card-badge">Active</div>
         </div>
         <div class="hero__card hero__card--2">
-          <span class="hero__card-icon">☕</span>
+          <img :src="getCropImage('coffee')" class="hero__card-thumb" alt="Coffee" />
           <div>
             <div class="hero__card-label">Sidama Coffee — Washed</div>
             <div class="hero__card-price">ETB 320/kg</div>
@@ -119,7 +120,7 @@ const crops = [
           <div class="hero__card-badge">Active</div>
         </div>
         <div class="hero__card hero__card--3">
-          <span class="hero__card-icon">🫘</span>
+          <img :src="getCropImage('sesame')" class="hero__card-thumb" alt="Sesame" />
           <div>
             <div class="hero__card-label">White Sesame — Export</div>
             <div class="hero__card-price">ETB 95/kg</div>
@@ -151,7 +152,9 @@ const crops = [
         </div>
         <div class="features__grid">
           <div v-for="feature in features" :key="feature.title" class="feature-card">
-            <div class="feature-card__icon">{{ feature.icon }}</div>
+            <div class="feature-card__img-wrap">
+              <img :src="feature.image" class="feature-card__img" :alt="feature.title" />
+            </div>
             <h3 class="feature-card__title">{{ feature.title }}</h3>
             <p class="feature-card__desc">{{ feature.desc }}</p>
           </div>
@@ -171,7 +174,9 @@ const crops = [
         </div>
         <div class="crops__grid">
           <div v-for="crop in crops" :key="crop.name" class="crop-card">
-            <div class="crop-card__emoji">{{ crop.emoji }}</div>
+            <div class="crop-card__img-wrap">
+              <img :src="crop.image" class="crop-card__img" :alt="crop.name" />
+            </div>
             <div class="crop-card__name">{{ crop.name }}</div>
             <div class="crop-card__desc">{{ crop.desc }}</div>
           </div>
@@ -304,7 +309,11 @@ const crops = [
 .hero__card--1 { margin-left: 0; }
 .hero__card--2 { margin-left: 1.25rem; }
 .hero__card--3 { margin-left: .5rem; }
-.hero__card-icon   { font-size: 1.5rem; }
+.navbar__logo-img { width: 28px; height: 28px; border-radius: 6px; object-fit: cover; }
+.hero__card-thumb {
+  width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.4);
+}
+.hero__card-icon { font-size: 1.5rem; }
 .hero__card-label  { color: rgba(255,255,255,.8); font-size: .75rem; }
 .hero__card-price  { color: #fff; font-weight: 700; font-size: 0.95rem; }
 .hero__card-badge  {
@@ -347,11 +356,12 @@ const crops = [
   transition: transform .2s, box-shadow .2s;
 }
 .feature-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: rgba(16, 185, 129, 0.3); }
-.feature-card__icon  {
-  width: 44px; height: 44px; border-radius: var(--radius-sm);
-  background: var(--surface-alt); display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem; margin-bottom: 1rem; border: 1px solid var(--border-subtle);
+.feature-card__img-wrap {
+  width: 56px; height: 56px; border-radius: 12px;
+  overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--border-subtle);
+  background: var(--surface-alt);
 }
+.feature-card__img { width: 100%; height: 100%; object-fit: cover; }
 .feature-card__title { font-size: 1.05rem; color: var(--text-primary); margin-bottom: .35rem; font-weight: 700; }
 .feature-card__desc  { color: var(--text-secondary); font-size: .875rem; line-height: 1.55; }
 
@@ -367,7 +377,11 @@ const crops = [
   cursor: default;
 }
 .crop-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--brand-green); }
-.crop-card__emoji { font-size: 2rem; margin-bottom: .5rem; }
+.crop-card__img-wrap {
+  width: 64px; height: 64px; border-radius: 50%;
+  margin: 0 auto 0.6rem; overflow: hidden; border: 2px solid var(--brand-green-border);
+}
+.crop-card__img { width: 100%; height: 100%; object-fit: cover; }
 .crop-card__name  { font-weight: 700; color: var(--text-primary); margin-bottom: .2rem; font-size: 0.95rem; }
 .crop-card__desc  { font-size: .8125rem; color: var(--text-muted); }
 

@@ -105,19 +105,12 @@ function formatDate(dateStr) {
   })
 }
 
-function getCategoryIcon(catName) {
-  const name = (catName || '').toLowerCase()
-  if (name.includes('grain') || name.includes('cereal') || name.includes('wheat') || name.includes('teff')) return '🌾'
-  if (name.includes('vegetable') || name.includes('tomato')) return '🥦'
-  if (name.includes('fruit') || name.includes('avocado')) return '🍎'
-  if (name.includes('coffee')) return '☕'
-  if (name.includes('pulse') || name.includes('bean') || name.includes('lentil')) return '🫘'
-  if (name.includes('oil') || name.includes('seed') || name.includes('sesame')) return '🌻'
-  if (name.includes('dairy') || name.includes('milk')) return '🥛'
-  if (name.includes('honey') || name.includes('spice')) return '🍯'
-  return '📦'
-}
+import { getCropImage, getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+
+function getCategoryIcon(catName) {
+  return getCropImage(catName)
+}
 </script>
 
 <template>
@@ -127,7 +120,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
     <nav class="top-nav">
       <div class="top-nav__inner">
         <router-link to="/dashboard" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket Logo" />
+          Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
           <router-link to="/dashboard" class="top-nav__link">
@@ -150,7 +144,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
           </router-link>
           <ThemeToggle />
           <span v-if="auth.isAuthenticated" class="user-pill">
-            👤 {{ auth.user?.first_name }}
+            <img :src="getAvatarImage(auth.user?.role)" class="user-pill-avatar" /> {{ auth.user?.first_name }}
           </span>
           <button v-if="auth.isAuthenticated" @click="handleLogout" class="top-nav__logout">
             Sign Out
@@ -178,7 +172,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             <p class="hero-sub">Direct wholesale trade from verified Ethiopian farms</p>
           </div>
           <div class="trust-chips">
-            <span class="chip">🌾 Verified Farmers</span>
+            <span class="chip"><img src="/images/agri_placeholder.svg" class="chip-img" /> Verified Farmers</span>
             <span class="chip">🔬 Inspected</span>
             <span class="chip">🚚 Direct Delivery</span>
           </div>
@@ -224,16 +218,17 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
               :class="{ active: selectedCategory === '' }"
               @click="handleCategorySelect('')"
             >
-              🌱 All
+              All Produce
             </button>
             <button
               v-for="cat in listingStore.categories"
               :key="cat.id"
-              class="pill"
+              class="pill pill--with-img"
               :class="{ active: selectedCategory === cat.id }"
               @click="handleCategorySelect(cat.id)"
             >
-              {{ getCategoryIcon(cat.name) }} {{ cat.name }}
+              <img :src="getCropImage(cat.name)" class="pill-thumb" />
+              <span>{{ cat.name }}</span>
             </button>
           </div>
         </div>
@@ -253,7 +248,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 
         <!-- Empty State -->
         <div v-else-if="filteredListings.length === 0" class="state-box empty-state">
-          <div class="empty-icon">🌾</div>
+          <img :src="EMPTY_STATE_IMAGE" class="empty-state-img" alt="Empty box" />
           <h3 class="state-title">No produce found</h3>
           <p class="state-sub">Try searching another crop or clear filters.</p>
           <button class="reset-btn" @click="handleCategorySelect(''); searchQuery = ''; inStockOnly = false; loadListings()">
@@ -269,17 +264,20 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             class="produce-card"
             @click="router.push(`/listings/${item.id}`)"
           >
-            <!-- Card Top Row -->
-            <div class="card-badge-wrap">
-              <span class="category-tag">
-                {{ getCategoryIcon(item.category?.name) }} {{ item.category?.name || 'Produce' }}
-              </span>
-              <span v-if="item.status === 'active' && item.quantity_available > 0" class="stock-tag status--in-stock">
-                In Stock
-              </span>
-              <span v-else class="stock-tag status--sold-out">
-                Sold Out
-              </span>
+            <!-- Card Produce Image Header -->
+            <div class="card-img-header">
+              <img :src="getCropImage(item.title || item.category?.name)" class="produce-card-img" :alt="item.title" />
+              <div class="card-img-overlay">
+                <span class="category-tag">
+                  {{ item.category?.name || 'Produce' }}
+                </span>
+                <span v-if="item.status === 'active' && item.quantity_available > 0" class="stock-tag status--in-stock">
+                  In Stock
+                </span>
+                <span v-else class="stock-tag status--sold-out">
+                  Sold Out
+                </span>
+              </div>
             </div>
 
             <!-- Title & Metadata -->
@@ -297,7 +295,10 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 
             <!-- Farmer Name Row -->
             <div class="farmer-row">
-              <span class="farmer-name">👨‍🌾 {{ item.farmer?.first_name }} {{ item.farmer?.second_name }}</span>
+              <div class="farmer-row-left">
+                <img :src="getAvatarImage('farmer')" class="farmer-avatar-img" />
+                <span class="farmer-name">{{ item.farmer?.first_name }} {{ item.farmer?.second_name }}</span>
+              </div>
               <span class="farmer-verified">✓ Verified</span>
             </div>
 
@@ -770,4 +771,29 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
   color: var(--text-primary);
 }
 .view-btn:hover { background: var(--brand-green-light); color: var(--brand-green-dark); }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.user-pill-avatar { width: 20px; height: 20px; border-radius: 50%; vertical-align: middle; margin-right: 0.2rem; }
+.chip-img { width: 14px; height: 14px; border-radius: 50%; vertical-align: middle; margin-right: 0.2rem; }
+
+.pill--with-img { display: inline-flex; align-items: center; gap: 0.35rem; }
+.pill-thumb { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
+
+.card-img-header {
+  position: relative; width: 100%; height: 150px;
+  border-radius: var(--radius-xs); overflow: hidden; margin-bottom: 0.75rem;
+  background: var(--surface-alt);
+}
+.produce-card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+.produce-card:hover .produce-card-img { transform: scale(1.04); }
+.card-img-overlay {
+  position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem;
+  display: flex; justify-content: space-between; align-items: center; z-index: 2;
+}
+
+.farmer-row-left { display: flex; align-items: center; gap: 0.4rem; }
+.farmer-avatar-img { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--brand-green-border); }
+
+.empty-state-img { width: 120px; height: 100px; margin: 0 auto 0.75rem; display: block; }
 </style>

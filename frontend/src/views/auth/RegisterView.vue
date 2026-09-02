@@ -92,10 +92,7 @@ function goBack() {
 </script>
 
 <template>
-  <AuthLayout
-    title="Create your account"
-    subtitle="Join Ethiopia's premier agri marketplace"
-  >
+  <AuthLayout title="Create Account" subtitle="Join Ethiopia's B2B Agri Marketplace">
     <!-- ── Step 1: Details ── -->
     <form
       v-if="step === 1"
@@ -111,7 +108,7 @@ function goBack() {
         </div>
       </Transition>
 
-      <!-- First name -->
+      <!-- First Name -->
       <div class="form-group">
         <label for="reg-first-name" class="form-label">First Name</label>
         <div class="input-wrap">
@@ -128,7 +125,7 @@ function goBack() {
         </div>
       </div>
 
-      <!-- Second name -->
+      <!-- Second Name -->
       <div class="form-group">
         <label for="reg-second-name" class="form-label">Second Name</label>
         <div class="input-wrap">
@@ -155,17 +152,17 @@ function goBack() {
             v-model="phone"
             type="tel"
             class="form-input"
-            placeholder="e.g. 0911223344"
+            placeholder="0911223344 or +251..."
             required
             autocomplete="tel"
           />
         </div>
         <p v-if="phone && !phoneValid" class="form-hint form-hint--error">
-          Enter your Ethiopian number: 0911223344, 0712345678, or +251911223344
+          Format: 0911223344 or +251911223344
         </p>
       </div>
 
-      <!-- Password -->
+      <!-- Password & Confirm Password -->
       <div class="form-group">
         <label for="reg-password" class="form-label">Password</label>
         <div class="input-wrap">
@@ -175,7 +172,7 @@ function goBack() {
             v-model="password"
             :type="showPwd ? 'text' : 'password'"
             class="form-input form-input--padded-right"
-            placeholder="Minimum 8 characters"
+            placeholder="At least 8 characters"
             required
             autocomplete="new-password"
           />
@@ -188,11 +185,10 @@ function goBack() {
           >{{ showPwd ? '🙈' : '👁️' }}</button>
         </div>
         <p v-if="password && !passwordStrong" class="form-hint form-hint--error">
-          Password must be at least 8 characters.
+          Must be at least 8 characters.
         </p>
       </div>
 
-      <!-- Confirm password -->
       <div class="form-group">
         <label for="reg-confirm" class="form-label">Confirm Password</label>
         <div class="input-wrap">
@@ -253,8 +249,7 @@ function goBack() {
       <div class="otp-info">
         <div class="otp-info__icon">📲</div>
         <p class="otp-info__text">
-          We sent a 6-digit verification code to<br/>
-          <strong>{{ phone }}</strong>
+          Code sent to <strong>{{ phone }}</strong>
         </p>
       </div>
 
@@ -298,21 +293,20 @@ function goBack() {
 
 .otp-info {
   text-align: center;
-  background: var(--brand-green-light);
-  border: 1px solid var(--brand-green);
-  border-radius: var(--radius-md);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  background: var(--brand-green-light, #f0fdf4);
+  border: 1px solid var(--brand-green, #1a6b3c);
+  border-radius: var(--radius-md, 10px);
+  padding: 1.1rem;
 }
-.otp-info__icon { font-size: 2rem; margin-bottom: .5rem; }
-.otp-info__text { color: var(--text-secondary); font-size: .95rem; line-height: 1.6; }
-.otp-info__text strong { color: var(--text-primary); }
+.otp-info__icon { font-size: 1.6rem; margin-bottom: .3rem; }
+.otp-info__text { color: var(--text-secondary, #475569); font-size: .9rem; line-height: 1.5; }
+.otp-info__text strong { color: var(--text-primary, #0f172a); }
 
 .form-input--otp {
   text-align: center;
-  font-size: 1.8rem;
-  letter-spacing: .4rem;
+  font-size: 1.6rem;
+  letter-spacing: .35rem;
   font-weight: 700;
-  padding-left: 1rem;
+  padding-left: 0.85rem;
 }
 </style>

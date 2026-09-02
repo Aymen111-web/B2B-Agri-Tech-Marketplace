@@ -33,10 +33,7 @@ async function handleLogin() {
 </script>
 
 <template>
-  <AuthLayout
-    title="Welcome back"
-    subtitle="Sign in to your Agri Market account"
-  >
+  <AuthLayout title="Sign In" subtitle="Welcome back! Sign in to your account.">
     <form id="login-form" class="auth-form" @submit.prevent="handleLogin" novalidate>
 
       <!-- Error banner -->
@@ -57,7 +54,7 @@ async function handleLogin() {
             v-model="phone"
             type="tel"
             class="form-input"
-            placeholder="e.g. 0911223344"
+            placeholder="0911223344 or +251..."
             required
             autocomplete="tel"
           />
@@ -76,7 +73,7 @@ async function handleLogin() {
             v-model="password"
             :type="showPwd ? 'text' : 'password'"
             class="form-input form-input--padded-right"
-            placeholder="Your password"
+            placeholder="Enter your password"
             required
             autocomplete="current-password"
           />
@@ -106,7 +103,7 @@ async function handleLogin() {
       <!-- Footer link -->
       <p class="auth-form__footer">
         Don't have an account?
-        <RouterLink to="/register" class="auth-form__link" id="login-to-register">Create one</RouterLink>
+        <RouterLink to="/register" class="auth-form__link" id="login-to-register">Create account</RouterLink>
       </p>
     </form>
   </AuthLayout>

@@ -61,6 +61,7 @@ function formatDate(dateStr) {
     minute: '2-digit',
   })
 }
+import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
 </script>
 
 <template>
@@ -100,10 +101,16 @@ function formatDate(dateStr) {
 
           <!-- Main Produce Card -->
           <div class="main-card">
+            <!-- Produce Crop Banner -->
+            <div class="detail-hero-banner">
+              <img :src="getCropImage(listing.title || listing.category?.name)" class="detail-hero-img" :alt="listing.title" />
+            </div>
+
             <div class="card-header-flex">
               <div>
                 <span class="category-badge">
-                  🌾 {{ listing.category?.name || 'Produce' }}
+                  <img :src="getCropImage(listing.category?.name)" class="cat-badge-thumb" />
+                  <span>{{ listing.category?.name || 'Produce' }}</span>
                 </span>
                 <h1 class="produce-title">{{ listing.title }}</h1>
                 <p class="produce-sub">Published by verified Ethiopian agricultural producer</p>
@@ -158,7 +165,7 @@ function formatDate(dateStr) {
             <h3 class="side-title">Producer Information</h3>
 
             <div class="farmer-profile">
-              <div class="avatar-icon">👨‍🌾</div>
+              <img :src="getAvatarImage('farmer')" class="avatar-photo" alt="Farmer Avatar" />
               <div>
                 <h4 class="farmer-fullname">
                   {{ listing.farmer?.first_name }} {{ listing.farmer?.second_name }}
