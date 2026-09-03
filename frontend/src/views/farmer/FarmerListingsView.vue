@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useListingStore } from '@/stores/listing'
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const auth = useAuthStore()
 const listingStore = useListingStore()
@@ -190,8 +192,6 @@ function formatDate(dateStr) {
     day: 'numeric',
   })
 }
-import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
-import ThemeToggle from '@/components/ThemeToggle.vue'
 
 async function handleLogout() {
   await auth.logout()

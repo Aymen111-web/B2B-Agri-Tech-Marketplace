@@ -3,6 +3,8 @@ import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFulfillmentStore } from '@/stores/fulfillment'
 import { useAuthStore } from '@/stores/auth'
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
 const fulfillmentStore = useFulfillmentStore()
@@ -75,8 +77,6 @@ async function handleComplete(id) {
   }
 }
 
-import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
-import ThemeToggle from '@/components/ThemeToggle.vue'
 
 async function handleLogout() {
   await authStore.logout()

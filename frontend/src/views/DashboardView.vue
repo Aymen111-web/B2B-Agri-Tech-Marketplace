@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AdminDashboardOverview from '@/components/admin/AdminDashboardOverview.vue'
@@ -9,6 +9,21 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const auth   = useAuthStore()
 const router = useRouter()
+
+const showPinModal = ref(false)
+const selectedOrderPin = ref('')
+const pinInput = ref('')
+const pinVerifyMessage = ref('')
+
+const showInspectModal = ref(false)
+const inspectStatus = ref('accepted')
+const acceptedQty = ref(0)
+const rejectedQty = ref(0)
+const inspectNotes = ref('')
+const inspectMessage = ref('')
+
+function verifyPin() {}
+function submitInspection() {}
 
 const activeCapabilities = computed(() => {
   const caps = auth.user?.capabilities || []
@@ -182,9 +197,12 @@ async function handleLogout() {
               </button>
             </div>
           </div>
+        </div>
 
-        <!-- Buyer View: Render Buyer Command Center -->
-        <BuyerDashboardOverview v-else />
+        <!-- Role Overview Section -->
+        <AdminDashboardOverview v-if="auth.isAdmin" />
+        <FarmerDashboardOverview v-else-if="hasFarmerCapability" />
+        <BuyerDashboardOverview v-else-if="hasBuyerCapability" />
 
       </div>
     </main>
