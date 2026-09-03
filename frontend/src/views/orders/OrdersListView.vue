@@ -38,7 +38,28 @@ async function handleLogout() {
   router.push('/login')
 }
 
+import api from '@/services/api'
+
+const processingOrderId = ref(null)
+
+async function handlePayOrderNow(event, orderId) {
+  event.stopPropagation()
+  processingOrderId.value = orderId
+
+  try {
+    const res = await api.post(`/orders/${orderId}/pay`)
+    if (res.data?.checkout_url) {
+      window.location.href = res.data.checkout_url
+    }
+  } catch (err) {
+    console.error('Failed to initiate payment from list:', err)
+  } finally {
+    processingOrderId.value = null
+  }
+}
+
 function formatPrice(val) {
+
   if (val === undefined || val === null) return '0'
   const num = Number(val)
   return num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { maximumFractionDigits: 2 })

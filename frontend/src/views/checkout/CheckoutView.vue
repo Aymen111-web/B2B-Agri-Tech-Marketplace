@@ -5,6 +5,7 @@ import { useCartStore } from '@/stores/cart'
 import { useOrderStore } from '@/stores/order'
 import { useAuthStore } from '@/stores/auth'
 import { getAvatarImage } from '@/utils/imageHelper'
+import api from '@/services/api'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -21,7 +22,7 @@ onMounted(async () => {
   }
 })
 
-async function handlePlaceOrder() {
+async function handlePlaceOrder(payImmediately = true) {
   if (cartStore.items.length === 0) {
     checkoutError.value = 'Your cart is empty.'
     return
@@ -31,16 +32,28 @@ async function handlePlaceOrder() {
   checkoutError.value = ''
 
   const result = await orderStore.checkout()
-  isSubmitting.value = false
 
   if (result.success && result.order) {
-    // Successfully placed order, navigate to Order Details / Confirmation page
+    if (payImmediately) {
+      try {
+        const payRes = await api.post(`/orders/${result.order.id}/pay`)
+        if (payRes.data?.checkout_url) {
+          window.location.href = payRes.data.checkout_url
+          return
+        }
+      } catch (err) {
+        console.warn('Auto-pay initiation fallback:', err)
+      }
+    }
+    isSubmitting.value = false
     router.push(`/orders/${result.order.id}`)
   } else {
+    isSubmitting.value = false
     checkoutError.value = result.message || 'Failed to place order. Please try again.'
   }
 }
 </script>
+
 
 <template>
   <div class="checkout-page">
@@ -158,15 +171,27 @@ async function handlePlaceOrder() {
                 </div>
               </div>
 
-              <button
-                @click="handlePlaceOrder"
-                :disabled="isSubmitting || cartStore.items.length === 0"
-                class="btn btn--primary btn--block btn--lg mt-6"
-                id="confirm-checkout-btn"
-              >
-                <span v-if="isSubmitting" class="inline-spinner"></span>
-                <span v-else>Confirm Order & Reserve Stock →</span>
-              </button>
+              <div class="actions-stack mt-6">
+                <button
+                  @click="handlePlaceOrder(true)"
+                  :disabled="isSubmitting || cartStore.items.length === 0"
+                  class="btn btn--chapa btn--block btn--lg"
+                  id="pay-now-chapa-btn"
+                >
+                  <span v-if="isSubmitting" class="inline-spinner"></span>
+                  <span v-else>💳 Pay Now via Chapa →</span>
+                </button>
+
+                <button
+                  @click="handlePlaceOrder(false)"
+                  :disabled="isSubmitting || cartStore.items.length === 0"
+                  class="btn btn--outline btn--block mt-2"
+                  id="reserve-order-btn"
+                >
+                  Reserve Stock & View Order
+                </button>
+              </div>
+
 
               <p class="terms-note">
                 By placing this order, you agree to the platform's facilitated marketplace direct handoff terms.
@@ -341,9 +366,15 @@ async function handlePlaceOrder() {
 }
 .btn--primary { background: #10b981; color: #ffffff; }
 .btn--primary:hover { background: #059669; }
-.btn--primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn--chapa { background: #0284c7; color: #ffffff; font-weight: 700; }
+.btn--chapa:hover { background: #0369a1; }
+.btn--outline { background: transparent; border: 1px solid #cbd5e1; color: #334155; }
+.btn--outline:hover { background: #f1f5f9; }
+.btn--primary:disabled, .btn--chapa:disabled, .btn--outline:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn--block { width: 100%; }
 .btn--lg { padding: 0.9rem 1.75rem; font-size: 1.05rem; }
+.mt-2 { margin-top: 0.5rem; }
+
 
 .terms-note { font-size: 0.75rem; color: #94a3b8; margin-top: 1rem; text-align: center; line-height: 1.4; }
 
