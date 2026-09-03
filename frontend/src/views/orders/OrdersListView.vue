@@ -241,10 +241,23 @@ function getStatusBadgeClass(status) {
                 <span class="total-amount">ETB {{ formatPrice(order.total_amount) }}</span>
               </div>
 
-              <button class="btn-text">
-                View Order & Pay →
-              </button>
+              <div class="footer-actions">
+                <button
+                  v-if="order.status === 'pending_payment'"
+                  @click="handlePayOrderNow($event, order.id)"
+                  :disabled="processingOrderId === order.id"
+                  class="btn btn--chapa btn--sm mr-2"
+                >
+                  <span v-if="processingOrderId === order.id">Processing...</span>
+                  <span v-else>💳 Pay Now</span>
+                </button>
+
+                <button class="btn-text">
+                  View Order →
+                </button>
+              </div>
             </div>
+
           </div>
         </div>
 
@@ -492,7 +505,14 @@ function getStatusBadgeClass(status) {
 .total-label { font-size: 0.8125rem; color: var(--text-secondary); }
 .total-amount { font-size: 1.15rem; font-weight: 800; color: var(--brand-green-dark); margin-left: 0.35rem; }
 
+.footer-actions { display: flex; align-items: center; }
+.btn--chapa { background: #0284c7; color: #ffffff; font-weight: 700; border-radius: var(--radius-xs); border: none; cursor: pointer; transition: all 0.15s ease; }
+.btn--chapa:hover { background: #0369a1; }
+.btn--sm { padding: 0.35rem 0.75rem; font-size: 0.78125rem; }
+.mr-2 { margin-right: 0.5rem; }
+
 .btn-text {
+
   background: none;
   border: none;
   color: var(--brand-green-dark);
