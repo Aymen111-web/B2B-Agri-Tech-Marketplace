@@ -15,14 +15,21 @@ class OrderResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'           => $this->id,
-            'order_number' => $this->order_number,
-            'buyer_id'     => $this->buyer_id,
-            'status'       => $this->status,
-            'total_amount' => $this->total_amount,
-            'currency'     => $this->currency,
-            'placed_at'    => $this->placed_at,
-            'created_at'   => $this->created_at,
+            'id'                       => $this->id,
+            'order_number'             => $this->order_number,
+            'buyer_id'                 => $this->buyer_id,
+            'status'                   => $this->status,
+            'payment_status'           => $this->payment_status,
+            'delivery_status'          => $this->delivery_status,
+            'inspection_status'        => $this->inspection_status,
+            'payout_status'            => $this->payout_status,
+            'total_amount'             => $this->total_amount,
+            'currency'                 => $this->currency,
+            'placed_at'                => $this->placed_at,
+            'reservation_expires_at'   => $this->reservation_expires_at,
+            'delivery_pin'             => $this->delivery_pin,
+            'delivery_pin_verified_at' => $this->delivery_pin_verified_at,
+            'created_at'               => $this->created_at,
             'updated_at'   => $this->updated_at,
 
             // Conditionally loaded relationships

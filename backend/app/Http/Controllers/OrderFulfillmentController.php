@@ -8,12 +8,19 @@ use App\Http\Resources\OrderFulfillmentResource;
 use App\Models\Listing;
 use App\Models\Order;
 use App\Models\OrderFulfillment;
+use App\Services\InspectionService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 class OrderFulfillmentController extends Controller
 {
+    public function __construct(
+        protected InspectionService $inspectionService = new InspectionService()
+    ) {}
+
     /**
      * List all fulfillments assigned to the authenticated farmer.
      *
@@ -30,7 +37,7 @@ class OrderFulfillmentController extends Controller
 
         $fulfillments = $user->orderFulfillments()
             ->with([
-                'order:id,order_number,buyer_id,status,total_amount,currency,placed_at',
+                'order:id,order_number,buyer_id,status,delivery_status,inspection_status,payout_status,total_amount,currency,placed_at',
                 'order.buyer:id,first_name,second_name',
                 'items.listing:id,title,unit',
             ])
@@ -51,7 +58,7 @@ class OrderFulfillmentController extends Controller
     public function show(int $id): JsonResponse
     {
         $fulfillment = OrderFulfillment::with([
-            'order:id,order_number,buyer_id,status,total_amount,currency,placed_at',
+            'order:id,order_number,buyer_id,status,delivery_status,inspection_status,payout_status,total_amount,currency,placed_at',
             'order.buyer:id,first_name,second_name',
             'items.listing:id,title,unit,price_per_unit',
         ])->findOrFail($id);
@@ -64,11 +71,50 @@ class OrderFulfillmentController extends Controller
     }
 
     /**
+     * Complete produce inspection for a fulfillment (Buyer).
+     *
+     * POST /api/fulfillments/{id}/inspect
+     * Body: { "inspection_status": "accepted|partially_accepted|rejected", "accepted_quantity": 85, "rejected_quantity": 15, "inspection_notes": "..." }
+     */
+    public function inspect(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'inspection_status' => ['required', 'string', 'in:accepted,partially_accepted,rejected'],
+            'accepted_quantity' => ['nullable', 'numeric', 'min:0'],
+            'rejected_quantity' => ['nullable', 'numeric', 'min:0'],
+            'inspection_notes'   => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $fulfillment = OrderFulfillment::findOrFail($id);
+
+        // Authorize buyer to inspect their order's fulfillments
+        $order = $fulfillment->order;
+        if (! $order || $order->buyer_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized to inspect this fulfillment.'], 403);
+        }
+
+        try {
+            $updatedFulfillment = $this->inspectionService->completeInspection(
+                $fulfillment,
+                $request->input('inspection_status'),
+                $request->input('accepted_quantity'),
+                $request->input('rejected_quantity'),
+                $request->input('inspection_notes')
+            );
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message'     => 'Produce inspection recorded successfully.',
+            'fulfillment' => new OrderFulfillmentResource($updatedFulfillment->fresh(['order', 'items.listing'])),
+        ]);
+    }
+
+    /**
      * Accept a pending fulfillment.
      *
      * POST /api/fulfillments/{id}/accept
-     *
-     * The farmer confirms they can fulfill their portion of the order.
      */
     public function accept(int $id): JsonResponse
     {
@@ -101,10 +147,6 @@ class OrderFulfillmentController extends Controller
      * Reject a pending fulfillment and release the reserved stock.
      *
      * POST /api/fulfillments/{id}/reject
-     * Body: { "farmer_notes": "Out of stock due to weather damage." }
-     *
-     * When a farmer rejects a fulfillment the reserved quantities for their
-     * items are returned to available stock.
      */
     public function reject(RejectFulfillmentRequest $request, int $id): JsonResponse
     {
@@ -121,7 +163,6 @@ class OrderFulfillmentController extends Controller
         }
 
         DB::transaction(function () use ($fulfillment, $validated) {
-            // Release reserved stock for every item in this fulfillment.
             $items = $fulfillment->items()->get();
 
             foreach ($items as $item) {
@@ -156,9 +197,6 @@ class OrderFulfillmentController extends Controller
      * Mark an accepted fulfillment as completed (handoff done).
      *
      * POST /api/fulfillments/{id}/complete
-     *
-     * The farmer confirms the produce has been handed off to the buyer.
-     * Reserved stock is consumed (decremented from quantity_reserved).
      */
     public function complete(int $id): JsonResponse
     {
@@ -173,7 +211,6 @@ class OrderFulfillmentController extends Controller
         }
 
         DB::transaction(function () use ($fulfillment) {
-            // Consume the reserved stock — the produce has been handed off.
             $items = $fulfillment->items()->get();
 
             foreach ($items as $item) {
@@ -187,8 +224,9 @@ class OrderFulfillmentController extends Controller
             }
 
             $fulfillment->update([
-                'status'       => 'completed',
-                'completed_at' => now(),
+                'status'          => 'completed',
+                'delivery_status' => 'delivered',
+                'completed_at'    => now(),
             ]);
         });
 
@@ -288,3 +326,4 @@ class OrderFulfillmentController extends Controller
             ->exists();
     }
 }
+
