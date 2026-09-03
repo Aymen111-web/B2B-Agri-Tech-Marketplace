@@ -1,8 +1,10 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
+import { getCropImage, getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -26,7 +28,7 @@ async function handleQuantityChange(item, newQty) {
 }
 
 async function handleRemove(cartItemId) {
-  if (confirm('Are you sure you want to remove this item from your cart?')) {
+  if (confirm('Remove item from cart?')) {
     updatingId.value = cartItemId
     await cartStore.removeFromCart(cartItemId)
     updatingId.value = null
@@ -34,41 +36,58 @@ async function handleRemove(cartItemId) {
 }
 
 async function handleClearCart() {
-  if (confirm('Are you sure you want to clear your entire cart?')) {
+  if (confirm('Clear entire cart?')) {
     await cartStore.clearCart()
   }
 }
 
 function proceedToCheckout() {
-  // Navigate to checkout (Step 5 order creation)
   router.push('/checkout')
 }
 
+async function handleLogout() {
+  await authStore.logout()
+  router.push('/login')
+}
+
 function getCategoryIcon(unit) {
-  const u = (unit || '').toLowerCase()
-  if (u === 'litre' || u === 'liter') return '🥛'
-  if (u === 'quintal' || u === 'kg' || u === 'ton') return '🌾'
-  if (u === 'crate') return '📦'
-  return '🥬'
+  return getCropImage(unit)
+}
+
+function formatPrice(val) {
+  if (val === undefined || val === null) return '0'
+  const num = Number(val)
+  return num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { maximumFractionDigits: 2 })
 }
 </script>
 
 <template>
   <div class="cart-page">
-    <!-- Navbar -->
+    
+    <!-- Top Navigation Bar -->
     <nav class="top-nav">
       <div class="top-nav__inner">
-        <router-link to="/" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+        <router-link to="/dashboard" class="top-nav__brand">
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
         </router-link>
-
         <div class="top-nav__right">
           <router-link to="/listings" class="top-nav__link">
-            Browse Produce
+            Marketplace
+          </router-link>
+          <router-link to="/cart" class="top-nav__link active">
+            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+          </router-link>
+          <router-link v-if="authStore.isAuthenticated" to="/orders" class="top-nav__link">
+            My Orders
           </router-link>
           <router-link v-if="authStore.isAuthenticated" to="/dashboard" class="top-nav__link">
             Dashboard
           </router-link>
+          <ThemeToggle />
+          <button v-if="authStore.isAuthenticated" @click="handleLogout" class="top-nav__logout">
+            Sign Out
+          </button>
           <router-link v-else to="/login" class="top-nav__btn">
             Sign In
           </router-link>
@@ -79,45 +98,53 @@ function getCategoryIcon(unit) {
     <!-- Page Header -->
     <header class="cart-header">
       <div class="cart-header__inner">
-        <div class="cart-header__badge">🛒 Business Buyer Cart</div>
-        <h1 class="cart-header__title">Review Your Produce Order</h1>
-        <p class="cart-header__sub">
-          Items are organized by farmer. Check stock quantities and proceed safely to order checkout.
-        </p>
+        <div class="hero-header-flex">
+          <div>
+            <h1 class="hero-title">Shopping Cart</h1>
+            <p class="hero-sub">Review produce items grouped by farmer and proceed to checkout</p>
+          </div>
+          <div class="trust-chips">
+            <span class="chip">Direct Farmer Source</span>
+            <span class="chip">Grouped by Supplier</span>
+            <span class="chip">Secure Checkout</span>
+          </div>
+        </div>
       </div>
     </header>
 
-    <!-- Main Cart Content -->
+    <!-- Main Content -->
     <main class="cart-main">
       <div class="cart-container">
-        <!-- Error Alert -->
-        <div v-if="cartStore.error" class="alert alert--error mb-6">
-          <span>⚠️</span> {{ cartStore.error }}
+        
+        <!-- Alert Banner -->
+        <div v-if="cartStore.error" class="alert alert-error">
+          ⚠️ {{ cartStore.error }}
         </div>
 
         <!-- Loading State -->
         <div v-if="cartStore.loading && cartStore.items.length === 0" class="state-card">
           <div class="spinner"></div>
-          <p>Loading your cart items...</p>
+          <p class="state-title">Loading cart items...</p>
         </div>
 
         <!-- Empty Cart State -->
         <div v-else-if="cartStore.items.length === 0" class="state-card empty-card">
-          <div class="empty-icon">🛒</div>
-          <h2>Your Cart is Currently Empty</h2>
-          <p>You haven't added any produce items to your business cart yet.</p>
-          <router-link to="/listings" class="btn btn--primary btn--lg mt-4">
-            Explore Marketplace Produce
+          <img :src="EMPTY_STATE_IMAGE" class="empty-cart-img" alt="Empty Cart" />
+          <h3 class="state-title">Your cart is empty</h3>
+          <p class="state-sub">Browse verified Ethiopian farmer produce and add items to your cart.</p>
+          <router-link to="/listings" class="btn btn-primary btn-lg mt-3">
+            Explore Produce Marketplace →
           </router-link>
         </div>
 
-        <!-- Cart Grid (Items + Summary) -->
+        <!-- Cart Grid Layout -->
         <div v-else class="cart-grid">
+          
           <!-- Left Column: Items grouped by Farmer -->
           <div class="cart-items-section">
             <div class="cart-section-header">
-              <h2>Order Items ({{ cartStore.itemCount }} total items)</h2>
-              <button @click="handleClearCart" class="btn-text btn-text--danger">
+              <h2>Order Items ({{ cartStore.itemCount }} {{ cartStore.itemCount === 1 ? 'item' : 'items' }})</h2>
+              <button @click="handleClearCart" class="btn-clear">
                 Clear Cart
               </button>
             </div>
@@ -130,10 +157,10 @@ function getCategoryIcon(unit) {
             >
               <div class="farmer-group-header">
                 <div class="farmer-info">
-                  <span class="farmer-avatar">👨‍🌾</span>
+                  <img :src="getAvatarImage('farmer')" class="farmer-avatar-img" alt="Farmer Avatar" />
                   <div>
                     <h3 class="farmer-name">Farmer: {{ group.farmerName }}</h3>
-                    <span class="farmer-badge">Direct Source</span>
+                    <span class="farmer-badge">Direct Supplier</span>
                   </div>
                 </div>
                 <div class="farmer-subtotal">
@@ -144,24 +171,23 @@ function getCategoryIcon(unit) {
               <div class="items-list">
                 <div v-for="item in group.items" :key="item.id" class="cart-item-row">
                   <div class="item-visual">
-                    <span class="item-icon">{{ getCategoryIcon(item.listing?.unit) }}</span>
+                    <img :src="getCropImage(item.listing?.title || item.listing?.unit)" class="item-thumb-img" />
                   </div>
 
                   <div class="item-details">
                     <h4 class="item-title">{{ item.listing?.title || 'Produce Listing' }}</h4>
                     <div class="item-meta">
                       <span class="price-tag">
-                        ETB {{ Number(item.price_snapshot || item.listing?.price_per_unit || 0).toFixed(2) }}
+                        {{ Number(item.price_snapshot || item.listing?.price_per_unit || 0).toFixed(2) }} ETB
                       </span>
                       <span class="unit-tag">/ {{ item.listing?.unit || 'unit' }}</span>
                       <span v-if="item.listing?.quantity_available !== undefined" class="stock-tag">
-                        ({{ item.listing.quantity_available }} {{ item.listing.unit }} available)
+                        (Stock: {{ item.listing.quantity_available }} {{ item.listing.unit }}s)
                       </span>
                     </div>
                   </div>
 
                   <div class="item-quantity">
-                    <label :for="'qty-' + item.id" class="qty-label">Quantity</label>
                     <div class="qty-control">
                       <button
                         type="button"
@@ -172,7 +198,6 @@ function getCategoryIcon(unit) {
                         -
                       </button>
                       <input
-                        :id="'qty-' + item.id"
                         type="number"
                         step="0.1"
                         min="0.1"
@@ -192,9 +217,8 @@ function getCategoryIcon(unit) {
                   </div>
 
                   <div class="item-subtotal">
-                    <div class="subtotal-label">Subtotal</div>
                     <div class="subtotal-amount">
-                      ETB {{ (Number(item.price_snapshot || item.listing?.price_per_unit || 0) * Number(item.quantity)).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                      ETB {{ formatPrice(Number(item.price_snapshot || item.listing?.price_per_unit || 0) * Number(item.quantity)) }}
                     </div>
                   </div>
 
@@ -204,14 +228,14 @@ function getCategoryIcon(unit) {
                     title="Remove item"
                     :disabled="updatingId === item.id"
                   >
-                    🗑️
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Right Column: Order Summary Sidebar -->
+          <!-- Right Column: Summary Card -->
           <div class="cart-summary-section">
             <div class="summary-card">
               <h3 class="summary-title">Order Summary</h3>
@@ -222,16 +246,16 @@ function getCategoryIcon(unit) {
                   <span>{{ cartStore.itemCount }}</span>
                 </div>
                 <div class="summary-row">
-                  <span>Farmers Involved</span>
-                  <span>{{ cartStore.itemsByFarmer.length }}</span>
+                  <span>Suppliers Involved</span>
+                  <span>{{ cartStore.itemsByFarmer.length }} {{ cartStore.itemsByFarmer.length === 1 ? 'farmer' : 'farmers' }}</span>
                 </div>
                 <div class="summary-row summary-row--highlight">
                   <span>Subtotal</span>
-                  <span>ETB {{ cartStore.cartTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
+                  <span>ETB {{ formatPrice(cartStore.cartTotal) }}</span>
                 </div>
                 <div class="summary-row">
                   <span>Platform Fee</span>
-                  <span class="text-free">FREE (Direct Handoff)</span>
+                  <span class="text-free">FREE</span>
                 </div>
               </div>
 
@@ -240,28 +264,30 @@ function getCategoryIcon(unit) {
               <div class="summary-total">
                 <span>Total Payable</span>
                 <span class="total-amount">
-                  ETB {{ cartStore.cartTotal.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                  ETB {{ formatPrice(cartStore.cartTotal) }}
                 </span>
               </div>
 
               <div class="fulfillment-note">
-                ℹ️ <strong>Multi-Farmer Fulfillment:</strong> Upon order checkout, separate fulfillment requests will automatically be routed to each farmer for approval.
+                ℹ️ <strong>Multi-Farmer Dispatch:</strong> Order checkout automatically creates separate fulfillment requests for each farmer.
               </div>
 
               <button
                 @click="proceedToCheckout"
-                class="btn btn--primary btn--block btn--lg mt-6"
+                class="btn btn-primary btn-block btn-lg mt-4"
                 id="cart-checkout-btn"
               >
                 Proceed to Checkout →
               </button>
 
-              <router-link to="/listings" class="btn btn--outline btn--block mt-3">
-                Continue Shopping
+              <router-link to="/listings" class="btn btn-outline btn-block mt-2">
+                ← Continue Shopping
               </router-link>
             </div>
           </div>
+
         </div>
+
       </div>
     </main>
   </div>
@@ -270,356 +296,363 @@ function getCategoryIcon(unit) {
 <style scoped>
 .cart-page {
   min-height: 100vh;
-  background-color: #f8fafc;
-  color: #0f172a;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--surface-alt);
 }
 
-/* Top Nav */
+/* Navigation Bar */
 .top-nav {
-  background: #10b981;
+  background: #064e3b;
   padding: 0 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-xs);
 }
 .top-nav__inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 0;
+  height: 56px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 .top-nav__brand {
-  font-size: 1.25rem;
+  color: #fff;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #fff;
   text-decoration: none;
 }
-.top-nav__brand strong {
-  color: #ecfdf5;
-}
-.top-nav__right {
-  display: flex;
-  gap: 1.25rem;
-  align-items: center;
-}
+.top-nav__brand strong { color: var(--brand-gold); }
+.top-nav__right { display: flex; align-items: center; gap: 0.85rem; }
 .top-nav__link {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255,255,255,0.85);
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-.top-nav__link:hover, .top-nav__link.active {
-  color: #fff;
-}
-.top-nav__btn {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
-  text-decoration: none;
+  font-size: 0.825rem;
   font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+.top-nav__link.active, .top-nav__link:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+.cart-badge {
+  background: var(--brand-gold);
+  color: #0f172a;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.08rem 0.4rem;
+  border-radius: var(--radius-full);
+  margin-left: 0.2rem;
+}
+.top-nav__logout {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius-xs);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.top-nav__logout:hover { background: rgba(255,255,255,0.22); }
+.top-nav__btn {
+  background: var(--brand-gold);
+  color: #0f172a;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-xs);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
-/* Cart Header */
+/* Hero Header */
 .cart-header {
-  background: #ffffff;
-  padding: 2.5rem 1.5rem 2rem;
-  text-align: center;
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+  color: #fff;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .cart-header__inner {
-  max-width: 800px;
-  margin: 0 auto;
-}
-.cart-header__badge {
-  display: inline-block;
-  background: #dcfce7;
-  color: #15803d;
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
-  margin-bottom: 0.75rem;
-  border: 1px solid #bbf7d0;
-}
-.cart-header__title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.02em;
-}
-.cart-header__sub {
-  color: #64748b;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-/* Main Layout */
-.cart-main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 4rem;
-}
-.state-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
-  padding: 4rem 2rem;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-.empty-card .empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-.empty-card h2 {
-  font-size: 1.5rem;
-  color: #0f172a;
-  margin-bottom: 0.5rem;
-}
-.empty-card p {
-  color: #64748b;
-  margin-bottom: 1.5rem;
 }
 
+.hero-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.hero-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.15rem;
+  letter-spacing: -0.01em;
+}
+.hero-sub {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.trust-chips {
+  display: flex;
+  gap: 0.4rem;
+}
+.chip {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Main Container */
+.cart-main {
+  padding: 1.5rem 1.5rem 3.5rem;
+}
+.cart-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.alert-error {
+  background: var(--error-bg);
+  color: var(--error-dark);
+  border: 1px solid var(--error-border);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.state-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.state-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+.state-sub { font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+/* Cart Grid */
 .cart-grid {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 2rem;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
   align-items: start;
 }
-
-@media (max-width: 960px) {
-  .cart-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 900px) {
+  .cart-grid { grid-template-columns: 1fr; }
 }
 
-/* Farmer Group Card */
 .cart-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 .cart-section-header h2 {
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
 }
-.btn-text--danger {
+.btn-clear {
   background: none;
   border: none;
-  color: #dc2626;
+  color: var(--error);
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
 }
-.btn-text--danger:hover {
-  text-decoration: underline;
-}
+.btn-clear:hover { text-decoration: underline; }
 
+/* Farmer Group Card */
 .farmer-group-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
-  margin-bottom: 1.5rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.15rem;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-xs);
 }
 .farmer-group-header {
-  background: #f8fafc;
-  padding: 1rem 1.25rem;
+  background: var(--surface-alt);
+  padding: 0.75rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-subtle);
 }
 .farmer-info {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
-.farmer-avatar {
-  font-size: 1.5rem;
-}
+.farmer-avatar { font-size: 1.1rem; }
 .farmer-name {
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0;
 }
 .farmer-badge {
-  font-size: 0.75rem;
-  color: #15803d;
-  background: #dcfce7;
-  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--brand-green-dark);
+  background: var(--brand-green-light);
+  padding: 0.1rem 0.4rem;
   border-radius: 4px;
   font-weight: 600;
 }
 .farmer-subtotal {
-  font-size: 0.9rem;
-  color: #475569;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
 }
 
-/* Cart Item Row */
+/* Item Rows */
 .cart-item-row {
   display: grid;
-  grid-template-columns: 50px 1fr 140px 140px 40px;
-  gap: 1rem;
+  grid-template-columns: 40px 1fr 110px 110px 32px;
+  gap: 0.75rem;
   align-items: center;
-  padding: 1.25rem;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
-.cart-item-row:last-child {
-  border-bottom: none;
-}
+.cart-item-row:last-child { border-bottom: none; }
+
 .item-visual {
-  width: 50px;
-  height: 50px;
-  background: #f0fdf4;
-  border-radius: 0.75rem;
+  width: 40px;
+  height: 40px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 .item-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #0f172a;
-  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
 }
 .item-meta {
-  font-size: 0.85rem;
-  color: #64748b;
+  font-size: 0.78125rem;
+  color: var(--text-secondary);
 }
-.price-tag {
-  color: #16a34a;
-  font-weight: 700;
-}
-.stock-tag {
-  color: #94a3b8;
-  margin-left: 0.5rem;
-}
+.price-tag { color: var(--brand-green-dark); font-weight: 700; }
+.unit-tag  { color: var(--text-secondary); }
+.stock-tag { color: var(--text-muted); font-size: 0.72rem; margin-left: 0.25rem; }
 
 .qty-control {
   display: flex;
   align-items: center;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
   overflow: hidden;
-  margin-top: 0.25rem;
 }
 .qty-btn {
-  background: #f1f5f9;
+  background: transparent;
   border: none;
-  color: #0f172a;
-  width: 32px;
-  height: 32px;
-  font-size: 1.1rem;
+  color: var(--text-primary);
+  width: 26px;
+  height: 26px;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
 }
-.qty-btn:hover:not(:disabled) {
-  background: #e2e8f0;
-}
-.qty-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
+.qty-btn:hover:not(:disabled) { background: var(--border-subtle); }
+.qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .qty-input {
-  width: 50px;
+  width: 40px;
   background: transparent;
   border: none;
-  color: #0f172a;
+  color: var(--text-primary);
   text-align: center;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.8125rem;
 }
 
 .subtotal-amount {
   font-weight: 700;
-  color: #15803d;
+  color: var(--brand-green-dark);
+  font-size: 0.85rem;
 }
 
 .remove-btn {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 0.9rem;
   opacity: 0.7;
-  transition: opacity 0.2s;
 }
-.remove-btn:hover {
-  opacity: 1;
-}
+.remove-btn:hover { opacity: 1; }
 
-/* Sidebar Summary */
+/* Summary Sidebar */
 .summary-card {
-  background: #ffffff;
-  border: 1px solid #bbf7d0;
-  border-radius: 1rem;
-  padding: 1.75rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
   position: sticky;
-  top: 90px;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+  top: 80px;
+  box-shadow: var(--shadow-xs);
 }
 .summary-title {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--text-primary);
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
 }
 .summary-rows {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.6rem;
+  font-size: 0.825rem;
 }
 .summary-row {
   display: flex;
   justify-content: space-between;
-  color: #64748b;
-  font-size: 0.95rem;
+  color: var(--text-secondary);
 }
-.summary-row--highlight {
-  color: #0f172a;
-  font-weight: 600;
-}
-.text-free {
-  color: #16a34a;
-  font-weight: 700;
-}
+.summary-row--highlight { color: var(--text-primary); font-weight: 600; }
+.text-free { color: var(--brand-green-dark); font-weight: 700; }
 .summary-divider {
   height: 1px;
-  background: #e2e8f0;
-  margin: 1.25rem 0;
+  background: var(--border);
+  margin: 0.85rem 0;
 }
 .summary-total {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 .total-amount {
-  color: #15803d;
-  font-size: 1.5rem;
+  color: var(--brand-green-dark);
+  font-size: 1.25rem;
+  font-weight: 800;
 }
 .fulfillment-note {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 0.5rem;
-  padding: 0.85rem;
-  font-size: 0.82rem;
-  color: #166534;
-  margin-top: 1.25rem;
-  line-height: 1.5;
+  background: var(--brand-green-light);
+  border: 1px solid var(--brand-green-border);
+  border-radius: var(--radius-xs);
+  padding: 0.65rem;
+  font-size: 0.75rem;
+  color: var(--brand-green-dark);
+  margin-top: 0.85rem;
+  line-height: 1.4;
 }
 
 /* Buttons */
@@ -627,48 +660,47 @@ function getCategoryIcon(unit) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-xs);
+  font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s;
+  font-size: 0.8125rem;
+  transition: all 0.15s ease;
 }
-.btn--primary {
-  background: #10b981;
+.btn-primary {
+  background: var(--brand-green);
   color: #ffffff;
   border: none;
 }
-.btn--primary:hover {
-  background: #059669;
-  transform: translateY(-1px);
-}
-.btn--outline {
+.btn-primary:hover { background: var(--brand-green-dark); }
+.btn-outline {
   background: transparent;
-  border: 1px solid #cbd5e1;
-  color: #0f172a;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
 }
-.btn--outline:hover {
-  background: #f8fafc;
-}
-.btn--block {
-  width: 100%;
-}
-.btn--lg {
-  padding: 0.9rem 1.75rem;
-  font-size: 1.05rem;
-}
+.btn-outline:hover { background: var(--surface-alt); }
+.btn-block { width: 100%; text-align: center; }
+.btn-lg { padding: 0.65rem 1.25rem; font-size: 0.875rem; }
+
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(16, 185, 129, 0.2);
-  border-top-color: #10b981;
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand-green);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  margin: 0 auto 1rem;
+  margin: 0 auto 0.75rem;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.empty-cart-img { width: 110px; height: 90px; margin: 0 auto 0.75rem; display: block; }
+.farmer-avatar-img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--brand-green-border); }
+.item-thumb-img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
 </style>

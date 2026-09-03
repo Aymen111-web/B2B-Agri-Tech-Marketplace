@@ -1,28 +1,20 @@
 <script setup>
 /**
  * Standalone OTP verification page.
- * This route (/verify-otp) is intentionally kept separate from the register flow
- * for cases where a user needs to re-verify their phone number independently.
- *
- * The two-step registration already embeds OTP inline (see RegisterView.vue).
- * This view is a standalone fallback that can be navigated to directly.
  */
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import AuthLayout from '@/components/AuthLayout.vue'
-import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
 
 const router = useRouter()
 const route  = useRoute()
-const auth   = useAuthStore()
 
-// Phone may be passed via query param from another page
 const phone   = ref(route.query.phone || '')
 const code    = ref('')
 const loading = ref(false)
 const error   = ref(null)
-const success  = ref(false)
+const success = ref(false)
 
 async function requestNewOtp() {
   if (!phone.value) return
@@ -47,7 +39,8 @@ function handleDone() {
 <template>
   <AuthLayout
     title="Verify your phone"
-    subtitle="Enter the 6-digit code we sent to your number"
+    subtitle="Enter the 6-digit code sent to your number"
+    active-tab="otp"
   >
     <div class="auth-form">
 
@@ -67,14 +60,13 @@ function handleDone() {
       </Transition>
 
       <div class="otp-info">
-        <div class="otp-info__icon">📲</div>
+        <svg class="otp-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
         <p class="otp-info__text">
-          A code was sent to<br/>
-          <strong>{{ phone || 'your phone number' }}</strong>
+          Code sent to <strong>{{ phone || 'your phone number' }}</strong>
         </p>
       </div>
 
-      <!-- OTP input — display only; actual verification handled in RegisterView -->
+      <!-- OTP input -->
       <div class="form-group">
         <label for="otp-code" class="form-label">Verification Code</label>
         <input
@@ -120,21 +112,20 @@ function handleDone() {
 
 .otp-info {
   text-align: center;
-  background: var(--brand-green-light);
-  border: 1px solid var(--brand-green);
-  border-radius: var(--radius-md);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  background: var(--brand-green-light, #f0fdf4);
+  border: 1px solid var(--brand-green, #1a6b3c);
+  border-radius: var(--radius-md, 10px);
+  padding: 1.1rem;
 }
-.otp-info__icon { font-size: 2rem; margin-bottom: .5rem; }
-.otp-info__text { color: var(--text-secondary); font-size: .95rem; line-height: 1.6; }
-.otp-info__text strong { color: var(--text-primary); }
+.otp-info__icon { font-size: 1.6rem; margin-bottom: .3rem; }
+.otp-info__text { color: var(--text-secondary, #475569); font-size: .9rem; line-height: 1.5; }
+.otp-info__text strong { color: var(--text-primary, #0f172a); }
 
 .form-input--otp {
   text-align: center;
-  font-size: 1.8rem;
-  letter-spacing: .4rem;
+  font-size: 1.6rem;
+  letter-spacing: .35rem;
   font-weight: 700;
-  padding-left: 1rem;
+  padding-left: 0.85rem;
 }
 </style>

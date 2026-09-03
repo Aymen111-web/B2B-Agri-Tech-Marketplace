@@ -4,6 +4,9 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 import { useThemeStore } from '@/stores/theme'
+import ThemeToggle from '@/components/ThemeToggle.vue'
+
+import { getAvatarImage } from '@/utils/imageHelper'
 
 const router = useRouter()
 const route = useRoute()
@@ -27,10 +30,10 @@ async function handleLogout() {
 
 <template>
   <aside class="sidebar">
-    <!-- Brand -->
+    <!-- Brand Logo -->
     <div class="sidebar__brand">
       <router-link to="/" class="brand-link">
-        <span class="brand-icon">🌿</span>
+        <img src="/images/agri_placeholder.svg" class="sidebar-brand-img" alt="AgriMarket Logo" />
         <span class="brand-text">Agri<strong>Market</strong></span>
       </router-link>
     </div>
@@ -62,7 +65,7 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path === '/dashboard' }"
       >
-        <span class="nav-icon">🏠</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span class="nav-label">Dashboard</span>
       </router-link>
 
@@ -71,8 +74,8 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path.startsWith('/listings') }"
       >
-        <span class="nav-icon">🌾</span>
-        <span class="nav-label">Browse Marketplace</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>
+        <span class="nav-label">Marketplace</span>
       </router-link>
 
       <router-link
@@ -81,8 +84,8 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path === '/cart' }"
       >
-        <span class="nav-icon">🛒</span>
-        <span class="nav-label">Shopping Cart</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+        <span class="nav-label">Cart</span>
         <span v-if="cartStore.itemCount > 0" class="cart-badge">
           {{ cartStore.itemCount }}
         </span>
@@ -94,7 +97,7 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path.startsWith('/orders') }"
       >
-        <span class="nav-icon">📋</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         <span class="nav-label">My Orders</span>
       </router-link>
 
@@ -107,8 +110,8 @@ async function handleLogout() {
           class="nav-item"
           :class="{ active: route.path === '/farmer/listings' }"
         >
-          <span class="nav-icon">🌾</span>
-          <span class="nav-label">My Crop Listings</span>
+          <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span class="nav-label">Crop Listings</span>
         </router-link>
 
         <router-link
@@ -116,8 +119,8 @@ async function handleLogout() {
           class="nav-item"
           :class="{ active: route.path === '/farmer/fulfillments' }"
         >
-          <span class="nav-icon">🚜</span>
-          <span class="nav-label">Fulfillment Orders</span>
+          <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <span class="nav-label">Fulfillments</span>
         </router-link>
       </template>
 
@@ -159,40 +162,27 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path === '/capabilities/apply' }"
       >
-        <span class="nav-icon">📜</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
         <span class="nav-label">Capabilities</span>
       </router-link>
     </nav>
 
-    <!-- Bottom Actions: Theme Switcher & Logout -->
+    <!-- Bottom Actions: Logout -->
     <div class="sidebar__footer">
-      <!-- Theme Switcher Box -->
-      <div class="theme-box">
-        <span class="theme-label">Theme Mode:</span>
-        <button
-          @click="themeStore.toggleTheme()"
-          class="theme-toggle-btn"
-          id="theme-toggle-btn"
-        >
-          <span v-if="themeStore.currentTheme === 'light'" class="theme-icon">☀️ Light</span>
-          <span v-else class="theme-icon">🌙 Night</span>
-        </button>
-      </div>
-
-      <!-- Auth Action -->
       <button
         v-if="authStore.isAuthenticated"
         @click="handleLogout"
         class="logout-btn"
       >
-        <span class="btn-icon">🚪</span> Sign Out
+        <svg class="btn-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
       </button>
       <router-link
         v-else
         to="/login"
         class="login-btn"
       >
-        🔐 Sign In
+        Sign In
       </router-link>
     </div>
   </aside>
@@ -214,18 +204,22 @@ async function handleLogout() {
 }
 
 .sidebar__brand {
-  padding: 1.5rem;
+  padding: 1.25rem 1rem;
   border-bottom: 1px solid var(--sidebar-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .brand-link {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
   text-decoration: none;
 }
-.brand-icon { font-size: 1.6rem; }
+.sidebar-brand-img { width: 26px; height: 26px; border-radius: 6px; object-fit: cover; }
+.brand-icon { font-size: 1.4rem; }
 .brand-text {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -233,16 +227,25 @@ async function handleLogout() {
 
 /* User Card */
 .sidebar__user {
-  padding: 1rem 1.25rem;
+  padding: 0.85rem 1rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   background: var(--surface-alt);
   border-bottom: 1px solid var(--sidebar-border);
 }
+.user-avatar-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid var(--brand-green-border);
+  flex-shrink: 0;
+}
+.user-avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .user-avatar {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: var(--brand-green);
   color: #fff;
@@ -250,22 +253,22 @@ async function handleLogout() {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 .user-info { flex: 1; overflow: hidden; }
 .user-name {
-  font-size: 0.875rem;
+  font-size: 0.825rem;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.user-role { margin-top: 0.15rem; }
+.user-role { margin-top: 0.1rem; }
 .role-badge {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 0.15rem 0.45rem;
+  padding: 0.1rem 0.4rem;
   border-radius: 4px;
   background: var(--border);
   color: var(--text-secondary);
@@ -276,32 +279,32 @@ async function handleLogout() {
 /* Nav Links */
 .sidebar__nav {
   flex: 1;
-  padding: 1.25rem 1rem;
+  padding: 1rem 0.85rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 .nav-section-title {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  padding: 0.5rem 0.75rem 0.25rem;
+  padding: 0.4rem 0.65rem 0.2rem;
 }
-.mt-4 { margin-top: 1rem; }
+.mt-4 { margin-top: 0.85rem; }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: 0.5rem;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-xs);
   color: var(--sidebar-text);
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.2s;
+  font-size: 0.825rem;
+  transition: all 0.15s ease;
 }
 .nav-item:hover {
   background: var(--sidebar-item-hover);
@@ -310,59 +313,25 @@ async function handleLogout() {
 .nav-item.active {
   background: var(--brand-green-light);
   color: var(--sidebar-text-active);
+  font-weight: 700;
 }
 
-.nav-icon { font-size: 1.15rem; }
+.nav-icon { font-size: 1rem; }
 .nav-label { flex: 1; }
 
 .cart-badge {
   background: var(--brand-green);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
+  padding: 0.08rem 0.4rem;
+  border-radius: var(--radius-full);
 }
 
-/* Footer / Theme Switcher */
+/* Footer / Logout */
 .sidebar__footer {
-  padding: 1rem;
+  padding: 0.85rem 1rem;
   border-top: 1px solid var(--sidebar-border);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.theme-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--surface-alt);
-  padding: 0.6rem 0.85rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--sidebar-border);
-}
-.theme-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.theme-toggle-btn {
-  background: var(--surface-card);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: var(--shadow-sm);
-}
-.theme-toggle-btn:hover {
-  transform: scale(1.05);
-  border-color: var(--brand-green);
 }
 
 .logout-btn, .login-btn {
@@ -371,13 +340,13 @@ async function handleLogout() {
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.65rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.825rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 .logout-btn {
   background: transparent;

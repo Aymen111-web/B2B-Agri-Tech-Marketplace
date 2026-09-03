@@ -177,8 +177,9 @@ async function handleDelete(item) {
 }
 
 function formatPrice(val) {
-  if (val === undefined || val === null) return '0.00'
-  return Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  if (val === undefined || val === null) return '0'
+  const num = Number(val)
+  return num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { maximumFractionDigits: 2 })
 }
 
 function formatDate(dateStr) {
@@ -189,26 +190,64 @@ function formatDate(dateStr) {
     day: 'numeric',
   })
 }
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
+
+async function handleLogout() {
+  await auth.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
   <div class="farmer-view">
-    <!-- Header -->
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+      <div class="top-nav__inner">
+        <router-link to="/dashboard" class="top-nav__brand">
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
+        </router-link>
+        <div class="top-nav__right">
+          <router-link to="/dashboard" class="top-nav__link">
+            Dashboard
+          </router-link>
+          <router-link to="/listings" class="top-nav__link">
+            Marketplace
+          </router-link>
+          <router-link to="/farmer/listings" class="top-nav__link active">
+            Crop Listings
+          </router-link>
+          <router-link to="/farmer/fulfillments" class="top-nav__link">
+            Fulfillments
+          </router-link>
+          <router-link to="/capabilities/apply" class="top-nav__link">
+            Capabilities
+          </router-link>
+          <ThemeToggle />
+          <span class="user-pill">
+            <img :src="getAvatarImage('farmer')" class="user-pill-avatar" /> {{ auth.user?.first_name }}
+          </span>
+          <button @click="handleLogout" class="top-nav__logout">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Hero Header -->
     <header class="farmer-header">
       <div class="farmer-header__inner">
-        <button class="back-btn" @click="router.push('/dashboard')">
-          ← Back to Dashboard
-        </button>
         <div class="header-flex">
           <div>
-            <h1 class="farmer-title">🌾 Farmer Produce Portal</h1>
+            <h1 class="farmer-title">Crop Inventory Management</h1>
             <p class="farmer-sub">
-              Manage your agricultural crop listings, update prices, and monitor stock availability.
+              Manage your harvest listings, adjust ETB rates per unit, and monitor stock availability.
             </p>
           </div>
           <div class="header-actions">
             <router-link to="/farmer/fulfillments" class="btn-fulfillment">
-              🚜 Fulfillment Orders
+              Fulfillment Orders
             </router-link>
             <button class="btn-create" @click="openCreateModal">
               + Publish New Produce
@@ -232,14 +271,14 @@ function formatDate(dateStr) {
         <!-- Summary Stats Cards -->
         <div class="stats-grid">
           <div class="stat-card">
-            <span class="stat-icon">📦</span>
+            <img src="/images/coffee_produce.jpg" class="stat-img-icon crop-circle" alt="Total Listings" />
             <div>
               <span class="stat-val">{{ listingStore.myListings.length }}</span>
               <span class="stat-lbl">Total Produce Listings</span>
             </div>
           </div>
           <div class="stat-card">
-            <span class="stat-icon">🌱</span>
+            <img src="/images/wheat_produce.jpg" class="stat-img-icon crop-circle" alt="In Stock" />
             <div>
               <span class="stat-val">
                 {{ listingStore.myListings.filter(l => l.quantity_available > 0).length }}
@@ -248,7 +287,7 @@ function formatDate(dateStr) {
             </div>
           </div>
           <div class="stat-card">
-            <span class="stat-icon">🔒</span>
+            <img src="/images/seeds_produce.svg" class="stat-img-icon" alt="Reserved" />
             <div>
               <span class="stat-val">
                 {{ listingStore.myListings.reduce((sum, l) => sum + (l.quantity_reserved || 0), 0) }}
@@ -269,7 +308,7 @@ function formatDate(dateStr) {
           </div>
 
           <div v-else-if="listingStore.myListings.length === 0" class="empty-box">
-            <div class="empty-icon">🌾</div>
+            <img :src="EMPTY_STATE_IMAGE" class="empty-farmer-box-img" alt="No produce" />
             <h3>No produce listings yet</h3>
             <p>Click <strong>+ Publish New Produce</strong> above to list your harvest on the platform marketplace.</p>
           </div>
@@ -486,16 +525,52 @@ function formatDate(dateStr) {
 <style scoped>
 .farmer-view { min-height: 100vh; background: var(--surface-alt); padding-bottom: 4rem; }
 
-.farmer-header { background: var(--brand-green); color: #fff; padding: 2rem 1.5rem; }
-.farmer-header__inner { max-width: 1100px; margin: 0 auto; }
-.back-btn {
-  background: rgba(255, 255, 255, 0.15); color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3); padding: 0.4rem 0.9rem;
-  border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer; margin-bottom: 1rem;
+.top-nav {
+  background: #064e3b;
+  padding: 0 1.5rem;
+  box-shadow: var(--shadow-xs);
 }
-.header-flex { display: flex; justify-content: space-between; align-items: center; }
-.farmer-title { font-size: 1.75rem; font-weight: 700; }
-.farmer-sub { color: rgba(255,255,255,0.85); font-size: 0.95rem; margin-top: 0.25rem; }
+.top-nav__inner {
+  max-width: 1200px; margin: 0 auto; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.top-nav__brand { color: #fff; font-size: 1.15rem; font-weight: 700; text-decoration: none; }
+.top-nav__brand strong { color: var(--brand-gold); }
+.top-nav__right { display: flex; align-items: center; gap: 0.85rem; }
+.top-nav__link {
+  color: rgba(255,255,255,0.88) !important;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+.top-nav__link.active {
+  background: rgba(255,255,255,0.18) !important;
+  color: #ffffff !important;
+}
+.user-pill {
+  color: rgba(255,255,255,0.88);
+  font-size: 0.825rem;
+  font-weight: 600;
+}
+.top-nav__logout {
+  background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius-xs); padding: 0.35rem 0.85rem; font-size: 0.8125rem; font-weight: 600;
+  cursor: pointer;
+}
+
+.farmer-header {
+  background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+  color: #fff;
+  padding: 1.75rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.farmer-header__inner { max-width: 1200px; margin: 0 auto; }
+.header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.farmer-title { font-size: 1.5rem; font-weight: 800; }
+.farmer-sub { color: rgba(255,255,255,0.82); font-size: 0.875rem; margin-top: 0.2rem; }
 
 .header-actions { display: flex; gap: 0.75rem; align-items: center; }
 .btn-fulfillment {
@@ -580,4 +655,11 @@ function formatDate(dateStr) {
 .btn-cancel { padding: 0.6rem 1.2rem; border: 1px solid var(--border); border-radius: 6px; background: #fff; font-weight: 600; cursor: pointer; }
 .btn-submit { padding: 0.6rem 1.25rem; border: none; border-radius: 6px; background: var(--brand-green); color: #fff; font-weight: 600; cursor: pointer; }
 .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.user-pill-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.2rem; }
+.stat-img-icon { width: 32px; height: 32px; object-fit: contain; }
+.stat-img-icon.crop-circle { border-radius: 50%; object-fit: cover; }
+.empty-farmer-box-img { width: 100px; height: 85px; margin: 0 auto 0.5rem; display: block; }
 </style>

@@ -11,13 +11,16 @@ class ListingPolicy
      * Anyone can browse/view active listings (public routes — no policy needed).
      * This method covers the farmer's own listing list.
      */
+    /**
+     * Authenticated users can view their own listings.
+     */
     public function viewOwn(User $user): bool
     {
-        return $this->hasActiveFarmerCapability($user);
+        return true;
     }
 
     /**
-     * Only users with active farmer capability can create listings.
+     * Users with active farmer capability or admins can create listings.
      */
     public function create(User $user): bool
     {
@@ -25,25 +28,23 @@ class ListingPolicy
     }
 
     /**
-     * Only the listing owner with active farmer capability can update.
+     * Only the listing owner or admin can update.
      */
     public function update(User $user, Listing $listing): bool
     {
-        return $this->hasActiveFarmerCapability($user)
-            && $listing->farmer_id === $user->id;
+        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $listing->farmer_id === $user->id);
     }
 
     /**
-     * Only the listing owner with active farmer capability can delete.
+     * Only the listing owner or admin can delete.
      */
     public function delete(User $user, Listing $listing): bool
     {
-        return $this->hasActiveFarmerCapability($user)
-            && $listing->farmer_id === $user->id;
+        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $listing->farmer_id === $user->id);
     }
 
     /**
-     * Check whether the given user has an active farmer capability.
+     * Check whether the given user has an active farmer capability or is an admin.
      */
     private function hasActiveFarmerCapability(User $user): bool
     {

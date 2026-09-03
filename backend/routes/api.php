@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapabilityApplicationController;
@@ -35,9 +36,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/capability-applications/{id}', [CapabilityApplicationController::class, 'show']);
 });
 
-//// Admin — Capability Applications ///////////
+//// Admin — Capability Applications & Dashboard Analytics ///////////
 
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard/stats',                       [AdminDashboardController::class, 'stats']);
     Route::get('/capability-applications',              [CapabilityApplicationController::class, 'index']);
     Route::post('/capability-applications/{id}/approve', [CapabilityApplicationController::class, 'approve']);
     Route::post('/capability-applications/{id}/reject',  [CapabilityApplicationController::class, 'reject']);

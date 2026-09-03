@@ -2,135 +2,165 @@
 import { RouterLink } from 'vue-router'
 
 defineProps({
-  title:    { type: String, required: true },
+  title:    { type: String, default: '' },
   subtitle: { type: String, default: '' },
 })
 </script>
 
 <template>
-  <div class="auth-layout">
-    <!-- Left panel — decorative -->
-    <aside class="auth-layout__panel" aria-hidden="true">
-      <div class="auth-layout__panel-inner">
-        <RouterLink to="/" class="auth-layout__brand">
-          <span class="auth-layout__logo">🌿</span>
-          <span class="auth-layout__name">Agri<strong>Market</strong></span>
-        </RouterLink>
-        <div class="auth-layout__tagline">
-          Ethiopia's trusted B2B<br/>agricultural marketplace
-        </div>
-        <div class="auth-layout__cards">
-          <div class="auth-card">
-            <span>🌾</span>
-            <div>
-              <div class="auth-card__label">Wheat — Grade A</div>
-              <div class="auth-card__price">ETB 48 / kg</div>
-            </div>
-          </div>
-          <div class="auth-card auth-card--offset">
-            <span>☕</span>
-            <div>
-              <div class="auth-card__label">Sidama Coffee</div>
-              <div class="auth-card__price">ETB 320 / kg</div>
-            </div>
-          </div>
-          <div class="auth-card">
-            <span>🫘</span>
-            <div>
-              <div class="auth-card__label">White Sesame</div>
-              <div class="auth-card__price">ETB 95 / kg</div>
-            </div>
-          </div>
-        </div>
-        <div class="auth-layout__stats">
-          <div class="auth-layout__stat"><strong>2,400+</strong><span>Farmers</span></div>
-          <div class="auth-layout__divider"></div>
-          <div class="auth-layout__stat"><strong>890+</strong><span>Buyers</span></div>
-          <div class="auth-layout__divider"></div>
-          <div class="auth-layout__stat"><strong>9</strong><span>Regions</span></div>
-        </div>
-      </div>
-    </aside>
+  <div class="auth-page">
+    <!-- Ambient Background Glows -->
+    <div class="auth-bg-blob auth-bg-blob--1" aria-hidden="true"></div>
+    <div class="auth-bg-blob auth-bg-blob--2" aria-hidden="true"></div>
 
-    <!-- Right panel — form -->
-    <main class="auth-layout__form">
-      <div class="auth-layout__form-inner">
-        <RouterLink to="/" class="auth-layout__back">
-          ← Back to Home
+    <div class="auth-container">
+      <!-- Header / Brand -->
+      <header class="auth-brand">
+        <RouterLink to="/" class="auth-brand__logo-link">
+          <img src="/images/agri_placeholder.svg" class="auth-brand-img" alt="AgriMarket" />
+          <span class="auth-brand__text">Agri<strong>Market</strong></span>
         </RouterLink>
-        <div class="auth-layout__header">
-          <h1 class="auth-layout__title">{{ title }}</h1>
-          <p v-if="subtitle" class="auth-layout__subtitle">{{ subtitle }}</p>
+        <p class="auth-brand__subtitle">Ethiopia's B2B Agricultural Marketplace</p>
+      </header>
+
+      <!-- Main Card -->
+      <main class="auth-card">
+        <!-- Section Title & Subtitle -->
+        <div v-if="title" class="auth-card__header">
+          <h1 class="auth-card__title">{{ title }}</h1>
+          <p v-if="subtitle" class="auth-card__subtitle">{{ subtitle }}</p>
         </div>
-        <slot />
-      </div>
-    </main>
+
+        <!-- Form Slot -->
+        <div class="auth-card__body">
+          <slot />
+        </div>
+      </main>
+
+      <!-- Back to Home Footer Link -->
+      <footer class="auth-footer">
+        <RouterLink to="/" class="auth-footer__back" id="auth-back-home">
+          ← Back to Marketplace Home
+        </RouterLink>
+      </footer>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.auth-layout {
+.auth-page {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-@media (max-width: 768px) {
-  .auth-layout { grid-template-columns: 1fr; }
-  .auth-layout__panel { display: none; }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background-color: var(--background, #f8faf9);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* Left panel */
-.auth-layout__panel {
-  background: linear-gradient(160deg, #0d3d20 0%, #1a6b3c 60%, #1f7d46 100%);
-  display: flex; align-items: center; justify-content: center;
-  padding: 3rem 2.5rem;
-  position: sticky; top: 0; height: 100vh;
+/* Background Ambient Glows */
+.auth-bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
 }
-.auth-layout__panel-inner { width: 100%; max-width: 360px; }
-.auth-layout__brand {
-  display: flex; align-items: center; gap: .6rem;
-  font-size: 1.5rem; color: #fff; margin-bottom: 2.5rem; text-decoration: none;
+.auth-bg-blob--1 {
+  width: 450px;
+  height: 450px;
+  background: #1a6b3c;
+  top: -100px;
+  left: -100px;
 }
-.auth-layout__logo { font-size: 2rem; }
-.auth-layout__name strong { color: var(--brand-gold); }
-.auth-layout__tagline {
-  color: rgba(255,255,255,.75); font-size: 1.1rem; line-height: 1.5;
-  margin-bottom: 2.5rem;
+.auth-bg-blob--2 {
+  width: 400px;
+  height: 400px;
+  background: #d97706;
+  bottom: -80px;
+  right: -80px;
 }
-.auth-layout__cards { display: flex; flex-direction: column; gap: .85rem; margin-bottom: 2.5rem; }
+
+.auth-container {
+  width: 100%;
+  max-width: 440px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Header / Brand */
+.auth-brand {
+  text-align: center;
+}
+.auth-brand__logo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+.auth-brand__logo-link:hover {
+  transform: translateY(-1px);
+}
+.auth-brand__icon {
+  font-size: 1.8rem;
+}
+.auth-brand-img { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; }
+.auth-brand__text strong {
+  color: var(--brand-green, #1a6b3c);
+}
+.auth-brand__subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+  color: var(--text-muted, #64748b);
+}
+
+/* Card */
 .auth-card {
-  display: flex; align-items: center; gap: 1rem;
-  background: rgba(255,255,255,.1); backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,.15); border-radius: 12px;
-  padding: .9rem 1.1rem; font-size: 1.5rem;
-  transition: transform .2s;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  padding: 2rem 1.75rem;
+  transition: box-shadow 0.2s ease;
 }
-.auth-card:hover { transform: translateX(6px); }
-.auth-card--offset { margin-left: 1.5rem; }
-.auth-card__label { color: rgba(255,255,255,.7); font-size: .78rem; }
-.auth-card__price { color: #fff; font-weight: 700; }
 
-.auth-layout__stats {
-  display: flex; align-items: center; gap: 1.25rem;
+/* Header inside card */
+.auth-card__header {
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
-.auth-layout__stat { display: flex; flex-direction: column; color: rgba(255,255,255,.8); }
-.auth-layout__stat strong { font-size: 1.3rem; color: #fff; font-weight: 800; }
-.auth-layout__stat span  { font-size: .78rem; }
-.auth-layout__divider    { width: 1px; height: 36px; background: rgba(255,255,255,.25); }
+.auth-card__title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin-bottom: 0.25rem;
+}
+.auth-card__subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted, #64748b);
+}
 
-/* Right / form panel */
-.auth-layout__form {
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: 3rem 1.5rem; background: var(--surface);
-  overflow-y: auto;
+/* Footer link */
+.auth-footer {
+  text-align: center;
 }
-.auth-layout__form-inner { width: 100%; max-width: 440px; }
-.auth-layout__back {
-  display: inline-block; color: var(--text-muted); font-size: .85rem;
-  margin-bottom: 2.5rem; transition: color .2s; text-decoration: none;
+.auth-footer__back {
+  font-size: 0.85rem;
+  color: var(--text-muted, #64748b);
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
-.auth-layout__back:hover { color: var(--brand-green); }
-.auth-layout__header { margin-bottom: 2rem; }
-.auth-layout__title  { font-size: 1.8rem; color: var(--text-primary); margin-bottom: .4rem; }
-.auth-layout__subtitle { color: var(--text-secondary); font-size: .95rem; }
+.auth-footer__back:hover {
+  color: var(--brand-green, #1a6b3c);
+}
 </style>
