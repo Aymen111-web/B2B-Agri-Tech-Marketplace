@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCapabilityStore } from '@/stores/capability'
 import { useCartStore } from '@/stores/cart'
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const auth = useAuthStore()
 const capabilityStore = useCapabilityStore()
@@ -108,8 +110,6 @@ function formatDate(dateStr) {
     year: 'numeric'
   })
 }
-import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
-import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>

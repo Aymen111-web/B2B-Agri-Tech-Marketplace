@@ -20,6 +20,9 @@ class Order extends Model
         'total_amount',
         'currency',
         'placed_at',
+        'reservation_expires_at',
+        'delivery_pin',
+        'delivery_pin_verified_at',
     ];
 
     protected $casts = [

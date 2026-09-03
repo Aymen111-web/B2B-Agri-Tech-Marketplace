@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AdminDashboardOverview from '@/components/admin/AdminDashboardOverview.vue'
@@ -9,6 +9,21 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const auth   = useAuthStore()
 const router = useRouter()
+
+const showPinModal = ref(false)
+const selectedOrderPin = ref('')
+const pinInput = ref('')
+const pinVerifyMessage = ref('')
+
+const showInspectModal = ref(false)
+const inspectStatus = ref('accepted')
+const acceptedQty = ref(0)
+const rejectedQty = ref(0)
+const inspectNotes = ref('')
+const inspectMessage = ref('')
+
+function verifyPin() {}
+function submitInspection() {}
 
 const activeCapabilities = computed(() => {
   const caps = auth.user?.capabilities || []
@@ -182,17 +197,92 @@ async function handleLogout() {
               </button>
             </div>
           </div>
+        </div>
 
-        <!-- Buyer View: Render Buyer Command Center -->
-        <BuyerDashboardOverview v-else />
+        <!-- Role Overview Section -->
+        <AdminDashboardOverview v-if="auth.isAdmin" />
+        <FarmerDashboardOverview v-else-if="hasFarmerCapability" />
+        <BuyerDashboardOverview v-else-if="hasBuyerCapability" />
 
       </div>
     </main>
+
+    <!-- MODAL 1: DELIVERY PIN HANDOFF -->
+    <div v-if="showPinModal" class="modal-backdrop">
+      <div class="modal-card">
+        <h3>🔑 Secure 6-Digit Delivery Handoff PIN</h3>
+        <p class="modal-sub">Provide this PIN to the farmer upon receiving produce handoff.</p>
+        
+        <div class="pin-display-box">
+          <span class="pin-code">{{ selectedOrderPin }}</span>
+        </div>
+
+        <div class="pin-verify-form">
+          <label>Farmer Verification Test:</label>
+          <input type="text" v-model="pinInput" placeholder="Enter 6-digit PIN" maxlength="6" class="form-input"/>
+          <button class="btn btn-success" @click="verifyPin">Verify Handoff PIN</button>
+        </div>
+
+        <p v-if="pinVerifyMessage" class="feedback-msg">{{ pinVerifyMessage }}</p>
+        <button class="btn btn-text" @click="showPinModal = false">Close Window</button>
+      </div>
+    </div>
+
+    <!-- MODAL 2: PRODUCE QUALITY INSPECTION -->
+    <div v-if="showInspectModal" class="modal-backdrop">
+      <div class="modal-card">
+        <h3>🔍 Produce Quality Inspection</h3>
+        <p class="modal-sub">Verify produce condition prior to releasing escrow payout to farmer.</p>
+
+        <div class="form-group">
+          <label>Inspection Outcome:</label>
+          <select v-model="inspectStatus" class="form-select">
+            <option value="accepted">Accepted (100% Quality Met)</option>
+            <option value="partially_accepted">Partially Accepted (Partial Spoilage)</option>
+            <option value="rejected">Rejected (Spoiled / Below Specification)</option>
+          </select>
+        </div>
+
+        <div class="form-row" v-if="inspectStatus === 'partially_accepted'">
+          <div class="form-group">
+            <label>Accepted Quantity:</label>
+            <input type="number" v-model="acceptedQty" class="form-input"/>
+          </div>
+          <div class="form-group">
+            <label>Rejected Quantity:</label>
+            <input type="number" v-model="rejectedQty" class="form-input"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Inspection Notes / Quality Remarks:</label>
+          <textarea v-model="inspectNotes" placeholder="e.g. Moisture level optimal, 2 bags damaged in transit" class="form-textarea"></textarea>
+        </div>
+
+        <p v-if="inspectMessage" class="feedback-msg">{{ inspectMessage }}</p>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary" @click="submitInspection">Complete Inspection</button>
+          <button class="btn btn-text" @click="showInspectModal = false">Cancel</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <style scoped>
-.dashboard { min-height: 100vh; display: flex; flex-direction: column; background: var(--surface-alt); }
+.dashboard { min-height: 100vh; background: #f8fafc; color: #1e293b; font-family: system-ui, sans-serif; }
+.dash-nav { background: #064e3b; color: #fff; padding: 0 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+.dash-nav__inner { max-width: 1280px; margin: 0 auto; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+.dash-nav__brand { font-size: 1.25rem; font-weight: 600; color: #f0fdf4; }
+.dash-nav__brand strong { color: #f59e0b; }
+.dash-nav__center { display: flex; gap: 0.5rem; }
+.dash-nav__center button { background: transparent; border: none; color: #a7f3d0; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.dash-nav__center button.active, .dash-nav__center button:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.dash-nav__right { display: flex; align-items: center; gap: 1rem; }
+.dash-nav__user { font-size: 0.9rem; color: #d1fae5; }
+.dash-nav__logout { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; }
 
 .dash-nav {
   background: #064e3b;

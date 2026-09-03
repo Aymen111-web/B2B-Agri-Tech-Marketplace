@@ -5,6 +5,7 @@ import { useOrderStore } from '@/stores/order'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
 import { EMPTY_STATE_IMAGE, getCropImage, getAvatarImage } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
 const orderStore = useOrderStore()
@@ -59,8 +60,6 @@ function getStatusBadgeClass(status) {
   if (s === 'cancelled' || s === 'rejected') return 'badge--danger'
   return 'badge--info'
 }
-import { EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
-import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>

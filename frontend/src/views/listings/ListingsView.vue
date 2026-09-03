@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { useListingStore } from '@/stores/listing'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
+import { getCropImage, getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const listingStore = useListingStore()
 const auth = useAuthStore()
@@ -105,8 +107,6 @@ function formatDate(dateStr) {
   })
 }
 
-import { getCropImage, getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
-import ThemeToggle from '@/components/ThemeToggle.vue'
 
 function getCategoryIcon(catName) {
   return getCropImage(catName)

@@ -9,22 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('first_name')->after('id')->nullable();
-            $table->string('second_name')->after('first_name')->nullable();
-        });
-
-        // Backfill first_name from existing name column so the NOT NULL constraint won't fail
-        DB::table('users')->whereNull('first_name')->update([
-            'first_name' => DB::raw('name'),
-            'second_name' => '',
-        ]);
-
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('first_name')->nullable(false)->change();
-            $table->string('second_name')->nullable(false)->change();
-            $table->string('password')->nullable(false)->change();
-        });
+        if (! Schema::hasColumn('users', 'first_name')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('first_name')->after('id')->nullable();
+                $table->string('second_name')->after('first_name')->nullable();
+            });
+        }
     }
 
     public function down(): void

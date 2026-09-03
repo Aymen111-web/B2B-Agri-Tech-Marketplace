@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCapabilityStore } from '@/stores/capability'
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const auth = useAuthStore()
 const capabilityStore = useCapabilityStore()
@@ -114,8 +116,6 @@ function formatDate(dateStr) {
     minute: '2-digit'
   })
 }
-import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
-import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>
