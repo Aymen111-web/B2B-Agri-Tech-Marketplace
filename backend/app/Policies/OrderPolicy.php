@@ -10,22 +10,24 @@ class OrderPolicy
     /**
      * Only users with active buyer capability can list their orders.
      */
+    /**
+     * Authenticated users can list their own orders (returns empty list if none).
+     */
     public function viewAny(User $user): bool
     {
-        return $this->hasActiveBuyerCapability($user);
+        return true;
     }
 
     /**
-     * Only the order's buyer can view it.
+     * Only the order's buyer or admin can view it.
      */
     public function view(User $user, Order $order): bool
     {
-        return $this->hasActiveBuyerCapability($user)
-            && $order->buyer_id === $user->id;
+        return $user->is_admin || ($this->hasActiveBuyerCapability($user) && $order->buyer_id === $user->id);
     }
 
     /**
-     * Only users with active buyer capability can checkout (create orders).
+     * Users with active buyer capability or admins can checkout (create orders).
      */
     public function create(User $user): bool
     {
@@ -33,22 +35,22 @@ class OrderPolicy
     }
 
     /**
-     * Only the order's buyer can cancel it.
+     * Only the order's buyer or admin can cancel it.
      */
     public function cancel(User $user, Order $order): bool
     {
-        return $this->hasActiveBuyerCapability($user)
-            && $order->buyer_id === $user->id;
+        return $user->is_admin || ($this->hasActiveBuyerCapability($user) && $order->buyer_id === $user->id);
     }
 
     /**
-     * Check whether the given user has an active buyer capability.
+     * Check whether the given user has an active buyer capability or is an admin.
      */
     private function hasActiveBuyerCapability(User $user): bool
     {
-        return $user->capabilities()
-            ->where('capability_type', 'buyer')
-            ->where('status', 'active')
-            ->exists();
+        return $user->account_status === 'active'
+            && $user->capabilities()
+                ->where('capability_type', 'buyer')
+                ->where('status', 'active')
+                ->exists();
     }
 }

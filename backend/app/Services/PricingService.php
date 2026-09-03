@@ -7,32 +7,27 @@ use App\Models\Listing;
 class PricingService
 {
     /**
-     * Validate if a listing's price is still active and valid.
+     * Validate that a order item respects MOQ and current price validity period.
      */
-    public function validateListingPrice(Listing $listing): bool
+    public function validateItemPricing(Listing $listing, float $requestedQuantity): array
     {
-        if ($listing->status !== 'active') {
-            return false;
+        if ($listing->minimum_order_quantity && $requestedQuantity < (float) $listing->minimum_order_quantity) {
+            return [
+                'valid'   => false,
+                'message' => "Order quantity {$requestedQuantity} is below minimum order quantity (MOQ) of {$listing->minimum_order_quantity} {$listing->unit}.",
+            ];
         }
 
-        if ($listing->price_valid_until && now()->greaterThan($listing->price_valid_until)) {
-            return false;
+        if ($listing->price_valid_until && now()->gt($listing->price_valid_until)) {
+            return [
+                'valid'   => false,
+                'message' => "Listing price expired on {$listing->price_valid_until->toDateTimeString()}. Fresh price update required.",
+            ];
         }
 
-        if ($listing->price_valid_from && now()->lessThan($listing->price_valid_from)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Validate if the requested quantity meets or exceeds the minimum order quantity.
-     */
-    public function validateMinimumOrderQuantity(Listing $listing, float $requestedQuantity): bool
-    {
-        $moq = (float) ($listing->minimum_order_quantity ?? 1.000);
-
-        return $requestedQuantity >= $moq;
+        return [
+            'valid'   => true,
+            'message' => 'Price and MOQ valid.',
+        ];
     }
 }

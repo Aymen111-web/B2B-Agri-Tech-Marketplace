@@ -120,6 +120,84 @@ class PaymentController extends Controller
     }
 
     /**
+     * Initiate direct settlement payment for a specific order fulfillment to farmer subaccount.
+     *
+     * POST /api/fulfillments/{id}/pay
+     */
+    public function initiateFulfillmentPayment(int $fulfillmentId, \App\Services\ChapaService $chapaService): JsonResponse
+    {
+        $fulfillment = \App\Models\OrderFulfillment::with(['order', 'farmer'])->findOrFail($fulfillmentId);
+
+        /** @var \App\Models\User $buyer */
+        $buyer = Auth::user();
+
+        if ($fulfillment->order->buyer_id !== $buyer->id) {
+            return response()->json(['message' => 'Unauthorized payment attempt.'], 403);
+        }
+
+        if ($fulfillment->status !== 'buyer_received') {
+            return response()->json([
+                'message' => 'Payment can only be initiated after physical inspection and confirming produce receipt.',
+            ], 422);
+        }
+
+        $farmer = $fulfillment->farmer;
+
+        if (! $farmer || ! $farmer->chapa_subaccount_id) {
+            return response()->json([
+                'message' => 'The farmer has not set up their payment subaccount destination yet.',
+            ], 422);
+        }
+
+        // Check existing pending or confirmed payment for this fulfillment
+        $existingPayment = Payment::where('order_fulfillment_id', $fulfillment->id)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->first();
+
+        if ($existingPayment) {
+            if ($existingPayment->status === 'pending' && $existingPayment->chapa_checkout_url) {
+                return response()->json([
+                    'message'      => 'Payment already initiated.',
+                    'checkout_url' => $existingPayment->chapa_checkout_url,
+                    'payment'      => new PaymentResource($existingPayment),
+                ]);
+            }
+
+            if ($existingPayment->status === 'confirmed') {
+                return response()->json([
+                    'message' => 'Payment has already been confirmed for this fulfillment.',
+                ], 422);
+            }
+        }
+
+        $txRef = 'TX-FULFILL-' . $fulfillment->id . '-' . strtoupper(Str::random(6));
+
+        $res = $chapaService->initializeDirectPayment($fulfillment, $buyer, $farmer, $txRef);
+
+        if (! $res['success'] || empty($res['checkout_url'])) {
+            return response()->json([
+                'message' => 'Unable to initiate direct payment with payment gateway.',
+            ], 502);
+        }
+
+        $payment = Payment::create([
+            'order_id'             => $fulfillment->order_id,
+            'order_fulfillment_id' => $fulfillment->id,
+            'chapa_tx_ref'         => $txRef,
+            'chapa_checkout_url'   => $res['checkout_url'],
+            'amount'               => $fulfillment->subtotal_amount,
+            'currency'             => 'ETB',
+            'status'               => 'pending',
+        ]);
+
+        return response()->json([
+            'message'      => 'Direct payment initiated. Redirecting to Chapa checkout.',
+            'checkout_url' => $res['checkout_url'],
+            'payment'      => new PaymentResource($payment),
+        ], 201);
+    }
+
+    /**
      * Show the payment details for a specific order.
      *
      * GET /api/orders/{id}/payment

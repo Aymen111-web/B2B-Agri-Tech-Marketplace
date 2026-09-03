@@ -3,23 +3,17 @@
 namespace App\Services;
 
 use App\Models\Order;
-use App\Models\OrderFulfillment;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 class DeliveryService
 {
     /**
-     * Verify the 6-digit delivery handoff PIN for an order.
+     * Verify the 6-digit delivery handoff PIN.
      */
     public function verifyHandoffPin(Order $order, string $pin): bool
     {
-        if (empty($order->delivery_pin) || trim($pin) !== trim($order->delivery_pin)) {
-            throw new RuntimeException('Invalid delivery PIN.');
-        }
-
-        if ($order->delivery_pin_verified_at !== null) {
-            throw new RuntimeException('Delivery PIN has already been verified for this order.');
+        if ($order->delivery_pin !== $pin) {
+            return false;
         }
 
         DB::transaction(function () use ($order) {
@@ -28,32 +22,14 @@ class DeliveryService
                 'delivery_pin_verified_at' => now(),
             ]);
 
-            $order->fulfillments()->update([
-                'delivery_status' => 'delivered',
-            ]);
-        });
-
-        return true;
-    }
-
-    /**
-     * Mark a fulfillment as dispatched by the farmer/delivery operator.
-     */
-    public function markDispatched(OrderFulfillment $fulfillment): OrderFulfillment
-    {
-        DB::transaction(function () use ($fulfillment) {
-            $fulfillment->update([
-                'delivery_status' => 'dispatched',
-            ]);
-
-            $order = $fulfillment->order;
-            if ($order && $order->delivery_status === 'pending') {
-                $order->update([
-                    'delivery_status' => 'dispatched',
+            foreach ($order->fulfillments as $fulfillment) {
+                $fulfillment->update([
+                    'delivery_status'   => 'delivered',
+                    'inspection_status' => 'pending',
                 ]);
             }
         });
 
-        return $fulfillment->fresh();
+        return true;
     }
 }

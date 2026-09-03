@@ -133,6 +133,52 @@ export const useAuthStore = defineStore('auth', () => {
     return fallback
   }
 
+  /**
+   * Fetch current user profile.
+   * GET /api/profile
+   */
+  async function fetchProfile() {
+    if (!token.value) return null
+    try {
+      const response = await api.get('/profile')
+      const userData = response.data.data || response.data
+      user.value = userData
+      localStorage.setItem('auth_user', JSON.stringify(userData))
+      return userData
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * Update current user profile (supports text fields, photo upload, and payment info).
+   * POST /api/profile or PUT /api/profile
+   */
+  async function updateProfile(payload) {
+    loading.value = true
+    error.value   = null
+    try {
+      let response
+      if (payload instanceof FormData) {
+        response = await api.post('/profile', payload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+      } else {
+        response = await api.put('/profile', payload)
+      }
+      const updatedUser = response.data.user || response.data.data || response.data
+      user.value = updatedUser
+      localStorage.setItem('auth_user', JSON.stringify(updatedUser))
+      return { success: true, message: response.data.message || 'Profile updated successfully.' }
+    } catch (err) {
+      const msg = extractErrorMessage(err, 'Failed to update profile.')
+      error.value = msg
+      return { success: false, message: msg }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     user,
     token,
@@ -144,6 +190,8 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     login,
     logout,
+    fetchProfile,
+    updateProfile,
     clearError,
   }
 })

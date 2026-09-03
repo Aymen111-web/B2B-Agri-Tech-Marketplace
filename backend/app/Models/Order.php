@@ -14,6 +14,9 @@ class Order extends Model
         'delivery_status',
         'inspection_status',
         'payout_status',
+        'delivery_pin',
+        'delivery_pin_verified_at',
+        'reservation_expires_at',
         'total_amount',
         'currency',
         'placed_at',
@@ -23,9 +26,9 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'total_amount'             => 'decimal:2',
-        'placed_at'                => 'datetime',
-        'reservation_expires_at'   => 'datetime',
+        'total_amount' => 'decimal:2',
+        'placed_at' => 'datetime',
+        'reservation_expires_at' => 'datetime',
         'delivery_pin_verified_at' => 'datetime',
     ];
 

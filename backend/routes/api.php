@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapabilityApplicationController;
@@ -23,7 +24,7 @@ Route::post('/auth/login',       [AuthController::class, 'login']);
 Route::post('/auth/logout',      [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::get('/user', function (Request $request) {
-    return $request->user();
+    return new \App\Http\Resources\UserResource($request->user()->load(['capabilities', 'capabilityApplications']));
 })->middleware('auth:sanctum');
 
 
@@ -35,9 +36,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/capability-applications/{id}', [CapabilityApplicationController::class, 'show']);
 });
 
-//// Admin — Capability Applications ///////////
+//// Admin — Capability Applications & Dashboard Analytics ///////////
 
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard/stats',                       [AdminDashboardController::class, 'stats']);
     Route::get('/capability-applications',              [CapabilityApplicationController::class, 'index']);
     Route::post('/capability-applications/{id}/approve', [CapabilityApplicationController::class, 'approve']);
     Route::post('/capability-applications/{id}/reject',  [CapabilityApplicationController::class, 'reject']);
@@ -78,15 +80,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{id}/verify-delivery-pin', [OrderController::class, 'verifyDeliveryPin']);
 });
 
-////// Fulfillments — Farmer (authenticated, requires farmer capability) /////
+////// Fulfillments — Farmer & Buyer /////
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/fulfillments',                [OrderFulfillmentController::class, 'index']);
-    Route::get('/fulfillments/{id}',           [OrderFulfillmentController::class, 'show']);
-    Route::post('/fulfillments/{id}/accept',   [OrderFulfillmentController::class, 'accept']);
-    Route::post('/fulfillments/{id}/reject',   [OrderFulfillmentController::class, 'reject']);
-    Route::post('/fulfillments/{id}/complete', [OrderFulfillmentController::class, 'complete']);
-    Route::post('/fulfillments/{id}/inspect',  [OrderFulfillmentController::class, 'inspect']);
+    Route::get('/fulfillments',                          [OrderFulfillmentController::class, 'index']);
+    Route::get('/fulfillments/{id}',                     [OrderFulfillmentController::class, 'show']);
+    Route::post('/fulfillments/{id}/accept',             [OrderFulfillmentController::class, 'accept']);
+    Route::post('/fulfillments/{id}/reject',             [OrderFulfillmentController::class, 'reject']);
+    Route::post('/fulfillments/{id}/complete',           [OrderFulfillmentController::class, 'complete']);
+    Route::post('/fulfillments/{id}/confirm-received',   [OrderFulfillmentController::class, 'confirmReceived']);
+    Route::post('/fulfillments/{id}/pay',                [PaymentController::class, 'initiateFulfillmentPayment']);
 });
 
 ////// Payments — Buyer (authenticated, requires buyer capability) /////
@@ -120,8 +123,9 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 ////// User Profile (authenticated) /////
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/profile',  [UserController::class, 'profile']);
-    Route::put('/profile',  [UserController::class, 'updateProfile']);
+    Route::get('/profile',   [UserController::class, 'profile']);
+    Route::put('/profile',   [UserController::class, 'updateProfile']);
+    Route::post('/profile',  [UserController::class, 'updateProfile']); // Support multipart photo uploads
 });
 
 ////// Admin — User Management /////

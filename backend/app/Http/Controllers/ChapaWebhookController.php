@@ -209,8 +209,53 @@ class ChapaWebhookController extends Controller
      */
     private function confirmPayment(Payment $payment, array $payload): void
     {
-        $paymentService = new \App\Services\PaymentService();
-        $paymentService->confirmPayment($payment, $this->extractSafeMetadata($payload));
+        if ($payment->status !== 'pending') {
+            return;
+        }
+
+        $payment->update([
+            'status'           => 'confirmed',
+            'confirmed_at'     => now(),
+            'gateway_metadata' => $this->extractSafeMetadata($payload),
+        ]);
+
+        // If payment is linked to an order fulfillment, mark handoff/settlement completed & log payout
+        if ($payment->order_fulfillment_id) {
+            $fulfillment = \App\Models\OrderFulfillment::find($payment->order_fulfillment_id);
+
+            if ($fulfillment) {
+                $fulfillment->update([
+                    'status'       => 'completed',
+                    'completed_at' => now(),
+                ]);
+
+                // Auto-create read-only settlement payout record for farmer
+                \App\Models\Payout::firstOrCreate(
+                    ['order_fulfillment_id' => $fulfillment->id],
+                    [
+                        'farmer_id'    => $fulfillment->farmer_id,
+                        'amount'       => $payment->amount,
+                        'status'       => 'processed',
+                        'reference'    => $payment->chapa_tx_ref,
+                        'processed_at' => now(),
+                    ]
+                );
+            }
+        }
+
+        // Advance parent order status
+        $order = $payment->order;
+        if ($order) {
+            $incompleteCount = $order->fulfillments()
+                ->whereNotIn('status', ['completed', 'rejected'])
+                ->count();
+
+            if ($incompleteCount === 0) {
+                $order->update(['status' => 'completed']);
+            } else {
+                $order->update(['status' => 'processing']);
+            }
+        }
     }
 
     /**

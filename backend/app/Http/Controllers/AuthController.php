@@ -76,7 +76,7 @@ class AuthController extends Controller
 
         return response([
             'message' => 'Registration successful.',
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load(['capabilities', 'capabilityApplications'])),
             'token' => $token,
         ], 201);
     }
@@ -91,7 +91,17 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = User::where('phone', $validated['phone'])->first();
+        $rawPhone = trim($validated['phone']);
+        $normalizedPhone = $rawPhone;
+        if (preg_match('/^(09|07)\d{8}$/', $rawPhone)) {
+            $normalizedPhone = '+251' . substr($rawPhone, 1);
+        } elseif (preg_match('/^(9|7)\d{8}$/', $rawPhone)) {
+            $normalizedPhone = '+251' . $rawPhone;
+        }
+
+        $user = User::where('phone', $rawPhone)
+            ->orWhere('phone', $normalizedPhone)
+            ->first();
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response([
@@ -103,7 +113,7 @@ class AuthController extends Controller
 
         return response([
             'message' => 'Login successful.',
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load(['capabilities', 'capabilityApplications'])),
             'token' => $token,
         ]);
     }

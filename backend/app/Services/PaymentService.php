@@ -2,53 +2,40 @@
 
 namespace App\Services;
 
+use App\Models\Listing;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class PaymentService
 {
     /**
-     * Safely confirm a payment from Chapa webhook, checking for reservation expiration.
+     * Confirm a payment via Chapa webhook with reservation expiration check.
      */
-    public function confirmPayment(Payment $payment, array $payload): bool
+    public function confirmPayment(Payment $payment, array $payload): array
     {
         return DB::transaction(function () use ($payment, $payload) {
-            $payment = Payment::where('id', $payment->id)->lockForUpdate()->first();
+            $order = $payment->order;
 
-            if (! $payment || $payment->status !== 'pending') {
-                return false;
-            }
-
-            $order = Order::where('id', $payment->order_id)->lockForUpdate()->first();
-
-            if (! $order) {
-                return false;
-            }
-
-            $reservationService = new ReservationService();
-
-            // Handle race condition: payment arrived after reservation expired
-            if ($reservationService->isExpired($order)) {
-                Log::warning("Chapa webhook: Payment received for expired order {$order->order_number}. Flagging for refund.", [
-                    'order_id' => $order->id,
-                    'payment_id' => $payment->id,
-                ]);
-
+            // Late payment guard: If reservation expired before webhook arrived
+            if ($order->status === 'expired' || ($order->reservation_expires_at && now()->gt($order->reservation_expires_at) && $order->status === 'pending_payment')) {
                 $payment->update([
                     'status'           => 'failed',
-                    'gateway_metadata' => array_merge($payload, ['failure_reason' => 'reservation_expired_before_payment']),
+                    'gateway_metadata' => array_merge($payload, ['refund_flag' => 'reservation_expired_late_payment']),
                 ]);
 
                 $order->update([
-                    'payment_status' => 'failed',
+                    'status'         => 'expired',
+                    'payment_status' => 'failed_refund_required',
                 ]);
 
-                return false;
+                return [
+                    'status'  => 'refund_flagged',
+                    'message' => 'Payment received after reservation expiration. Stock released; flagged for refund.',
+                ];
             }
 
-            // Payment succeeds within reservation window
+            // Normal payment confirmation
             $payment->update([
                 'status'           => 'confirmed',
                 'confirmed_at'     => now(),
@@ -60,7 +47,25 @@ class PaymentService
                 'payment_status' => 'confirmed',
             ]);
 
-            return true;
+            // Convert quantity_reserved to finalized sold inventory
+            foreach ($order->items as $item) {
+                $listing = Listing::where('id', $item->listing_id)->lockForUpdate()->first();
+                if ($listing) {
+                    $listing->decrement('quantity_reserved', min($item->quantity, $listing->quantity_reserved));
+                }
+            }
+
+            foreach ($order->fulfillments as $fulfillment) {
+                $fulfillment->update([
+                    'status'         => 'processing',
+                    'delivery_status'=> 'pending',
+                ]);
+            }
+
+            return [
+                'status'  => 'success',
+                'message' => 'Payment confirmed and order moved to processing.',
+            ];
         });
     }
 }

@@ -9,14 +9,22 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasColumn('users', 'email')) {
+            try {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->dropUnique(['email']);
+                });
+            } catch (\Exception $e) {
+                // Ignore if index doesn't exist
+            }
+
             Schema::table('users', function (Blueprint $table) {
-                $table->dropUnique('users_email_unique');
-                $table->dropColumn('email');
+                $table->dropColumn(['email']);
             });
         }
+
         if (Schema::hasColumn('users', 'name')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->dropColumn('name');
+                $table->dropColumn(['name']);
             });
         }
     }

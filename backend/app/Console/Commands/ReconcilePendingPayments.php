@@ -10,23 +10,9 @@ use Illuminate\Support\Facades\Log;
 
 class ReconcilePendingPayments extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'payments:reconcile-pending {--minutes=10 : Reconcile payments pending older than X minutes}';
+    protected $description = 'Poll Chapa API to reconcile payments stuck in pending status';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Poll Chapa API to reconcile payments that are stuck in pending status';
-
-    /**
-     * Execute the console command.
-     */
     public function handle(PaymentService $paymentService): int
     {
         $minutes = (int) $this->option('minutes');
@@ -42,15 +28,12 @@ class ReconcilePendingPayments extends Command
             return Command::SUCCESS;
         }
 
-        $this->info("Found {$pendingPayments->count()} pending payments for reconciliation.");
-
         $chapaSecret = config('services.chapa.secret_key');
 
         foreach ($pendingPayments as $payment) {
             try {
-                // If secret key is not set (e.g. testing), log and skip network call
                 if (empty($chapaSecret)) {
-                    Log::warning("Chapa secret key not configured. Skipping reconciliation for tx_ref: {$payment->chapa_tx_ref}");
+                    Log::warning("Chapa secret key missing. Skipping reconciliation for tx_ref: {$payment->chapa_tx_ref}");
                     continue;
                 }
 
@@ -63,18 +46,15 @@ class ReconcilePendingPayments extends Command
 
                     if ($status === 'success') {
                         $paymentService->confirmPayment($payment, $data['data'] ?? $data);
-                        $this->info("Payment {$payment->chapa_tx_ref} confirmed successfully via reconciliation.");
                     } elseif (in_array($status, ['failed', 'declined', 'expired'])) {
                         $payment->update([
                             'status'           => 'failed',
                             'gateway_metadata' => $data['data'] ?? $data,
                         ]);
-                        $this->info("Payment {$payment->chapa_tx_ref} marked as failed.");
                     }
                 }
             } catch (\Exception $e) {
                 Log::error("Error reconciling payment {$payment->chapa_tx_ref}: " . $e->getMessage());
-                $this->error("Failed to reconcile payment {$payment->chapa_tx_ref}");
             }
         }
 
