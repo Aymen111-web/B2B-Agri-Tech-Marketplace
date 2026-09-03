@@ -68,6 +68,13 @@ const router = createRouter({
       component: () => import('@/views/orders/OrderDetailView.vue'),
       meta: { requiresAuth: true, requiresBuyer: true, title: 'Order Confirmation — Agri Market' },
     },
+    {
+      path: '/payment/success',
+      name: 'payment-success',
+      component: () => import('@/views/payment/PaymentSuccessView.vue'),
+      meta: { requiresAuth: true, title: 'Payment Status — Agri Market' },
+    },
+
 
     // ── Authenticated ─────────────────────────────────
     {

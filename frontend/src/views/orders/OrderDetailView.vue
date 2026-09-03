@@ -80,7 +80,33 @@ async function handlePayFarmer(fulfillmentId) {
   }
 }
 
+const isPayingOrder = ref(false)
+
+async function handlePayOrder() {
+  if (!order.value) return
+  isPayingOrder.value = true
+  actionMsg.value = { type: '', text: '' }
+
+  try {
+    const response = await api.post(`/orders/${order.value.id}/pay`)
+    const checkoutUrl = response.data.checkout_url
+
+    if (checkoutUrl) {
+      actionMsg.value = { type: 'success', text: 'Redirecting to Chapa Hosted Checkout...' }
+      window.location.href = checkoutUrl
+    } else {
+      actionMsg.value = { type: 'error', text: 'Checkout URL was not returned by payment gateway.' }
+    }
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Unable to initiate order payment.'
+    actionMsg.value = { type: 'error', text: msg }
+  } finally {
+    isPayingOrder.value = false
+  }
+}
+
 function formatPrice(val) {
+
   if (val === undefined || val === null) return '0.00'
   return Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
@@ -241,7 +267,16 @@ function getStatusBadgeClass(status) {
 
                     <!-- Step 3: Completed -->
                     <template v-else-if="fulfillment.status === 'completed'">
-                      <span class="text-success font-bold">🎉 Settled 100% to Farmer Subaccount</span>
+                      <div class="flex flex-col items-end gap-1">
+                        <span class="text-success font-bold">🎉 Settled 100% to Farmer Subaccount</span>
+                        <a
+                          v-if="fulfillment.payment?.chapa_tx_ref"
+                          :href="`/payment/success?tx_ref=${fulfillment.payment.chapa_tx_ref}`"
+                          class="text-xs text-blue-600 underline font-medium hover:text-blue-800"
+                        >
+                          View Payment & Receipt Details →
+                        </a>
+                      </div>
                     </template>
 
                     <!-- Pending Farmer Acceptance -->
@@ -256,7 +291,19 @@ function getStatusBadgeClass(status) {
             <!-- Right Column: Payment Policy Summary -->
             <div class="summary-col">
               <div class="payment-card">
-                <h3 class="card-title">Direct Settlement Info</h3>
+                <h3 class="card-title">Order Payment & Settlement</h3>
+
+                <div v-if="order.status === 'pending_payment'" class="pay-banner mb-4">
+                  <p class="pay-banner-text">This order is awaiting payment.</p>
+                  <button
+                    @click="handlePayOrder"
+                    :disabled="isPayingOrder"
+                    class="btn btn--chapa btn--block btn--lg mt-3"
+                  >
+                    <span v-if="isPayingOrder" class="spinner-sm"></span>
+                    <span v-else>💳 Pay Order via Chapa →</span>
+                  </button>
+                </div>
 
                 <div class="payment-meta">
                   <div class="meta-row">
@@ -276,8 +323,9 @@ function getStatusBadgeClass(status) {
                 <div class="divider"></div>
 
                 <div class="info-box">
-                  🔍 <strong>Inspection First:</strong> You inspect produce upon physical delivery, click <strong>"Confirm Received"</strong>, and then click <strong>"Pay Farmer"</strong> to trigger Chapa checkout.
+                  🔍 <strong>Inspection & Settlement:</strong> For direct farmer fulfillments, inspect produce upon delivery, click <strong>"Confirm Received"</strong>, and then click <strong>"Pay Farmer"</strong> to trigger settlement.
                 </div>
+
 
                 <button
                   v-if="order.status === 'pending_payment' || order.status === 'processing'"
@@ -485,7 +533,10 @@ function getStatusBadgeClass(status) {
 }
 .btn--primary { background: #10b981; color: #ffffff; }
 .btn--primary:hover { background: #059669; }
+.btn--chapa { background: #0284c7; color: #ffffff; font-weight: 700; }
+.btn--chapa:hover { background: #0369a1; }
 .btn--danger-outline {
+
   background: transparent;
   border: 1px solid #fca5a5;
   color: #dc2626;

@@ -97,11 +97,16 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/{id}/pay',     [PaymentController::class, 'initiate']);
     Route::get('/orders/{id}/payment',  [PaymentController::class, 'show']);
+    Route::get('/payments/verify/{txRef}',  [PaymentController::class, 'verify']);
+    Route::post('/payments/cancel/{txRef}', [PaymentController::class, 'cancel']);
 });
 
-////// Chapa Webhook (public — no auth, verified by signature) /////
+////// Chapa Webhook & Callbacks (public — verified by signature / Chapa API) /////
 
-Route::post('/payments/webhook', [ChapaWebhookController::class, 'handle']);
+Route::match(['get', 'post'], '/payments/callback', [PaymentController::class, 'callback']);
+Route::post('/payments/webhook',                    [ChapaWebhookController::class, 'handle']);
+Route::get('/payments/currencies',                  [PaymentController::class, 'currencies']);
+
 
 ////// Payment Exceptions — Authenticated users (buyer/farmer) /////
 

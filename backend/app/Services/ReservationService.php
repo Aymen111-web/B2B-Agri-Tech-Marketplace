@@ -13,6 +13,9 @@ class ReservationService
 {
     /**
      * Create a 15-minute stock reservation for a new order.
+     *
+     * @param  User|int  $buyer
+     * @param  iterable|array  $cartItems
      */
     public function createReservation(User|int $buyer, iterable $cartItems): Order
     {
@@ -22,7 +25,7 @@ class ReservationService
             $totalAmount = 0;
 
             // Generate cryptographically secure 6-digit handoff PIN
-            $deliveryPin = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $deliveryPin = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
             $order = Order::create([
                 'order_number'           => 'ORD-' . date('Y') . '-' . strtoupper(Str::random(8)),
@@ -68,14 +71,14 @@ class ReservationService
                 $totalAmount += $itemSubtotal;
 
                 $farmerId = $listing->farmer_id;
-                if (!isset($fulfillments[$farmerId])) {
+                if (! isset($fulfillments[$farmerId])) {
                     $fulfillments[$farmerId] = $order->fulfillments()->create([
                         'farmer_id'          => $farmerId,
                         'status'             => 'pending',
-                        'delivery_status'   => 'pending',
-                        'inspection_status' => 'pending',
-                        'payout_status'     => 'locked',
-                        'subtotal_amount'   => 0,
+                        'delivery_status'    => 'pending',
+                        'inspection_status'  => 'pending',
+                        'payout_status'      => 'locked',
+                        'subtotal_amount'    => 0,
                     ]);
                 }
 
@@ -131,5 +134,44 @@ class ReservationService
         }
 
         return $count;
+    }
+
+    /**
+     * Check if an order reservation has expired.
+     */
+    public function isExpired(Order $order): bool
+    {
+        return $order->status === 'pending_payment'
+            && $order->reservation_expires_at
+            && $order->reservation_expires_at->isPast();
+    }
+
+    /**
+     * Manually expire an order reservation and release inventory.
+     */
+    public function expireReservation(Order $order): bool
+    {
+        if ($order->status !== 'pending_payment') {
+            return false;
+        }
+
+        return DB::transaction(function () use ($order) {
+            foreach ($order->items as $item) {
+                $listing = Listing::where('id', $item->listing_id)->lockForUpdate()->first();
+                if ($listing) {
+                    $releaseQty = min($item->quantity, $listing->quantity_reserved);
+                    $listing->decrement('quantity_reserved', $releaseQty);
+                    $listing->increment('quantity_available', $releaseQty);
+                }
+            }
+
+            $order->update(['status' => 'cancelled']);
+
+            foreach ($order->fulfillments as $fulfillment) {
+                $fulfillment->update(['status' => 'cancelled']);
+            }
+
+            return true;
+        });
     }
 }
