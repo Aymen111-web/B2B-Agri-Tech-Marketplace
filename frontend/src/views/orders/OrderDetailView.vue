@@ -142,15 +142,6 @@ function getStatusBadgeClass(status) {
         </router-link>
 
         <div class="top-nav__right">
-          <router-link to="/orders" class="top-nav__link">
-            ← My Orders
-          </router-link>
-          <router-link to="/listings" class="top-nav__link">
-            Browse Marketplace
-          </router-link>
-          <router-link v-if="authStore.isAuthenticated" to="/dashboard" class="top-nav__link">
-            Dashboard
-          </router-link>
         </div>
       </div>
     </nav>

@@ -45,24 +45,10 @@ async function handleLogout() {
     <nav class="dash-nav">
       <div class="dash-nav__inner">
         <div class="dash-nav__left">
-          <router-link to="/dashboard" class="dash-nav__brand">
-            <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
-            Agri<strong>Market</strong>
-          </router-link>
+          <span class="dash-nav__title">Command Dashboard</span>
         </div>
         <div class="dash-nav__right">
-          <router-link to="/dashboard" class="dash-nav__link dash-nav__link--active">
-            Dashboard
-          </router-link>
-          <router-link to="/listings" class="dash-nav__link">
-            Marketplace
-          </router-link>
-          <router-link v-if="!auth.isAdmin" to="/capabilities/apply" class="dash-nav__link">
-            Capabilities
-          </router-link>
-          <span class="dash-nav__user">
-            {{ auth.user?.first_name }} {{ auth.user?.second_name }}
-          </span>
+          <ThemeToggle />
           <button id="logout-btn" class="dash-nav__logout" @click="handleLogout">
             Sign Out
           </button>
@@ -72,28 +58,33 @@ async function handleLogout() {
 
     <main class="dash-main">
       <div class="dash-content">
-        <!-- Welcome banner -->
-        <div class="dash-welcome">
+        <!-- Welcome banner (Shown for Users without active capabilities) -->
+        <div v-if="!auth.isAdmin && (!hasFarmerCapability && !hasBuyerCapability)" class="dash-welcome">
           <div class="dash-welcome__header">
             <div>
               <h1 class="dash-welcome__title">
                 Welcome back, {{ auth.user?.first_name }}! 👋
               </h1>
+              <div class="user-capability-badges">
+                <span v-if="hasFarmerCapability" class="verified-badge verified-badge--farmer">
+                  ✓ Verified Farmer Supplier
+                </span>
+                <span v-if="hasBuyerCapability" class="verified-badge verified-badge--buyer">
+                  ✓ Verified Commercial Buyer
+                </span>
+              </div>
               <p class="dash-welcome__sub">
                 Account Status: <span class="status-badge">{{ auth.user?.account_status }}</span>
               </p>
             </div>
-            <div v-if="auth.isAdmin" class="admin-tag">
-              Administrator
-            </div>
           </div>
         </div>
 
-        <!-- Capability Cards Grid -->
-        <div class="cards-grid">
+        <!-- Capability Cards Grid (Shown for Users without active capabilities) -->
+        <div v-if="!auth.isAdmin && (!hasFarmerCapability && !hasBuyerCapability)" class="cards-grid">
           
-          <!-- Farmer Card (Non-Admin only) -->
-          <div v-if="!auth.isAdmin" class="dash-card" :class="{ 'dash-card--active': hasFarmerCapability }">
+          <!-- Farmer Card -->
+          <div class="dash-card" :class="{ 'dash-card--active': hasFarmerCapability }">
             <div class="dash-card__header">
               <span class="dash-card__icon">🌾</span>
               <span class="dash-card__status" :class="hasFarmerCapability ? 'status--granted' : 'status--none'">
@@ -123,8 +114,8 @@ async function handleLogout() {
             </div>
           </div>
 
-          <!-- Buyer Card (Non-Admin only) -->
-          <div v-if="!auth.isAdmin" class="dash-card" :class="{ 'dash-card--active': hasBuyerCapability }">
+          <!-- Buyer Card -->
+          <div class="dash-card" :class="{ 'dash-card--active': hasBuyerCapability }">
             <div class="dash-card__header">
               <span class="dash-card__icon">🏬</span>
               <span class="dash-card__status" :class="hasBuyerCapability ? 'status--granted' : 'status--none'">
@@ -157,44 +148,6 @@ async function handleLogout() {
                   View Cart 🛒
                 </button>
               </div>
-            </div>
-          </div>
-
-          <!-- Admin Portal Card (If Admin) -->
-          <div v-if="auth.isAdmin" class="dash-card dash-card--admin-portal">
-            <div class="dash-card__header">
-              <span class="dash-card__icon">🛡️</span>
-              <span class="dash-card__status status--admin">
-                System Admin
-              </span>
-            </div>
-            <h3 class="dash-card__title">Capability Approvals</h3>
-            <p class="dash-card__desc">
-              Review capability applications from farmers and business buyers, verify trade licenses, and grant platform access.
-            </p>
-            <div class="dash-card__actions">
-              <button class="btn btn--admin" @click="router.push('/admin/capability-applications')">
-                Review Pending Applications →
-              </button>
-            </div>
-          </div>
-
-          <!-- Admin Users Card (If Admin) -->
-          <div v-if="auth.isAdmin" class="dash-card dash-card--admin-portal">
-            <div class="dash-card__header">
-              <span class="dash-card__icon">👥</span>
-              <span class="dash-card__status status--admin">
-                System Admin
-              </span>
-            </div>
-            <h3 class="dash-card__title">User Accounts & Subscriptions</h3>
-            <p class="dash-card__desc">
-              Manage all registered farmer and buyer accounts, audit Chapa Subaccounts, and toggle active/inactive subscription statuses.
-            </p>
-            <div class="dash-card__actions">
-              <button class="btn btn--admin" @click="router.push('/admin/users')">
-                Manage User Accounts →
-              </button>
             </div>
           </div>
         </div>
@@ -288,6 +241,12 @@ async function handleLogout() {
   background: #064e3b;
   padding: 0 1.5rem;
   box-shadow: var(--shadow-xs);
+}
+.dash-nav__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
 }
 .dash-nav__inner {
   max-width: 1200px; margin: 0 auto; height: 60px;
@@ -384,4 +343,33 @@ async function handleLogout() {
 
 .buyer-actions-flex { display: flex; gap: 0.6rem; }
 .buyer-actions-flex .btn { flex: 1; }
+
+.user-capability-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.verified-badge--farmer {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.verified-badge--buyer {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
 </style>

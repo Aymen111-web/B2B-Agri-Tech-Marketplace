@@ -113,13 +113,19 @@ export const useListingStore = defineStore('listing', () => {
 
   /**
    * Update an existing listing.
-   * PUT /api/listings/{id}
+   * PUT /api/listings/{id} or POST /api/listings/{id} for FormData
    */
   async function updateListing(id, payload) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.put(`/listings/${id}`, payload)
+      let response
+      if (payload instanceof FormData) {
+        payload.append('_method', 'PUT')
+        response = await api.post(`/listings/${id}`, payload)
+      } else {
+        response = await api.put(`/listings/${id}`, payload)
+      }
       await fetchMyListings()
       return response.data
     } catch (err) {

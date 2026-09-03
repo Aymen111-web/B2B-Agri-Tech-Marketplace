@@ -20,6 +20,8 @@ class ListingResource extends JsonResource
             'category_id'        => $this->category_id,
             'title'              => $this->title,
             'description'        => $this->description,
+            'image_path'         => $this->image_path,
+            'image_url'          => $this->image_path ? (str_starts_with($this->image_path, 'http') ? $this->image_path : asset('storage/' . $this->image_path)) : null,
             'unit'               => $this->unit,
             'price_per_unit'     => $this->price_per_unit,
             'quantity_available' => $this->quantity_available,

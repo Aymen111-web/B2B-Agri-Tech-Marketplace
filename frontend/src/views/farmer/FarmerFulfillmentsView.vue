@@ -112,40 +112,6 @@ function getStatusBadgeClass(status) {
 
 <template>
   <div class="fulfillment-portal-page">
-    <!-- Top Navigation Bar -->
-    <nav class="top-nav">
-      <div class="top-nav__inner">
-        <router-link to="/dashboard" class="top-nav__brand">
-          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
-          Agri<strong>Market</strong>
-        </router-link>
-        <div class="top-nav__right">
-          <router-link to="/dashboard" class="top-nav__link">
-            Dashboard
-          </router-link>
-          <router-link to="/listings" class="top-nav__link">
-            Marketplace
-          </router-link>
-          <router-link to="/farmer/listings" class="top-nav__link">
-            Crop Listings
-          </router-link>
-          <router-link to="/farmer/fulfillments" class="top-nav__link active">
-            Fulfillments
-          </router-link>
-          <router-link to="/capabilities/apply" class="top-nav__link">
-            Capabilities
-          </router-link>
-          <ThemeToggle />
-          <span class="user-pill">
-            <img :src="getAvatarImage('farmer')" class="user-pill-avatar" /> {{ authStore.user?.first_name }}
-          </span>
-          <button @click="handleLogout" class="top-nav__logout">
-            Sign Out
-          </button>
-        </div>
-      </div>
-    </nav>
-
     <!-- Header -->
     <header class="portal-header">
       <div class="portal-header__inner">

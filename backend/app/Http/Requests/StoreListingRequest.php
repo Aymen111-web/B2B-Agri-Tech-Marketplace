@@ -20,7 +20,8 @@ class StoreListingRequest extends FormRequest
             'category_id'            => ['nullable', 'integer', 'exists:categories,id'],
             'title'                  => ['required', 'string', 'max:255'],
             'description'            => ['nullable', 'string', 'max:2000'],
-            'unit'                   => ['required', 'string', 'in:kg,quintal,ton,piece,liter,dozen'],
+            'image'                  => ['nullable'],
+            'unit'                   => ['required', 'string', 'max:50'],
             'price_per_unit'         => ['required', 'numeric', 'min:0.01'],
             'quantity_available'     => ['required', 'numeric', 'min:0'],
             'batch_number'           => ['nullable', 'string', 'max:50'],
@@ -39,7 +40,7 @@ class StoreListingRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'unit.in'               => 'Unit must be one of: kg, quintal, ton, piece, liter, dozen.',
+            'unit.max'               => 'Unit must not exceed 50 characters.',
             'price_per_unit.min'    => 'Price per unit must be at least 0.01.',
             'quantity_available.min' => 'Quantity available cannot be negative.',
         ];

@@ -98,7 +98,7 @@ class OrderController extends Controller
             
             // Clear the buyer's cart after successful order creation
             $user->cartItems()->delete();
-        } catch (RuntimeException $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], 422);

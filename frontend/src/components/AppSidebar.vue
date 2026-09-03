@@ -50,8 +50,10 @@ async function handleLogout() {
         </div>
         <div class="user-role">
           <span v-if="authStore.isAdmin" class="role-badge role-badge--admin">Admin</span>
-          <span v-else-if="isFarmer" class="role-badge role-badge--farmer">Farmer</span>
-          <span v-else class="role-badge">Buyer</span>
+          <template v-else>
+            <span v-if="isFarmer" class="role-badge role-badge--farmer">Farmer</span>
+            <span v-if="isBuyer" class="role-badge role-badge--buyer">Buyer</span>
+          </template>
         </div>
       </div>
     </router-link>
@@ -273,7 +275,8 @@ async function handleLogout() {
   background: var(--border);
   color: var(--text-secondary);
 }
-.role-badge--farmer { background: var(--brand-green-light); color: var(--brand-green-dark); }
+.role-badge--farmer { background: var(--brand-green-light); color: var(--brand-green-dark); margin-right: 0.25rem; }
+.role-badge--buyer  { background: #fef3c7; color: #92400e; }
 .role-badge--admin  { background: var(--brand-gold-light); color: #92400e; }
 
 /* Nav Links */

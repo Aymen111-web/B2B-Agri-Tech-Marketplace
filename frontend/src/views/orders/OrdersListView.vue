@@ -94,18 +94,6 @@ function getStatusBadgeClass(status) {
           Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
-          <router-link to="/listings" class="top-nav__link">
-            Marketplace
-          </router-link>
-          <router-link to="/cart" class="top-nav__link">
-            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
-          </router-link>
-          <router-link to="/orders" class="top-nav__link active">
-            My Orders
-          </router-link>
-          <router-link v-if="authStore.isAuthenticated" to="/dashboard" class="top-nav__link">
-            Dashboard
-          </router-link>
           <ThemeToggle />
           <button v-if="authStore.isAuthenticated" @click="handleLogout" class="top-nav__logout">
             Sign Out

@@ -15,7 +15,6 @@ const router = useRouter()
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const selectedSort = ref('newest')
-const inStockOnly = ref(false)
 const addingCartId = ref(null)
 const cartMessage = ref({ type: '', text: '' })
 
@@ -59,11 +58,7 @@ function handleSortChange() {
 }
 
 const filteredListings = computed(() => {
-  let list = listingStore.listings || []
-  if (inStockOnly.value) {
-    list = list.filter(item => item.status === 'active' && item.quantity_available > 0)
-  }
-  return list
+  return listingStore.listings || []
 })
 
 async function handleAddToCart(item) {
@@ -124,21 +119,6 @@ function getCategoryIcon(catName) {
           Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
-          <router-link to="/dashboard" class="top-nav__link">
-            Dashboard
-          </router-link>
-          <router-link to="/listings" class="top-nav__link active">
-            Marketplace
-          </router-link>
-          <router-link v-if="auth.isAuthenticated" to="/cart" class="top-nav__link cart-link">
-            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
-          </router-link>
-          <router-link v-if="auth.isAuthenticated" to="/orders" class="top-nav__link">
-            My Orders
-          </router-link>
-          <router-link to="/capabilities/apply" class="top-nav__link">
-            Capabilities
-          </router-link>
           <router-link v-if="auth.isAdmin" to="/admin/capability-applications" class="top-nav__link">
             Approvals
           </router-link>
@@ -171,11 +151,6 @@ function getCategoryIcon(catName) {
             <h1 class="hero-title">Produce Marketplace</h1>
             <p class="hero-sub">Direct wholesale trade from verified Ethiopian farms</p>
           </div>
-          <div class="trust-chips">
-            <span class="chip"><img src="/images/agri_placeholder.svg" class="chip-img" /> Verified Farmers</span>
-            <span class="chip">Quality Inspected</span>
-            <span class="chip">Direct Delivery</span>
-          </div>
         </div>
 
         <!-- Search Bar & Controls -->
@@ -202,11 +177,6 @@ function getCategoryIcon(catName) {
                 <option value="oldest">Oldest</option>
               </select>
             </div>
-
-            <label class="stock-toggle-label">
-              <input type="checkbox" v-model="inStockOnly" />
-              <span>In-Stock Only</span>
-            </label>
           </div>
         </div>
 
@@ -251,7 +221,7 @@ function getCategoryIcon(catName) {
           <img :src="EMPTY_STATE_IMAGE" class="empty-state-img" alt="Empty box" />
           <h3 class="state-title">No produce found</h3>
           <p class="state-sub">Try searching another crop or clear filters.</p>
-          <button class="reset-btn" @click="handleCategorySelect(''); searchQuery = ''; inStockOnly = false; loadListings()">
+          <button class="reset-btn" @click="handleCategorySelect(''); searchQuery = ''; loadListings()">
             Reset Filters
           </button>
         </div>
@@ -266,7 +236,7 @@ function getCategoryIcon(catName) {
           >
             <!-- Card Produce Image Header -->
             <div class="card-img-header">
-              <img :src="getCropImage(item.title || item.category?.name)" class="produce-card-img" :alt="item.title" />
+              <img :src="getCropImage(item)" class="produce-card-img" :alt="item.title" />
               <div class="card-img-overlay">
                 <span class="category-tag">
                   {{ item.category?.name || 'Produce' }}
@@ -554,7 +524,7 @@ function getCategoryIcon(catName) {
 .stock-toggle-label {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
   font-size: 0.8rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
@@ -563,6 +533,16 @@ function getCategoryIcon(catName) {
 }
 .stock-toggle-label input[type="checkbox"] {
   accent-color: var(--brand-green);
+  width: 15px;
+  height: 15px;
+}
+.stock-toggle-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.stock-icon-svg {
+  color: #10b981;
 }
 
 /* Category Pills Carousel */

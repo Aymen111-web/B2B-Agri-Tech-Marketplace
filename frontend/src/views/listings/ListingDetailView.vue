@@ -73,12 +73,6 @@ import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
           ← Back to Produce Marketplace
         </button>
         <div class="top-nav__right">
-          <router-link v-if="auth.isAuthenticated" to="/cart" class="top-nav__link cart-link">
-            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
-          </router-link>
-          <router-link v-if="auth.isAuthenticated" to="/dashboard" class="top-nav__link">
-            Dashboard
-          </router-link>
         </div>
       </div>
     </nav>
@@ -103,7 +97,7 @@ import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
           <div class="main-card">
             <!-- Produce Crop Banner -->
             <div class="detail-hero-banner">
-              <img :src="getCropImage(listing.title || listing.category?.name)" class="detail-hero-img" :alt="listing.title" />
+              <img :src="getCropImage(listing)" class="detail-hero-img" :alt="listing.title" />
             </div>
 
             <div class="card-header-flex">
@@ -182,6 +176,17 @@ import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
               <div class="meta-row">
                 <span class="meta-key">Marketplace ID:</span>
                 <span class="meta-val">#FARM-{{ listing.farmer?.id }}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-key">Phone Contact:</span>
+                <span class="meta-val phone-highlight">📞 {{ listing.farmer?.phone || 'Not provided' }}</span>
+              </div>
+              <div class="meta-row" v-if="listing.farmer?.account_number || listing.farmer?.account_number_masked">
+                <span class="meta-key">Payment Account:</span>
+                <span class="meta-val acc-highlight">
+                  💳 {{ listing.farmer?.bank_name || 'Telebirr/Bank' }}: 
+                  <strong>{{ listing.farmer?.account_number || listing.farmer?.account_number_masked }}</strong>
+                </span>
               </div>
             </div>
 
@@ -357,10 +362,13 @@ import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
 .farmer-fullname { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
 .verified-tag { font-size: 0.75rem; color: var(--brand-green); font-weight: 600; }
 
-.farmer-meta { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 1.5rem; background: #fafafa; padding: 0.85rem; border-radius: 6px; }
-.meta-row { display: flex; justify-content: space-between; }
+.farmer-meta { display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.85rem; margin-bottom: 1.5rem; background: #fafafa; padding: 0.85rem; border-radius: 6px; }
+.meta-row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
 .meta-key { color: var(--text-secondary); }
-.meta-val { font-weight: 600; color: var(--text-primary); }
+.meta-val { font-weight: 600; color: var(--text-primary); text-align: right; }
+.phone-highlight { font-weight: 700; color: #0d9488; }
+.acc-highlight { font-size: 0.8rem; color: #047857; }
+.acc-highlight strong { font-weight: 800; color: #064e3b; }
 .text-success { color: #166534; }
 
 .order-prompt { text-align: center; }

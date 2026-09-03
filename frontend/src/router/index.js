@@ -48,25 +48,25 @@ const router = createRouter({
       path: '/cart',
       name: 'cart',
       component: () => import('@/views/cart/CartView.vue'),
-      meta: { requiresAuth: true, title: 'Your Produce Cart — Agri Market' },
+      meta: { requiresAuth: true, requiresBuyer: true, title: 'Your Produce Cart — Agri Market' },
     },
     {
       path: '/checkout',
       name: 'checkout',
       component: () => import('@/views/checkout/CheckoutView.vue'),
-      meta: { requiresAuth: true, title: 'Order Checkout — Agri Market' },
+      meta: { requiresAuth: true, requiresBuyer: true, title: 'Order Checkout — Agri Market' },
     },
     {
       path: '/orders',
       name: 'orders-list',
       component: () => import('@/views/orders/OrdersListView.vue'),
-      meta: { requiresAuth: true, title: 'My Produce Orders — Agri Market' },
+      meta: { requiresAuth: true, requiresBuyer: true, title: 'My Produce Orders — Agri Market' },
     },
     {
       path: '/orders/:id',
       name: 'order-detail',
       component: () => import('@/views/orders/OrderDetailView.vue'),
-      meta: { requiresAuth: true, title: 'Order Confirmation — Agri Market' },
+      meta: { requiresAuth: true, requiresBuyer: true, title: 'Order Confirmation — Agri Market' },
     },
     {
       path: '/payment/success',
@@ -158,6 +158,14 @@ router.beforeEach((to) => {
     const hasFarmer = auth.user?.capabilities?.some(c => c.capability_type === 'farmer' && c.status === 'active')
     if (!hasFarmer && !auth.isAdmin) {
       return { name: 'capability-apply' }
+    }
+  }
+
+  // Buyer route: redirect to dashboard if no active buyer capability
+  if (to.meta.requiresBuyer) {
+    const hasBuyer = auth.user?.capabilities?.some(c => c.capability_type === 'buyer' && c.status === 'active')
+    if (!hasBuyer && !auth.isAdmin) {
+      return { name: 'dashboard' }
     }
   }
 

@@ -15,8 +15,11 @@ export const CATEGORY_IMAGES = {
     lentil: '/images/sesame_produce.jpg',
     vegetable: '/images/vegetables_produce.svg',
     tomato: '/images/vegetables_produce.svg',
+    carrot: '/images/vegetables_produce.svg',
+    salad: '/images/vegetables_produce.svg',
     fruit: '/images/fruits_produce.svg',
     avocado: '/images/fruits_produce.svg',
+    banana: '/images/fruits_produce.svg',
     honey: '/images/honey_produce.svg',
     spice: '/images/honey_produce.svg',
     seed: '/images/seeds_produce.svg',
@@ -25,9 +28,27 @@ export const CATEGORY_IMAGES = {
     default: '/images/agri_placeholder.svg',
 }
 
-export function getCropImage(nameOrCategory) {
-    if (!nameOrCategory) return CATEGORY_IMAGES.default
-    const str = String(nameOrCategory).toLowerCase()
+export function getCropImage(itemOrName) {
+    if (!itemOrName) return CATEGORY_IMAGES.default
+
+    // If an object with an uploaded image URL is provided, return uploaded image first!
+    if (typeof itemOrName === 'object') {
+        const path = itemOrName.image_url || itemOrName.image_path
+        if (path) {
+            if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) {
+                return path
+            }
+            const cleanPath = path.replace(/^\/?storage\//, '')
+            return `/storage/${cleanPath}`
+        }
+        itemOrName = itemOrName.title || itemOrName.category?.name || ''
+    } else if (typeof itemOrName === 'string') {
+        if (itemOrName.startsWith('http://') || itemOrName.startsWith('https://') || itemOrName.startsWith('/storage/') || itemOrName.startsWith('blob:') || itemOrName.startsWith('data:')) {
+            return itemOrName
+        }
+    }
+
+    const str = String(itemOrName).toLowerCase()
 
     for (const [key, path] of Object.entries(CATEGORY_IMAGES)) {
         if (key !== 'default' && str.includes(key)) {
