@@ -75,9 +75,18 @@ async function handleComplete(id) {
   }
 }
 
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
+
+async function handleLogout() {
+  await authStore.logout()
+  router.push('/login')
+}
+
 function formatPrice(val) {
-  if (val === undefined || val === null) return '0.00'
-  return Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  if (val === undefined || val === null) return '0'
+  const num = Number(val)
+  return num % 1 === 0 ? num.toLocaleString('en-US') : num.toLocaleString('en-US', { maximumFractionDigits: 2 })
 }
 
 function formatDate(dateStr) {
@@ -103,10 +112,43 @@ function getStatusBadgeClass(status) {
 
 <template>
   <div class="fulfillment-portal-page">
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+      <div class="top-nav__inner">
+        <router-link to="/dashboard" class="top-nav__brand">
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
+        </router-link>
+        <div class="top-nav__right">
+          <router-link to="/dashboard" class="top-nav__link">
+            Dashboard
+          </router-link>
+          <router-link to="/listings" class="top-nav__link">
+            Marketplace
+          </router-link>
+          <router-link to="/farmer/listings" class="top-nav__link">
+            Crop Listings
+          </router-link>
+          <router-link to="/farmer/fulfillments" class="top-nav__link active">
+            Fulfillments
+          </router-link>
+          <router-link to="/capabilities/apply" class="top-nav__link">
+            Capabilities
+          </router-link>
+          <ThemeToggle />
+          <span class="user-pill">
+            <img :src="getAvatarImage('farmer')" class="user-pill-avatar" /> {{ authStore.user?.first_name }}
+          </span>
+          <button @click="handleLogout" class="top-nav__logout">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </nav>
+
     <!-- Header -->
     <header class="portal-header">
       <div class="portal-header__inner">
-        <div class="header-badge">🚜 Farmer Fulfillment Portal</div>
         <h1 class="header-title">Produce Fulfillment Orders</h1>
         <p class="header-sub">
           Manage buyer orders for your farm produce. Accept orders, release stock on rejection, or confirm handoff.
@@ -126,14 +168,14 @@ function getStatusBadgeClass(status) {
             :class="{ active: activeTab === 'pending' }"
             @click="activeTab = 'pending'"
           >
-            ⏳ Pending Action
+            Pending Action
           </button>
           <button
             class="tab"
             :class="{ active: activeTab === 'accepted' }"
             @click="activeTab = 'accepted'"
           >
-            ✅ Accepted
+            Accepted
           </button>
           <button
             class="tab"
@@ -154,7 +196,7 @@ function getStatusBadgeClass(status) {
             :class="{ active: activeTab === 'rejected' }"
             @click="activeTab = 'rejected'"
           >
-            🛑 Rejected
+            Rejected
           </button>
         </div>
       </div>
@@ -182,7 +224,7 @@ function getStatusBadgeClass(status) {
 
         <!-- Empty State -->
         <div v-else-if="fulfillmentStore.fulfillments.length === 0" class="state-card empty-card">
-          <div class="empty-icon">🌾</div>
+          <img :src="EMPTY_STATE_IMAGE" class="empty-fulfill-img" alt="No orders" />
           <h2>No Fulfillment Orders</h2>
           <p>You do not have any produce fulfillment requests matching this tab filter.</p>
           <router-link to="/farmer/listings" class="btn btn--primary mt-4">
@@ -200,7 +242,7 @@ function getStatusBadgeClass(status) {
             <!-- Card Header -->
             <div class="fulfillment-card__header">
               <div class="order-meta">
-                <span class="order-icon">📦</span>
+                <img src="/images/seeds_produce.svg" class="order-img-icon" alt="Order" />
                 <div>
                   <h3 class="order-number">
                     {{ fulfillment.order?.order_number || `Order #${fulfillment.order_id}` }}
@@ -218,7 +260,7 @@ function getStatusBadgeClass(status) {
 
             <!-- Buyer Summary -->
             <div class="buyer-box">
-              <span class="buyer-icon">👨‍💼</span>
+              <img :src="getAvatarImage('buyer')" class="buyer-avatar-mini" alt="Buyer" />
               <div class="buyer-info">
                 <strong>Buyer:</strong>
                 <span>
@@ -264,7 +306,7 @@ function getStatusBadgeClass(status) {
                     :disabled="processingId === fulfillment.id"
                     class="btn btn--success btn--sm"
                   >
-                    Accept Order ✅
+                    Accept Order
                   </button>
 
                   <button
@@ -272,7 +314,7 @@ function getStatusBadgeClass(status) {
                     :disabled="processingId === fulfillment.id"
                     class="btn btn--danger-outline btn--sm"
                   >
-                    Reject & Release Stock 🛑
+                    Reject & Release Stock
                   </button>
                 </template>
 
@@ -283,7 +325,7 @@ function getStatusBadgeClass(status) {
                     :disabled="processingId === fulfillment.id"
                     class="btn btn--primary btn--sm"
                   >
-                    Mark as Delivered & Completed 🎉
+                    Mark as Delivered & Completed
                   </button>
                 </template>
 
@@ -314,32 +356,57 @@ function getStatusBadgeClass(status) {
 <style scoped>
 .fulfillment-portal-page {
   min-height: 100vh;
-  background: var(--surface);
+  background: var(--surface-alt);
   color: var(--text-primary);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  transition: background 0.3s, color 0.3s;
+  font-family: var(--font-sans);
+}
+
+.top-nav {
+  background: #064e3b;
+  padding: 0 1.5rem;
+  box-shadow: var(--shadow-xs);
+}
+.top-nav__inner {
+  max-width: 1200px; margin: 0 auto; height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.top-nav__brand { color: #fff; font-size: 1.15rem; font-weight: 700; text-decoration: none; }
+.top-nav__brand strong { color: var(--brand-gold); }
+.top-nav__right { display: flex; align-items: center; gap: 0.85rem; }
+.top-nav__link {
+  color: rgba(255,255,255,0.88) !important;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+.top-nav__link.active {
+  background: rgba(255,255,255,0.18) !important;
+  color: #ffffff !important;
+}
+.user-pill {
+  color: rgba(255,255,255,0.88);
+  font-size: 0.825rem;
+  font-weight: 600;
+}
+.top-nav__logout {
+  background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius-xs); padding: 0.35rem 0.85rem; font-size: 0.8125rem; font-weight: 600;
+  cursor: pointer;
 }
 
 /* Header */
 .portal-header {
-  background: var(--surface-card);
-  padding: 2.5rem 1.5rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.3s, border-color 0.3s;
+  background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+  color: #ffffff;
+  padding: 1.75rem 1.5rem 1.25rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.portal-header__inner { max-width: 1000px; margin: 0 auto; }
-.header-badge {
-  display: inline-block;
-  background: var(--brand-green-light);
-  color: var(--brand-green-dark);
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
-  margin-bottom: 0.75rem;
-}
-.header-title { font-size: 2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem; }
-.header-sub { color: var(--text-secondary); font-size: 1rem; margin-bottom: 2rem; }
+.portal-header__inner { max-width: 1200px; margin: 0 auto; }
+.header-title { font-size: 1.5rem; font-weight: 800; color: #ffffff; margin-bottom: 0.25rem; }
+.header-sub { color: rgba(255,255,255,0.82); font-size: 0.875rem; margin-bottom: 1.25rem; }
 
 /* Filter Tabs */
 .filter-tabs {
@@ -503,4 +570,11 @@ function getStatusBadgeClass(status) {
   animation: spin 0.8s linear infinite; margin: 0 auto 1rem;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.user-pill-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.2rem; }
+.empty-fulfill-img { width: 100px; height: 85px; margin: 0 auto 0.5rem; display: block; }
+.order-img-icon { width: 24px; height: 24px; object-fit: contain; }
+.buyer-avatar-mini { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; vertical-align: middle; }
 </style>

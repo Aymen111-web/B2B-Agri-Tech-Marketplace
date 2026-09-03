@@ -61,6 +61,7 @@ function formatDate(dateStr) {
     minute: '2-digit',
   })
 }
+import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
 </script>
 
 <template>
@@ -73,7 +74,7 @@ function formatDate(dateStr) {
         </button>
         <div class="top-nav__right">
           <router-link v-if="auth.isAuthenticated" to="/cart" class="top-nav__link cart-link">
-            🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
           </router-link>
           <router-link v-if="auth.isAuthenticated" to="/dashboard" class="top-nav__link">
             Dashboard
@@ -100,10 +101,16 @@ function formatDate(dateStr) {
 
           <!-- Main Produce Card -->
           <div class="main-card">
+            <!-- Produce Crop Banner -->
+            <div class="detail-hero-banner">
+              <img :src="getCropImage(listing.title || listing.category?.name)" class="detail-hero-img" :alt="listing.title" />
+            </div>
+
             <div class="card-header-flex">
               <div>
                 <span class="category-badge">
-                  🌾 {{ listing.category?.name || 'Produce' }}
+                  <img :src="getCropImage(listing.category?.name)" class="cat-badge-thumb" />
+                  <span>{{ listing.category?.name || 'Produce' }}</span>
                 </span>
                 <h1 class="produce-title">{{ listing.title }}</h1>
                 <p class="produce-sub">Published by verified Ethiopian agricultural producer</p>
@@ -158,7 +165,7 @@ function formatDate(dateStr) {
             <h3 class="side-title">Producer Information</h3>
 
             <div class="farmer-profile">
-              <div class="avatar-icon">👨‍🌾</div>
+              <img :src="getAvatarImage('farmer')" class="avatar-photo" alt="Farmer Avatar" />
               <div>
                 <h4 class="farmer-fullname">
                   {{ listing.farmer?.first_name }} {{ listing.farmer?.second_name }}
@@ -220,7 +227,7 @@ function formatDate(dateStr) {
                   :disabled="isAddingCart || listing.quantity_available <= 0"
                   @click="handleAddToCart"
                 >
-                  🛒 {{ isAddingCart ? 'Adding...' : 'Add to Cart' }}
+                  {{ isAddingCart ? 'Adding...' : 'Add to Cart' }}
                 </button>
               </div>
             </div>
@@ -228,7 +235,7 @@ function formatDate(dateStr) {
 
           <!-- Price History Section -->
           <div class="history-section">
-            <h2 class="section-title">📊 Price History & Rate Transparency</h2>
+            <h2 class="section-title">Price History & Rate Transparency</h2>
             <p class="section-sub">
               Historical record of prices set by the farmer for {{ listing.title }}.
             </p>
@@ -308,12 +315,19 @@ function formatDate(dateStr) {
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
+.detail-hero-banner {
+  width: 100%; height: 220px; border-radius: 8px; overflow: hidden;
+  margin-bottom: 1.25rem; background: var(--surface-alt);
+}
+.detail-hero-img { width: 100%; height: 100%; object-fit: cover; }
+
 .card-header-flex { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
 .category-badge {
   background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;
   padding: 0.25rem 0.65rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700;
-  display: inline-block; margin-bottom: 0.5rem;
+  display: inline-flex; align-items: center; gap: 0.35rem; margin-bottom: 0.5rem;
 }
+.cat-badge-thumb { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
 .produce-title { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem; }
 .produce-sub { color: var(--text-secondary); font-size: 0.9rem; }
 
@@ -338,6 +352,7 @@ function formatDate(dateStr) {
 
 .side-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; border-bottom: 2px solid var(--surface-alt); padding-bottom: 0.5rem; }
 .farmer-profile { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+.avatar-photo { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--brand-green-border); }
 .avatar-icon { font-size: 2.25rem; background: #f0fdf4; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .farmer-fullname { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
 .verified-tag { font-size: 0.75rem; color: var(--brand-green); font-weight: 600; }

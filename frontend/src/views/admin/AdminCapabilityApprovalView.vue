@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCapabilityStore } from '@/stores/capability'
@@ -18,6 +18,11 @@ const processingId = ref(null)
 
 const bannerSuccess = ref('')
 const bannerError = ref('')
+
+async function handleLogout() {
+  await auth.logout()
+  router.push('/')
+}
 
 onMounted(async () => {
   if (!auth.isAdmin) {
@@ -45,7 +50,7 @@ function handleTypeFilter(event) {
 }
 
 async function handleApprove(app) {
-  if (!confirm(`Are you sure you want to approve ${app.user?.first_name} ${app.user?.second_name}'s ${app.capability_type} capability?`)) {
+  if (!confirm(`Approve ${app.user?.first_name} ${app.user?.second_name}'s ${app.capability_type} capability?`)) {
     return
   }
 
@@ -102,18 +107,49 @@ async function submitRejection() {
 function formatDate(dateStr) {
   if (!dateStr) return '-'
   return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
     month: 'short',
     day: 'numeric',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
   })
 }
+import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 </script>
 
 <template>
   <div class="admin-cap-view">
-    <!-- Header -->
+    
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+      <div class="top-nav__inner">
+        <router-link to="/dashboard" class="top-nav__brand">
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
+        </router-link>
+        <div class="top-nav__right">
+          <router-link to="/dashboard" class="top-nav__link">
+            Dashboard
+          </router-link>
+          <router-link to="/listings" class="top-nav__link">
+            Marketplace
+          </router-link>
+          <router-link to="/admin/capability-applications" class="top-nav__link active">
+            Approvals
+          </router-link>
+          <ThemeToggle />
+          <span class="user-pill">
+            <img :src="getAvatarImage('admin')" class="user-pill-avatar" /> {{ auth.user?.first_name }}
+          </span>
+          <button @click="handleLogout" class="top-nav__logout">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Header -->
     <header class="admin-header">
       <div class="admin-header__inner">
         <div class="header-nav-btns mb-3">
@@ -126,78 +162,90 @@ function formatDate(dateStr) {
         </div>
         <div class="header-flex">
           <div>
-            <h1 class="admin-title">Admin — Capability Review & Approval</h1>
-            <p class="admin-sub">
-              Review applicant verification details and grant Farmer or Business Buyer capabilities.
-            </p>
+            <h1 class="hero-title">Capability Approvals Queue</h1>
+            <p class="hero-sub">Review and verify Ethiopian farmer & business buyer registration requests</p>
           </div>
-          <span class="admin-badge">🛡️ Admin Mode</span>
-        </div>
-      </div>
-    </header>
-
-    <main class="admin-main">
-      <div class="admin-container">
-
-        <!-- Banners -->
-        <div v-if="bannerSuccess" class="banner banner--success">
-          ✅ {{ bannerSuccess }}
-        </div>
-        <div v-if="bannerError" class="banner banner--error">
-          ⚠️ {{ bannerError }}
+          <div class="trust-chips">
+            <span class="chip">Admin Verification</span>
+            <span class="chip">License Inspection</span>
+            <span class="chip">Instant Grant</span>
+          </div>
         </div>
 
-        <!-- Filter Controls -->
-        <div class="controls-card">
-          <div class="filter-tabs">
+        <!-- High Contrast Status Filter Tabs -->
+        <div class="filter-tabs-wrap">
+          <div class="hero-filter-tabs">
             <button
-              class="tab-btn"
+              class="tab-pill"
               :class="{ active: selectedStatus === 'pending' }"
               @click="handleStatusFilter('pending')"
             >
               Pending Approval
             </button>
             <button
-              class="tab-btn"
+              class="tab-pill"
               :class="{ active: selectedStatus === 'approved' }"
               @click="handleStatusFilter('approved')"
             >
               Approved
             </button>
             <button
-              class="tab-btn"
+              class="tab-pill"
               :class="{ active: selectedStatus === 'rejected' }"
               @click="handleStatusFilter('rejected')"
             >
               Rejected
             </button>
             <button
-              class="tab-btn"
+              class="tab-pill"
               :class="{ active: selectedStatus === '' }"
               @click="handleStatusFilter('')"
             >
               All Applications
             </button>
           </div>
+        </div>
+      </div>
+    </header>
 
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="admin-container">
+
+        <!-- Banners -->
+        <div v-if="bannerSuccess" class="alert alert-success">
+          ✅ {{ bannerSuccess }}
+        </div>
+        <div v-if="bannerError" class="alert alert-error">
+          ⚠️ {{ bannerError }}
+        </div>
+
+        <!-- Secondary Controls Bar -->
+        <div class="controls-bar">
           <div class="type-filter">
-            <label for="type-select">Filter by Type:</label>
+            <label for="type-select">Capability Type:</label>
             <select id="type-select" :value="selectedType" @change="handleTypeFilter">
               <option value="">All Capability Types</option>
-              <option value="farmer">🌾 Farmer</option>
-              <option value="buyer">🏬 Business Buyer</option>
+              <option value="farmer">Farmer</option>
+              <option value="buyer">Business Buyer</option>
             </select>
+          </div>
+          <div class="stats-counter">
+            Showing <strong>{{ capabilityStore.adminApplications.length }}</strong> application(s)
           </div>
         </div>
 
-        <!-- Applications Table / Cards -->
+        <!-- Table Card -->
         <div class="table-card">
-          <div v-if="capabilityStore.loading" class="state-msg">
-            Loading applications...
+          <div v-if="capabilityStore.loading" class="state-box">
+            <div class="spinner"></div>
+            <p class="state-title">Loading capability requests...</p>
           </div>
 
-          <div v-else-if="capabilityStore.adminApplications.length === 0" class="state-msg">
-            No capability applications found matching current criteria.
+          <div v-else-if="capabilityStore.adminApplications.length === 0" class="state-box empty-state">
+            <img :src="EMPTY_STATE_IMAGE" class="empty-cap-img" alt="No requests" />
+            <h3 class="state-title">No capability requests found</h3>
+            <p class="state-sub">There are no applications matching the selected filters.</p>
           </div>
 
           <div v-else class="app-table-wrap">
@@ -208,7 +256,7 @@ function formatDate(dateStr) {
                   <th>Phone Number</th>
                   <th>Requested Capability</th>
                   <th>Submission Date</th>
-                  <th>Verification Info / Documents</th>
+                  <th>Verification Info</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -217,16 +265,21 @@ function formatDate(dateStr) {
                 <tr v-for="app in capabilityStore.adminApplications" :key="app.id">
                   <td>
                     <div class="user-info">
-                      <span class="user-name">
-                        {{ app.user?.first_name }} {{ app.user?.second_name }}
-                      </span>
-                      <span class="user-id">ID: #{{ app.user_id }}</span>
+                      <img :src="getAvatarImage(app.capability_type)" class="applicant-avatar" alt="User" />
+                      <div>
+                        <span class="user-name">
+                          {{ app.user?.first_name }} {{ app.user?.second_name }}
+                        </span>
+                        <span class="user-id">User ID: #{{ app.user_id }}</span>
+                      </div>
                     </div>
                   </td>
-                  <td>{{ app.user?.phone || '-' }}</td>
+                  <td>
+                    <span class="phone-num">{{ app.user?.phone || '-' }}</span>
+                  </td>
                   <td>
                     <span class="cap-type-badge" :class="`cap-type-badge--${app.capability_type}`">
-                      {{ app.capability_type === 'farmer' ? '🌾 Farmer' : '🏬 Business Buyer' }}
+                      {{ app.capability_type === 'farmer' ? 'Farmer' : 'Business Buyer' }}
                     </span>
                   </td>
                   <td class="date-cell">{{ formatDate(app.created_at) }}</td>
@@ -239,7 +292,7 @@ function formatDate(dateStr) {
                     <span v-else class="text-muted">No documents attached</span>
                   </td>
                   <td>
-                    <span class="status-pill" :class="`status-pill--${app.status}`">
+                    <span class="status-badge" :class="`badge--${app.status}`">
                       {{ app.status.toUpperCase() }}
                     </span>
                   </td>
@@ -276,13 +329,13 @@ function formatDate(dateStr) {
       </div>
     </main>
 
-    <!-- Rejection Reason Modal -->
+    <!-- Rejection Modal -->
     <div v-if="showRejectModal" class="modal-overlay">
       <div class="modal-card">
-        <h3 class="modal-title">Reject Capability Application</h3>
+        <h3 class="modal-title">Reject Capability Request</h3>
         <p class="modal-sub">
           Please state the reason for rejecting {{ selectedAppForReject?.user?.first_name }}'s
-          {{ selectedAppForReject?.capability_type }} capability request.
+          {{ selectedAppForReject?.capability_type }} request.
         </p>
 
         <div class="form-group">
@@ -290,8 +343,8 @@ function formatDate(dateStr) {
           <textarea
             id="rejection-input"
             v-model="rejectionReason"
-            rows="4"
-            placeholder="e.g. Invalid TIN number provided. Please re-submit with verified trade license documents."
+            rows="3"
+            placeholder="e.g. Invalid TIN number provided. Please re-submit with verified license."
           ></textarea>
         </div>
 
@@ -317,186 +370,295 @@ function formatDate(dateStr) {
 .admin-cap-view {
   min-height: 100vh;
   background: var(--surface-alt);
-  padding-bottom: 4rem;
 }
 
-.admin-header {
-  background: #1e293b;
+/* Top Navigation Bar */
+.top-nav {
+  background: #064e3b;
+  padding: 0 1.5rem;
+  box-shadow: var(--shadow-xs);
+}
+.top-nav__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.top-nav__brand {
   color: #fff;
-  padding: 2rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.top-nav__brand strong { color: var(--brand-gold); }
+.top-nav__right { display: flex; align-items: center; gap: 0.85rem; }
+.top-nav__link {
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-size: 0.825rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-xs);
+  transition: all 0.15s ease;
+}
+.top-nav__link.active, .top-nav__link:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+.user-pill {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.top-nav__logout {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--radius-xs);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.top-nav__logout:hover { background: rgba(255,255,255,0.22); }
+
+/* Hero Header */
+.admin-header {
+  background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+  color: #fff;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .admin-header__inner {
   max-width: 1200px;
   margin: 0 auto;
 }
-.back-btn {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.4rem 0.9rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
+
+.hero-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
-.back-btn:hover { background: rgba(255, 255, 255, 0.25); }
-
-.header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.hero-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.15rem;
+  letter-spacing: -0.01em;
 }
-.admin-title { font-size: 1.75rem; font-weight: 700; }
-.admin-sub { color: #94a3b8; font-size: 0.95rem; margin-top: 0.25rem; }
-.admin-badge {
-  background: #334155;
-  color: #fbbf24;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
+.hero-sub {
+  color: #94a3b8;
   font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid #475569;
 }
 
-.admin-main { padding: 2rem 1.5rem 0; }
-.admin-container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
-
-.banner {
-  padding: 0.9rem 1.25rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-.banner--success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.banner--error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-
-.controls-card {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem 1.5rem;
+.trust-chips {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.chip {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Filter Tabs Carousel — High Contrast Styling */
+.filter-tabs-wrap {
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+.hero-filter-tabs {
+  display: flex;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+.tab-pill {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: var(--radius-full);
+  padding: 0.35rem 0.95rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.tab-pill:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+.tab-pill.active {
+  background: #fbbf24 !important;
+  color: #0f172a !important;
+  border-color: #fbbf24 !important;
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(251, 191, 36, 0.4);
+}
+
+/* Main Layout */
+.admin-main {
+  padding: 1.5rem 1.5rem 3.5rem;
+}
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
-.filter-tabs { display: flex; gap: 0.5rem; }
-.tab-btn {
-  padding: 0.5rem 1rem;
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.alert-success { background: var(--brand-green-light); color: var(--brand-green-dark); border: 1px solid var(--brand-green-border); }
+.alert-error   { background: var(--error-bg); color: var(--error-dark); border: 1px solid var(--error-border); }
+
+.controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface-card);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #f8fafc;
-  font-size: 0.875rem;
+  border-radius: var(--radius-md);
+  padding: 0.65rem 1rem;
+  font-size: 0.8125rem;
+  box-shadow: var(--shadow-xs);
+}
+.type-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-weight: 600;
   color: var(--text-secondary);
-  cursor: pointer;
 }
-.tab-btn.active {
-  background: var(--brand-green);
-  color: #fff;
-  border-color: var(--brand-green);
-}
-
-.type-filter { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; }
 .type-filter select {
-  padding: 0.45rem 0.75rem;
+  padding: 0.3rem 0.6rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.875rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text-primary);
+  outline: none;
 }
+.stats-counter { color: var(--text-secondary); }
 
+/* Table Section */
 .table-card {
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  box-shadow: var(--shadow-xs);
 }
 
-.state-msg { padding: 3rem; text-align: center; color: var(--text-secondary); }
+.state-box {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.state-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+.state-sub { font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.25rem; }
 
 .app-table-wrap { overflow-x: auto; }
-.app-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+.app-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.825rem; }
 .app-table th {
-  background: #f8fafc;
-  padding: 0.85rem 1rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  background: var(--surface-alt);
+  padding: 0.65rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
   border-bottom: 1px solid var(--border);
 }
 .app-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--border-subtle);
   vertical-align: top;
 }
 
-.user-name { font-weight: 600; display: block; color: var(--text-primary); }
-.user-id { font-size: 0.75rem; color: var(--text-secondary); }
+.user-name { font-weight: 700; display: block; color: var(--text-primary); }
+.user-id { font-size: 0.72rem; color: var(--text-muted); }
+.phone-num { font-weight: 600; color: var(--text-secondary); }
 
 .cap-type-badge {
-  display: inline-block;
-  padding: 0.25rem 0.65rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-.cap-type-badge--farmer { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-.cap-type-badge--buyer  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
-
-.date-cell { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; }
-
-.doc-list { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.825rem; }
-.doc-row strong { text-transform: capitalize; color: var(--text-secondary); }
-
-.status-pill {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
   font-weight: 700;
 }
-.status-pill--pending  { background: #fef3c7; color: #92400e; }
-.status-pill--approved { background: #dcfce7; color: #166534; }
-.status-pill--rejected { background: #fee2e2; color: #991b1b; }
+.cap-type-badge--farmer { background: var(--brand-green-light); color: var(--brand-green-dark); }
+.cap-type-badge--buyer  { background: #eff6ff; color: #1d4ed8; }
 
-.action-btns { display: flex; gap: 0.5rem; }
+.date-cell { font-size: 0.78125rem; color: var(--text-secondary); white-space: nowrap; }
+
+.doc-list { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.78125rem; }
+.doc-row strong { text-transform: capitalize; color: var(--text-secondary); }
+
+.status-badge {
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.badge--pending  { background: var(--brand-gold-light); color: var(--brand-gold-dark); }
+.badge--approved { background: var(--brand-green-light); color: var(--brand-green-dark); }
+.badge--rejected { background: var(--error-bg); color: var(--error-dark); }
+
+.action-btns { display: flex; gap: 0.35rem; }
 .btn-approve {
-  padding: 0.4rem 0.8rem;
-  background: #166534;
+  padding: 0.3rem 0.65rem;
+  background: var(--brand-green);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
 }
-.btn-approve:hover:not(:disabled) { background: #14532d; }
+.btn-approve:hover:not(:disabled) { background: var(--brand-green-dark); }
 
 .btn-reject {
-  padding: 0.4rem 0.8rem;
-  background: #991b1b;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  background: var(--error-bg);
+  color: var(--error-dark);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
 }
-.btn-reject:hover:not(:disabled) { background: #7f1d1d; }
+.btn-reject:hover:not(:disabled) { background: var(--error); color: #fff; }
 
-.text-success { color: #166534; }
-.text-danger  { color: #991b1b; }
+.text-success { color: var(--brand-green-dark); }
+.text-danger  { color: var(--error-dark); }
 .font-semibold { font-weight: 600; }
-.text-muted   { color: var(--text-secondary); font-size: 0.8rem; }
+.text-muted   { color: var(--text-muted); font-size: 0.78125rem; }
 
 /* Modal */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -504,45 +666,66 @@ function formatDate(dateStr) {
   z-index: 1000;
 }
 .modal-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.75rem;
-  max-width: 500px;
+  background: var(--surface-card);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  max-width: 440px;
   width: 100%;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-.modal-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
-.modal-sub   { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.25rem; }
-
-.form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.5rem; }
-.form-group label { font-size: 0.85rem; font-weight: 600; }
-.form-group textarea {
-  padding: 0.65rem 0.85rem;
+  box-shadow: var(--shadow-lg);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 0.9rem;
+}
+.modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; color: var(--text-primary); }
+.modal-sub   { font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1rem; }
+
+.form-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; }
+.form-group label { font-size: 0.78125rem; font-weight: 600; color: var(--text-primary); }
+.form-group textarea {
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  font-size: 0.8125rem;
+  font-family: var(--font-sans);
+  background: var(--surface);
+  color: var(--text-primary);
   outline: none;
 }
+.form-group textarea:focus { border-color: var(--brand-green); }
 
-.modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
 .btn-cancel {
-  padding: 0.6rem 1.2rem;
+  padding: 0.45rem 0.85rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #fff;
-  font-size: 0.9rem;
+  border-radius: var(--radius-xs);
+  background: var(--surface-alt);
+  color: var(--text-primary);
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
 }
 .btn-confirm-reject {
-  padding: 0.6rem 1.2rem;
+  padding: 0.45rem 0.85rem;
   border: none;
-  border-radius: 6px;
-  background: #991b1b;
+  border-radius: var(--radius-xs);
+  background: var(--error);
   color: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 700;
   cursor: pointer;
 }
 .btn-confirm-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--brand-green); border-radius: 50%;
+  animation: spin 0.8s linear infinite; margin: 0 auto 0.75rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Image Enhancements */
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; }
+.user-pill-avatar { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.2rem; }
+.empty-cap-img { width: 95px; height: 80px; margin: 0 auto 0.5rem; display: block; }
+.user-info { display: flex; align-items: center; gap: 0.5rem; }
+.applicant-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 </style>
