@@ -63,7 +63,7 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path === '/dashboard' }"
       >
-        <span class="nav-icon">🏠</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span class="nav-label">Dashboard</span>
       </router-link>
 
@@ -72,7 +72,7 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path.startsWith('/listings') }"
       >
-        <span class="nav-icon">🌾</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>
         <span class="nav-label">Marketplace</span>
       </router-link>
 
@@ -81,7 +81,7 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path === '/cart' }"
       >
-        <span class="nav-icon">🛒</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
         <span class="nav-label">Cart</span>
         <span v-if="cartStore.itemCount > 0" class="cart-badge">
           {{ cartStore.itemCount }}
@@ -94,7 +94,7 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path.startsWith('/orders') }"
       >
-        <span class="nav-icon">📋</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         <span class="nav-label">My Orders</span>
       </router-link>
 
@@ -107,7 +107,7 @@ async function handleLogout() {
           class="nav-item"
           :class="{ active: route.path === '/farmer/listings' }"
         >
-          <span class="nav-icon">🌾</span>
+          <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           <span class="nav-label">Crop Listings</span>
         </router-link>
 
@@ -116,7 +116,7 @@ async function handleLogout() {
           class="nav-item"
           :class="{ active: route.path === '/farmer/fulfillments' }"
         >
-          <span class="nav-icon">🚜</span>
+          <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
           <span class="nav-label">Fulfillments</span>
         </router-link>
       </template>
@@ -127,7 +127,7 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path.startsWith('/admin') }"
       >
-        <span class="nav-icon">🛡️</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span class="nav-label">Approvals</span>
       </router-link>
 
@@ -138,7 +138,7 @@ async function handleLogout() {
         class="nav-item"
         :class="{ active: route.path === '/capabilities/apply' }"
       >
-        <span class="nav-icon">📜</span>
+        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
         <span class="nav-label">Capabilities</span>
       </router-link>
     </nav>
@@ -150,14 +150,15 @@ async function handleLogout() {
         @click="handleLogout"
         class="logout-btn"
       >
-        <span class="btn-icon">🚪</span> Sign Out
+        <svg class="btn-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
       </button>
       <router-link
         v-else
         to="/login"
         class="login-btn"
       >
-        🔐 Sign In
+        Sign In
       </router-link>
     </div>
   </aside>

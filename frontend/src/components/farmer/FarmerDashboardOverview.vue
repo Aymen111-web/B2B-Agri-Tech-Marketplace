@@ -82,7 +82,7 @@ function formatDate(dateStr) {
       
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <img src="/images/crops/wheat.jpg" class="kpi-img-icon crop-circle" alt="Active Stock" />
+          <img src="/images/wheat_produce.jpg" class="kpi-img-icon crop-circle" alt="Active Stock" />
           <span class="kpi-badge kpi-badge--emerald">Active Stock</span>
         </div>
         <div class="kpi-val">{{ activeListings.length }}</div>
@@ -92,7 +92,7 @@ function formatDate(dateStr) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <img src="/images/crops/seeds.svg" class="kpi-img-icon" alt="Reserved" />
+          <img src="/images/seeds_produce.svg" class="kpi-img-icon" alt="Reserved" />
           <span class="kpi-badge kpi-badge--amber">Buyer Reserved</span>
         </div>
         <div class="kpi-val">{{ totalReserved }}</div>
@@ -102,7 +102,7 @@ function formatDate(dateStr) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <img src="/images/crops/coffee.jpg" class="kpi-img-icon crop-circle" alt="Valuation" />
+          <img src="/images/coffee_produce.jpg" class="kpi-img-icon crop-circle" alt="Valuation" />
           <span class="kpi-badge kpi-badge--gold">Valuation</span>
         </div>
         <div class="kpi-val">{{ formatPrice(totalInventoryValuation) }} <span class="currency">ETB</span></div>
@@ -198,7 +198,7 @@ function formatDate(dateStr) {
         
         <div class="content-card">
           <div class="card-header">
-            <h2 class="card-title">🚜 Fulfillment Orders</h2>
+            <h2 class="card-title">Fulfillment Orders</h2>
           </div>
           <p class="panel-desc">
             When business buyers place wholesale orders containing your crops, fulfillment order tasks appear here for packing & shipping.
@@ -209,7 +209,7 @@ function formatDate(dateStr) {
         </div>
 
         <div class="content-card card--accent">
-          <h3 class="panel-title">💡 Supplier Best Practices</h3>
+          <h3 class="panel-title">Supplier Best Practices</h3>
           <ul class="tips-list">
             <li><strong>Keep Stock Updated:</strong> Regularly update quantities after harvesting or off-platform sales.</li>
             <li><strong>Batch Quality:</strong> Specify grade and moisture content in descriptions to command higher ETB rates.</li>

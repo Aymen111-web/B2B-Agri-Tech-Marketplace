@@ -1,3 +1,8 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
 import { getCropImage, getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
@@ -71,7 +76,7 @@ function formatPrice(val) {
             Marketplace
           </router-link>
           <router-link to="/cart" class="top-nav__link active">
-            🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
           </router-link>
           <router-link v-if="authStore.isAuthenticated" to="/orders" class="top-nav__link">
             My Orders
@@ -223,7 +228,7 @@ function formatPrice(val) {
                     title="Remove item"
                     :disabled="updatingId === item.id"
                   >
-                    🗑️
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                   </button>
                 </div>
               </div>

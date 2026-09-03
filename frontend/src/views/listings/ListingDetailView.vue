@@ -74,7 +74,7 @@ import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
         </button>
         <div class="top-nav__right">
           <router-link v-if="auth.isAuthenticated" to="/cart" class="top-nav__link cart-link">
-            🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
           </router-link>
           <router-link v-if="auth.isAuthenticated" to="/dashboard" class="top-nav__link">
             Dashboard
@@ -227,7 +227,7 @@ import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
                   :disabled="isAddingCart || listing.quantity_available <= 0"
                   @click="handleAddToCart"
                 >
-                  🛒 {{ isAddingCart ? 'Adding...' : 'Add to Cart' }}
+                  {{ isAddingCart ? 'Adding...' : 'Add to Cart' }}
                 </button>
               </div>
             </div>
@@ -235,7 +235,7 @@ import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
 
           <!-- Price History Section -->
           <div class="history-section">
-            <h2 class="section-title">📊 Price History & Rate Transparency</h2>
+            <h2 class="section-title">Price History & Rate Transparency</h2>
             <p class="section-sub">
               Historical record of prices set by the farmer for {{ listing.title }}.
             </p>

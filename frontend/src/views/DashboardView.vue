@@ -31,7 +31,8 @@ async function handleLogout() {
       <div class="dash-nav__inner">
         <div class="dash-nav__left">
           <router-link to="/dashboard" class="dash-nav__brand">
-            🌿 Agri<strong>Market</strong>
+            <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+            Agri<strong>Market</strong>
           </router-link>
         </div>
         <div class="dash-nav__right">
@@ -45,7 +46,7 @@ async function handleLogout() {
             Capabilities
           </router-link>
           <router-link v-if="auth.isAdmin" to="/admin/capability-applications" class="dash-nav__link dash-nav__link--admin">
-            🛡️ Approvals
+            Approvals
           </router-link>
           <ThemeToggle />
           <span class="dash-nav__user">
@@ -87,7 +88,8 @@ async function handleLogout() {
   max-width: 1200px; margin: 0 auto; height: 60px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.dash-nav__brand { color: #fff; font-size: 1.15rem; font-weight: 700; text-decoration: none; }
+.dash-nav__brand { color: #fff; font-size: 1.15rem; font-weight: 700; text-decoration: none; display: flex; align-items: center; }
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; margin-right: 0.35rem; }
 .dash-nav__brand strong { color: var(--brand-gold); }
 .dash-nav__right { display: flex; align-items: center; gap: 1rem; }
 .dash-nav__link {

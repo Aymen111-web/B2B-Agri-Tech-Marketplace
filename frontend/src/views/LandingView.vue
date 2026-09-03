@@ -233,7 +233,7 @@ const crops = [
     <footer class="footer">
       <div class="footer__inner">
         <div class="footer__brand">
-          <span class="navbar__logo">🌿</span>
+          <img src="/images/agri_placeholder.svg" class="navbar__logo-img" alt="AgriMarket Logo" />
           <span class="navbar__name">Agri<strong>Market</strong></span>
         </div>
         <p class="footer__copy">© {{ new Date().getFullYear() }} Agri Market — Ethiopian Farmers B2B Marketplace</p>

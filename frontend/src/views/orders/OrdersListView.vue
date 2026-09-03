@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
+import { EMPTY_STATE_IMAGE, getCropImage, getAvatarImage } from '@/utils/imageHelper'
 
 const router = useRouter()
 const orderStore = useOrderStore()
@@ -77,7 +78,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             Marketplace
           </router-link>
           <router-link to="/cart" class="top-nav__link">
-            🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
           </router-link>
           <router-link to="/orders" class="top-nav__link active">
             My Orders
@@ -105,9 +106,9 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
             <p class="hero-sub">Track wholesale produce fulfillments and payment status</p>
           </div>
           <div class="trust-chips">
-            <span class="chip">📋 Order Tracking</span>
-            <span class="chip">⚡ Escrow Protected</span>
-            <span class="chip">🚚 Farmer Fulfillment</span>
+            <span class="chip">Order Tracking</span>
+            <span class="chip">Escrow Protected</span>
+            <span class="chip">Farmer Fulfillment</span>
           </div>
         </div>
 
@@ -126,28 +127,28 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
               :class="{ active: activeTab === 'pending_payment' }"
               @click="activeTab = 'pending_payment'"
             >
-              ⏳ Pending Payment
+              Pending Payment
             </button>
             <button
               class="tab-pill"
               :class="{ active: activeTab === 'confirmed' }"
               @click="activeTab = 'confirmed'"
             >
-              ✅ Confirmed
+              Confirmed
             </button>
             <button
               class="tab-pill"
               :class="{ active: activeTab === 'completed' }"
               @click="activeTab = 'completed'"
             >
-              🎉 Completed
+              Completed
             </button>
             <button
               class="tab-pill"
               :class="{ active: activeTab === 'cancelled' }"
               @click="activeTab = 'cancelled'"
             >
-              🛑 Cancelled
+              Cancelled
             </button>
           </div>
         </div>
@@ -160,7 +161,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
 
         <!-- Alert Banner -->
         <div v-if="orderStore.error" class="alert alert-error">
-          ⚠️ {{ orderStore.error }}
+          {{ orderStore.error }}
         </div>
 
         <!-- Loading State -->
@@ -189,7 +190,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
           >
             <div class="order-card__header">
               <div class="order-id-group">
-                <span class="order-icon">📦</span>
+                <img src="/images/seeds_produce.svg" class="order-img-icon" alt="Order" />
                 <div>
                   <h3 class="order-number">{{ order.order_number }}</h3>
                   <span class="placed-date">Placed {{ formatDate(order.placed_at || order.created_at) }}</span>

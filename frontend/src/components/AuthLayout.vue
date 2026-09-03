@@ -17,7 +17,7 @@ defineProps({
       <!-- Header / Brand -->
       <header class="auth-brand">
         <RouterLink to="/" class="auth-brand__logo-link">
-          <span class="auth-brand__icon">🌿</span>
+          <img src="/images/agri_placeholder.svg" class="auth-brand-img" alt="AgriMarket" />
           <span class="auth-brand__text">Agri<strong>Market</strong></span>
         </RouterLink>
         <p class="auth-brand__subtitle">Ethiopia's B2B Agricultural Marketplace</p>
@@ -114,6 +114,7 @@ defineProps({
 .auth-brand__icon {
   font-size: 1.8rem;
 }
+.auth-brand-img { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; }
 .auth-brand__text strong {
   color: var(--brand-green, #1a6b3c);
 }

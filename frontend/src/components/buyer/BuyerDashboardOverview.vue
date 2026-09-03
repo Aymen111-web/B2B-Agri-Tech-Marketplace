@@ -99,7 +99,7 @@ function getStatusBadgeClass(status) {
       
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <img src="/images/crops/seeds.svg" class="kpi-img-icon" alt="Orders" />
+          <img src="/images/seeds_produce.svg" class="kpi-img-icon" alt="Orders" />
           <span class="kpi-badge kpi-badge--emerald">Orders</span>
         </div>
         <div class="kpi-val">{{ orderStore.orders.length }}</div>
@@ -119,7 +119,7 @@ function getStatusBadgeClass(status) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <img src="/images/crops/coffee.jpg" class="kpi-img-icon crop-circle" alt="Procurement" />
+          <img src="/images/coffee_produce.jpg" class="kpi-img-icon crop-circle" alt="Procurement" />
           <span class="kpi-badge kpi-badge--amber">Procurement</span>
         </div>
         <div class="kpi-val">{{ formatPrice(totalSpent) }} <span class="currency">ETB</span></div>
@@ -220,7 +220,7 @@ function getStatusBadgeClass(status) {
         </div>
 
         <div class="content-card card--accent">
-          <h3 class="panel-title">💡 Buyer Quality Guarantee</h3>
+          <h3 class="panel-title">Buyer Quality Guarantee</h3>
           <ul class="tips-list">
             <li><strong>Verified Farmers:</strong> All crop listings are tied to registered Ethiopian farmers.</li>
             <li><strong>Multi-Farmer Cart:</strong> Buy from multiple farms in a single transaction with separate fulfillment tracking.</li>

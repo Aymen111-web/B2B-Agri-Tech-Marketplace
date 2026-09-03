@@ -271,14 +271,14 @@ async function handleLogout() {
         <!-- Summary Stats Cards -->
         <div class="stats-grid">
           <div class="stat-card">
-            <img src="/images/crops/coffee.jpg" class="stat-img-icon crop-circle" alt="Total Listings" />
+            <img src="/images/coffee_produce.jpg" class="stat-img-icon crop-circle" alt="Total Listings" />
             <div>
               <span class="stat-val">{{ listingStore.myListings.length }}</span>
               <span class="stat-lbl">Total Produce Listings</span>
             </div>
           </div>
           <div class="stat-card">
-            <img src="/images/crops/wheat.jpg" class="stat-img-icon crop-circle" alt="In Stock" />
+            <img src="/images/wheat_produce.jpg" class="stat-img-icon crop-circle" alt="In Stock" />
             <div>
               <span class="stat-val">
                 {{ listingStore.myListings.filter(l => l.quantity_available > 0).length }}
@@ -287,7 +287,7 @@ async function handleLogout() {
             </div>
           </div>
           <div class="stat-card">
-            <img src="/images/crops/seeds.svg" class="stat-img-icon" alt="Reserved" />
+            <img src="/images/seeds_produce.svg" class="stat-img-icon" alt="Reserved" />
             <div>
               <span class="stat-val">
                 {{ listingStore.myListings.reduce((sum, l) => sum + (l.quantity_reserved || 0), 0) }}

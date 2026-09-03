@@ -163,7 +163,7 @@ async function quickReject(app) {
       <!-- GMV Card -->
       <div class="kpi-card kpi-card--emerald">
         <div class="kpi-card__top">
-          <img src="/images/crops/coffee.jpg" class="admin-kpi-img crop-circle" alt="GMV" />
+          <img src="/images/coffee_produce.jpg" class="admin-kpi-img crop-circle" alt="GMV" />
           <span class="kpi-tag">Gross Volume</span>
         </div>
         <div class="kpi-card__value">
@@ -205,7 +205,7 @@ async function quickReject(app) {
       <!-- Pending Applications Queue -->
       <div class="kpi-card" :class="{ 'kpi-card--warn': statsData.kpis.pending_applications > 0 }">
         <div class="kpi-card__top">
-          <img src="/images/crops/seeds.svg" class="admin-kpi-img" alt="Approvals" />
+          <img src="/images/seeds_produce.svg" class="admin-kpi-img" alt="Approvals" />
           <span class="kpi-tag">Approvals Queue</span>
         </div>
         <div class="kpi-card__value">
@@ -219,7 +219,7 @@ async function quickReject(app) {
       <!-- Pending Farmer Payouts Pool -->
       <div class="kpi-card">
         <div class="kpi-card__top">
-          <span class="kpi-icon">💳</span>
+          <svg class="kpi-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
           <span class="kpi-tag">Farmer Escrow</span>
         </div>
         <div class="kpi-card__value">
@@ -233,7 +233,7 @@ async function quickReject(app) {
       <!-- Payment Exception Disputes -->
       <div class="kpi-card" :class="{ 'kpi-card--alert': statsData.kpis.payment_exceptions_count > 0 }">
         <div class="kpi-card__top">
-          <span class="kpi-icon">🚨</span>
+          <svg class="kpi-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           <span class="kpi-tag">Disputes Watch</span>
         </div>
         <div class="kpi-card__value">
@@ -257,7 +257,7 @@ async function quickReject(app) {
           <div class="panel-card__header">
             <div>
               <h3 class="panel-title">
-                🛡️ Pending Verification Queue
+                Pending Verification Queue
               </h3>
               <p class="panel-sub">
                 Quick 1-click approvals for farmer & buyer application requests
@@ -273,7 +273,6 @@ async function quickReject(app) {
           </div>
 
           <div v-else-if="statsData.pending_approvals_preview.length === 0" class="panel-empty">
-            <span class="empty-icon">🎉</span>
             <p>No pending capability applications require approval!</p>
           </div>
 
@@ -293,7 +292,7 @@ async function quickReject(app) {
                   <td>
                     <div class="user-cell">
                       <span class="user-avatar">
-                        {{ app.user?.first_name?.[0] || '👤' }}
+                        {{ app.user?.first_name?.[0] || 'U' }}
                       </span>
                       <div>
                         <div class="user-name">
@@ -306,7 +305,7 @@ async function quickReject(app) {
                   <td>{{ app.user?.phone || '-' }}</td>
                   <td>
                     <span class="role-chip" :class="`role-chip--${app.capability_type}`">
-                      {{ app.capability_type === 'farmer' ? '🌾 Farmer' : '🏬 Business Buyer' }}
+                      {{ app.capability_type === 'farmer' ? 'Farmer' : 'Business Buyer' }}
                     </span>
                   </td>
                   <td class="date-text">{{ formatDate(app.created_at) }}</td>
@@ -339,7 +338,7 @@ async function quickReject(app) {
           <div class="panel-card__header">
             <div>
               <h3 class="panel-title">
-                🌱 Active Crop Produce Categories
+                Active Crop Produce Categories
               </h3>
               <p class="panel-sub">
                 Distribution of active crop listings across marketplace categories
@@ -384,7 +383,7 @@ async function quickReject(app) {
           <div class="panel-card__header">
             <div>
               <h3 class="panel-title">
-                ⚡ Real-Time Audit Feed
+                Real-Time Audit Feed
               </h3>
               <p class="panel-sub">
                 Live system event trail
@@ -407,7 +406,7 @@ async function quickReject(app) {
               class="timeline-item"
             >
               <div class="timeline-icon-wrap" :class="getActionColorClass(log.action)">
-                <span class="timeline-icon">📌</span>
+                <svg class="timeline-svg" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               </div>
               <div class="timeline-body">
                 <div class="timeline-action">
@@ -427,7 +426,7 @@ async function quickReject(app) {
         <!-- System Governance Quick Links -->
         <div class="panel-card panel-card--highlight">
           <h3 class="panel-title">
-            🛠️ Admin Governance Actions
+            Admin Governance Actions
           </h3>
           <p class="panel-sub">
             Direct access to core administration portals
@@ -435,14 +434,14 @@ async function quickReject(app) {
 
           <div class="gov-nav-grid">
             <router-link to="/admin/capability-applications" class="gov-link">
-              <span class="gov-icon">🛡️</span>
+              <svg class="gov-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
               <div class="gov-text">
                 <strong>Capability Approvals</strong>
                 <span>Review documents & grant farmer/buyer roles</span>
               </div>
             </router-link>
             <router-link to="/listings" class="gov-link">
-              <span class="gov-icon">🌾</span>
+              <svg class="gov-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
               <div class="gov-text">
                 <strong>Produce Marketplace</strong>
                 <span>Inspect crop listings & verify batches</span>

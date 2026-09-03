@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useAuthStore } from '@/stores/auth'
+import { getAvatarImage, getCropImage } from '@/utils/imageHelper'
 
 const route = useRoute()
 const router = useRouter()
@@ -75,7 +76,8 @@ function getStatusBadgeClass(status) {
     <nav class="top-nav">
       <div class="top-nav__inner">
         <router-link to="/" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
         </router-link>
 
         <div class="top-nav__right">
@@ -133,7 +135,6 @@ function getStatusBadgeClass(status) {
 
             <!-- Action Toast -->
             <div v-if="actionMsg.text" :class="['alert-toast', actionMsg.type === 'error' ? 'alert-toast--error' : 'alert-toast--success']" class="mt-4">
-              <span>{{ actionMsg.type === 'error' ? '⚠️' : '✅' }}</span>
               <span>{{ actionMsg.text }}</span>
             </div>
           </div>
@@ -151,7 +152,7 @@ function getStatusBadgeClass(status) {
               >
                 <div class="fulfillment-header">
                   <div class="farmer-meta">
-                    <span class="avatar">👨‍🌾</span>
+                    <img :src="getAvatarImage('farmer')" class="user-pill-avatar" alt="Farmer" />
                     <div>
                       <h3 class="farmer-title">
                         Farmer: {{ fulfillment.farmer ? `${fulfillment.farmer.first_name} ${fulfillment.farmer.second_name}` : `ID #${fulfillment.farmer_id}` }}
@@ -167,7 +168,7 @@ function getStatusBadgeClass(status) {
                 <div class="fulfillment-body">
                   <div v-for="item in (fulfillment.items || order.items || [])" :key="item.id" class="item-row">
                     <div class="item-info">
-                      <span class="item-icon">🌾</span>
+                      <img :src="getCropImage(item.listing?.crop_type || item.listing?.title)" class="item-crop-thumb" alt="Crop" />
                       <div>
                         <h4 class="item-name">{{ item.listing?.title || 'Produce Listing' }}</h4>
                         <span class="item-meta">
@@ -214,7 +215,7 @@ function getStatusBadgeClass(status) {
 
                 <!-- Pay Button (If pending payment) -->
                 <div v-if="order.status === 'pending_payment'" class="action-box">
-                  <div class="chapa-badge">💳 Chapa Payment</div>
+                  <div class="chapa-badge">Chapa Payment</div>
                   <button @click="handlePayNow" class="btn btn--primary btn--block btn--lg">
                     Pay Now via Chapa (ETB {{ formatPrice(order.total_amount) }}) →
                   </button>
@@ -229,11 +230,11 @@ function getStatusBadgeClass(status) {
                 </div>
 
                 <div v-else-if="order.status === 'confirmed'" class="confirmed-box">
-                  ✅ Payment Confirmed via Signed Chapa Webhook! Fulfillment processing is active.
+                  Payment Confirmed via Signed Chapa Webhook! Fulfillment processing is active.
                 </div>
 
                 <div v-else-if="order.status === 'cancelled'" class="cancelled-box">
-                  🛑 This order was cancelled. Reserved stock has been released back to farmers.
+                  This order was cancelled. Reserved stock has been released back to farmers.
                 </div>
               </div>
             </div>
@@ -267,8 +268,11 @@ function getStatusBadgeClass(status) {
   align-items: center;
 }
 .top-nav__brand {
-  font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none;
+  font-size: 1.25rem; font-weight: 700; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 0.35rem;
 }
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; }
+.user-pill-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #bbf7d0; }
+.item-crop-thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; border: 1px solid #e2e8f0; }
 .top-nav__brand strong { color: #ecfdf5; }
 .top-nav__right { display: flex; gap: 1.25rem; align-items: center; }
 .top-nav__link { color: rgba(255, 255, 255, 0.9); text-decoration: none; font-weight: 500; }

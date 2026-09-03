@@ -234,7 +234,7 @@ function getStatusBadgeClass(status) {
             <!-- Card Header -->
             <div class="fulfillment-card__header">
               <div class="order-meta">
-                <img src="/images/crops/seeds.svg" class="order-img-icon" alt="Order" />
+                <img src="/images/seeds_produce.svg" class="order-img-icon" alt="Order" />
                 <div>
                   <h3 class="order-number">
                     {{ fulfillment.order?.order_number || `Order #${fulfillment.order_id}` }}
@@ -298,7 +298,7 @@ function getStatusBadgeClass(status) {
                     :disabled="processingId === fulfillment.id"
                     class="btn btn--success btn--sm"
                   >
-                    Accept Order ✅
+                    Accept Order
                   </button>
 
                   <button
@@ -306,7 +306,7 @@ function getStatusBadgeClass(status) {
                     :disabled="processingId === fulfillment.id"
                     class="btn btn--danger-outline btn--sm"
                   >
-                    Reject & Release Stock 🛑
+                    Reject & Release Stock
                   </button>
                 </template>
 
@@ -317,13 +317,13 @@ function getStatusBadgeClass(status) {
                     :disabled="processingId === fulfillment.id"
                     class="btn btn--primary btn--sm"
                   >
-                    Mark as Delivered & Completed 🎉
+                    Mark as Delivered & Completed
                   </button>
                 </template>
 
                 <!-- Complete Status Badge (If Completed) -->
                 <template v-else-if="fulfillment.status === 'completed'">
-                  <span class="completed-tag">🎉 Handoff Completed</span>
+                  <span class="completed-tag">Handoff Completed</span>
                 </template>
 
                 <!-- Rejected Status Note -->

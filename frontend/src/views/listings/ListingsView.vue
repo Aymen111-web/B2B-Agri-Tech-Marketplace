@@ -131,7 +131,7 @@ function getCategoryIcon(catName) {
             Marketplace
           </router-link>
           <router-link v-if="auth.isAuthenticated" to="/cart" class="top-nav__link cart-link">
-            🛒 Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
           </router-link>
           <router-link v-if="auth.isAuthenticated" to="/orders" class="top-nav__link">
             My Orders
@@ -140,7 +140,7 @@ function getCategoryIcon(catName) {
             Capabilities
           </router-link>
           <router-link v-if="auth.isAdmin" to="/admin/capability-applications" class="top-nav__link">
-            🛡️ Approvals
+            Approvals
           </router-link>
           <ThemeToggle />
           <span v-if="auth.isAuthenticated" class="user-pill">
@@ -173,15 +173,15 @@ function getCategoryIcon(catName) {
           </div>
           <div class="trust-chips">
             <span class="chip"><img src="/images/agri_placeholder.svg" class="chip-img" /> Verified Farmers</span>
-            <span class="chip">🔬 Inspected</span>
-            <span class="chip">🚚 Direct Delivery</span>
+            <span class="chip">Quality Inspected</span>
+            <span class="chip">Direct Delivery</span>
           </div>
         </div>
 
         <!-- Search Bar & Controls -->
         <div class="search-box">
           <div class="search-input-wrap">
-            <span class="search-icon">🔍</span>
+            <svg class="search-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <input
               type="text"
               v-model="searchQuery"
@@ -323,7 +323,7 @@ function getCategoryIcon(catName) {
                 @click.stop="handleAddToCart(item)"
               >
                 <span v-if="addingCartId === item.id" class="btn-spinner"></span>
-                <span v-else>🛒 Add to Cart</span>
+                <span v-else>Add to Cart</span>
               </button>
               <button class="view-btn">
                 Details →

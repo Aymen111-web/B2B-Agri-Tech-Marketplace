@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useOrderStore } from '@/stores/order'
 import { useAuthStore } from '@/stores/auth'
+import { getAvatarImage } from '@/utils/imageHelper'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -47,7 +48,8 @@ async function handlePlaceOrder() {
     <nav class="top-nav">
       <div class="top-nav__inner">
         <router-link to="/" class="top-nav__brand">
-          🌿 Agri<strong>Market</strong>
+          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
+          Agri<strong>Market</strong>
         </router-link>
 
         <div class="top-nav__right">
@@ -64,7 +66,7 @@ async function handlePlaceOrder() {
     <!-- Header -->
     <header class="checkout-header">
       <div class="checkout-header__inner">
-        <div class="header-badge">🔒 Concurrency-Safe Checkout</div>
+        <div class="header-badge">Concurrency-Safe Checkout</div>
         <h1 class="header-title">Confirm Produce Order</h1>
         <p class="header-sub">
           Review your multi-farmer produce items. Reserving stock will lock quantities atomically in the database.
@@ -77,7 +79,7 @@ async function handlePlaceOrder() {
       <div class="checkout-container">
         <!-- Error Alert -->
         <div v-if="checkoutError" class="alert alert--error mb-6">
-          <span>⚠️</span> {{ checkoutError }}
+          {{ checkoutError }}
         </div>
 
         <div class="checkout-grid">
@@ -91,7 +93,7 @@ async function handlePlaceOrder() {
               class="farmer-card"
             >
               <div class="farmer-card__header">
-                <span class="farmer-icon">👨‍🌾</span>
+                <img :src="getAvatarImage('farmer')" class="farmer-icon-img" alt="Farmer" />
                 <div>
                   <h3 class="farmer-name">Farmer: {{ group.farmerName }}</h3>
                   <span class="fulfillment-badge">Fulfillment Group #{{ group.farmerId }}</span>
@@ -150,7 +152,7 @@ async function handlePlaceOrder() {
               </div>
 
               <div class="stock-lock-box">
-                <div class="box-icon">⚡</div>
+                <svg class="box-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 <div class="box-text">
                   <strong>Atomic Stock Locking:</strong> Upon confirmation, available stock will be deducted and placed in <em>reserved state</em> atomically across all involved listings.
                 </div>
@@ -204,7 +206,13 @@ async function handlePlaceOrder() {
   font-weight: 700;
   color: #fff;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
+.nav-brand-img { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; }
+.farmer-icon-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #bbf7d0; }
+.box-svg { color: #15803d; flex-shrink: 0; }
 .top-nav__brand strong { color: #ecfdf5; }
 .top-nav__right { display: flex; gap: 1.25rem; align-items: center; }
 .top-nav__link { color: rgba(255, 255, 255, 0.9); text-decoration: none; font-weight: 500; }
