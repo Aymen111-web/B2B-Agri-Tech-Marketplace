@@ -20,6 +20,7 @@ const activeCapabilities = computed(() => {
 })
 
 const isFarmer = computed(() => activeCapabilities.value.includes('farmer'))
+const isBuyer = computed(() => activeCapabilities.value.includes('buyer'))
 
 async function handleLogout() {
   await authStore.logout()
@@ -38,9 +39,10 @@ async function handleLogout() {
     </div>
 
     <!-- User Profile Badge (If Logged In) -->
-    <div v-if="authStore.isAuthenticated" class="sidebar__user">
-      <div class="user-avatar-wrap">
-        <img :src="getAvatarImage(isFarmer ? 'farmer' : 'buyer')" class="user-avatar-img" alt="User Profile" />
+    <router-link v-if="authStore.isAuthenticated" to="/profile" class="sidebar__user">
+      <div class="user-avatar">
+        <img v-if="authStore.user?.profile_photo_url" :src="authStore.user.profile_photo_url" alt="Avatar" class="avatar-img-sm" />
+        <span v-else>{{ authStore.user?.first_name?.[0] || '👤' }}</span>
       </div>
       <div class="user-info">
         <div class="user-name">
@@ -52,7 +54,7 @@ async function handleLogout() {
           <span v-else class="role-badge">Buyer</span>
         </div>
       </div>
-    </div>
+    </router-link>
 
     <!-- Main Navigation Links -->
     <nav class="sidebar__nav">
@@ -77,6 +79,7 @@ async function handleLogout() {
       </router-link>
 
       <router-link
+        v-if="isBuyer && !authStore.isAdmin"
         to="/cart"
         class="nav-item"
         :class="{ active: route.path === '/cart' }"
@@ -89,7 +92,7 @@ async function handleLogout() {
       </router-link>
 
       <router-link
-        v-if="authStore.isAuthenticated"
+        v-if="isBuyer && !authStore.isAdmin"
         to="/orders"
         class="nav-item"
         :class="{ active: route.path.startsWith('/orders') }"
@@ -99,9 +102,9 @@ async function handleLogout() {
       </router-link>
 
       <!-- Role-Based Portals -->
-      <div v-if="isFarmer || authStore.isAdmin" class="nav-section-title mt-4">PORTALS</div>
+      <div v-if="(isFarmer && !authStore.isAdmin) || authStore.isAdmin" class="nav-section-title mt-4">PORTALS</div>
 
-      <template v-if="isFarmer">
+      <template v-if="isFarmer && !authStore.isAdmin">
         <router-link
           to="/farmer/listings"
           class="nav-item"
@@ -121,19 +124,40 @@ async function handleLogout() {
         </router-link>
       </template>
 
-      <router-link
-        v-if="authStore.isAdmin"
-        to="/admin/capability-applications"
-        class="nav-item"
-        :class="{ active: route.path.startsWith('/admin') }"
-      >
-        <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span class="nav-label">Approvals</span>
-      </router-link>
+      <template v-if="authStore.isAdmin">
+        <router-link
+          to="/admin/capability-applications"
+          class="nav-item"
+          :class="{ active: route.path === '/admin/capability-applications' }"
+        >
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-label">Capability Approvals</span>
+        </router-link>
+
+        <router-link
+          to="/admin/users"
+          class="nav-item"
+          :class="{ active: route.path === '/admin/users' }"
+        >
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">User Accounts & Subscriptions</span>
+        </router-link>
+      </template>
 
       <div class="nav-section-title mt-4">ACCOUNT</div>
 
       <router-link
+        v-if="authStore.isAuthenticated"
+        to="/profile"
+        class="nav-item"
+        :class="{ active: route.path === '/profile' }"
+      >
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">My Profile & Settings</span>
+      </router-link>
+
+      <router-link
+        v-if="!authStore.isAdmin"
         to="/capabilities/apply"
         class="nav-item"
         :class="{ active: route.path === '/capabilities/apply' }"

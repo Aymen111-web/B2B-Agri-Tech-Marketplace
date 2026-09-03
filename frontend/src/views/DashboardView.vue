@@ -42,13 +42,9 @@ async function handleLogout() {
           <router-link to="/listings" class="dash-nav__link">
             Marketplace
           </router-link>
-          <router-link to="/capabilities/apply" class="dash-nav__link">
+          <router-link v-if="!auth.isAdmin" to="/capabilities/apply" class="dash-nav__link">
             Capabilities
           </router-link>
-          <router-link v-if="auth.isAdmin" to="/admin/capability-applications" class="dash-nav__link dash-nav__link--admin">
-            Approvals
-          </router-link>
-          <ThemeToggle />
           <span class="dash-nav__user">
             {{ auth.user?.first_name }} {{ auth.user?.second_name }}
           </span>
@@ -61,12 +57,131 @@ async function handleLogout() {
 
     <main class="dash-main">
       <div class="dash-content">
+        <!-- Welcome banner -->
+        <div class="dash-welcome">
+          <div class="dash-welcome__header">
+            <div>
+              <h1 class="dash-welcome__title">
+                Welcome back, {{ auth.user?.first_name }}! 👋
+              </h1>
+              <p class="dash-welcome__sub">
+                Account Status: <span class="status-badge">{{ auth.user?.account_status }}</span>
+              </p>
+            </div>
+            <div v-if="auth.isAdmin" class="admin-tag">
+              Administrator
+            </div>
+          </div>
+        </div>
 
-        <!-- Admin View: Render Executive Command Center -->
-        <AdminDashboardOverview v-if="auth.isAdmin" />
+        <!-- Capability Cards Grid -->
+        <div class="cards-grid">
+          
+          <!-- Farmer Card (Non-Admin only) -->
+          <div v-if="!auth.isAdmin" class="dash-card" :class="{ 'dash-card--active': hasFarmerCapability }">
+            <div class="dash-card__header">
+              <span class="dash-card__icon">🌾</span>
+              <span class="dash-card__status" :class="hasFarmerCapability ? 'status--granted' : 'status--none'">
+                {{ hasFarmerCapability ? 'Active Capability' : 'Not Granted' }}
+              </span>
+            </div>
+            <h3 class="dash-card__title">Farmer Produce Portal</h3>
+            <p class="dash-card__desc">
+              List available crops, manage stock, set prices, and process buyer fulfillment orders.
+            </p>
+            <div class="dash-card__actions">
+              <button
+                v-if="!hasFarmerCapability"
+                class="btn btn--primary"
+                @click="router.push('/capabilities/apply')"
+              >
+                Apply for Farmer Capability
+              </button>
 
-        <!-- Farmer View: Render Farmer Command Center -->
-        <FarmerDashboardOverview v-else-if="hasFarmerCapability" />
+              <button
+                v-else
+                class="btn btn--primary"
+                @click="router.push('/farmer/listings')"
+              >
+                Manage Produce Listings →
+              </button>
+            </div>
+          </div>
+
+          <!-- Buyer Card (Non-Admin only) -->
+          <div v-if="!auth.isAdmin" class="dash-card" :class="{ 'dash-card--active': hasBuyerCapability }">
+            <div class="dash-card__header">
+              <span class="dash-card__icon">🏬</span>
+              <span class="dash-card__status" :class="hasBuyerCapability ? 'status--granted' : 'status--none'">
+                {{ hasBuyerCapability ? 'Active Capability' : 'Not Granted' }}
+              </span>
+            </div>
+            <h3 class="dash-card__title">Business Buyer Portal</h3>
+            <p class="dash-card__desc">
+              Browse verified farmer listings, manage cart items, place multi-farmer orders, and pay securely.
+            </p>
+            <div class="dash-card__actions">
+              <button
+                v-if="!hasBuyerCapability"
+                class="btn btn--primary"
+                @click="router.push('/capabilities/apply')"
+              >
+                Apply for Buyer Capability
+              </button>
+              <div v-else class="buyer-actions-flex">
+                <button
+                  class="btn btn--primary"
+                  @click="router.push('/orders')"
+                >
+                  My Orders →
+                </button>
+                <button
+                  class="btn btn--outline"
+                  @click="router.push('/cart')"
+                >
+                  View Cart 🛒
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin Portal Card (If Admin) -->
+          <div v-if="auth.isAdmin" class="dash-card dash-card--admin-portal">
+            <div class="dash-card__header">
+              <span class="dash-card__icon">🛡️</span>
+              <span class="dash-card__status status--admin">
+                System Admin
+              </span>
+            </div>
+            <h3 class="dash-card__title">Capability Approvals</h3>
+            <p class="dash-card__desc">
+              Review capability applications from farmers and business buyers, verify trade licenses, and grant platform access.
+            </p>
+            <div class="dash-card__actions">
+              <button class="btn btn--admin" @click="router.push('/admin/capability-applications')">
+                Review Pending Applications →
+              </button>
+            </div>
+          </div>
+
+          <!-- Admin Users Card (If Admin) -->
+          <div v-if="auth.isAdmin" class="dash-card dash-card--admin-portal">
+            <div class="dash-card__header">
+              <span class="dash-card__icon">👥</span>
+              <span class="dash-card__status status--admin">
+                System Admin
+              </span>
+            </div>
+            <h3 class="dash-card__title">User Accounts & Subscriptions</h3>
+            <p class="dash-card__desc">
+              Manage all registered farmer and buyer accounts, audit Chapa Subaccounts, and toggle active/inactive subscription statuses.
+            </p>
+            <div class="dash-card__actions">
+              <button class="btn btn--admin" @click="router.push('/admin/users')">
+                Manage User Accounts →
+              </button>
+            </div>
+          </div>
 
         <!-- Buyer View: Render Buyer Command Center -->
         <BuyerDashboardOverview v-else />

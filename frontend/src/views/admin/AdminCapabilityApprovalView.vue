@@ -152,7 +152,15 @@ import ThemeToggle from '@/components/ThemeToggle.vue'
     <!-- Page Header -->
     <header class="admin-header">
       <div class="admin-header__inner">
-        <div class="hero-header-flex">
+        <div class="header-nav-btns mb-3">
+          <button class="back-btn" @click="router.push('/dashboard')">
+            ← Back to Dashboard
+          </button>
+          <button class="back-btn active-btn" @click="router.push('/admin/users')">
+            👥 Manage User Accounts & Subscriptions →
+          </button>
+        </div>
+        <div class="header-flex">
           <div>
             <h1 class="hero-title">Capability Approvals Queue</h1>
             <p class="hero-sub">Review and verify Ethiopian farmer & business buyer registration requests</p>

@@ -19,9 +19,16 @@ class UpdateProfileRequest extends FormRequest
         $userId = $this->user()->id;
 
         return [
-            'first_name'  => ['sometimes', 'string', 'max:255'],
-            'second_name' => ['sometimes', 'string', 'max:255'],
-            'phone'       => ['sometimes', 'string', 'unique:users,phone,' . $userId],
+            'first_name'       => ['sometimes', 'string', 'max:255'],
+            'second_name'      => ['sometimes', 'string', 'max:255'],
+            'phone'            => ['sometimes', 'string', 'unique:users,phone,' . $userId],
+            'current_password' => ['nullable', 'string', 'required_with:new_password'],
+            'new_password'     => ['nullable', 'string', 'min:6'],
+            'bank_code'        => ['nullable', 'string', 'max:50'],
+            'bank_name'        => ['nullable', 'string', 'max:100'],
+            'account_number'   => ['nullable', 'string', 'max:50'],
+            'account_name'     => ['nullable', 'string', 'max:255'],
+            'profile_photo'    => ['nullable', 'image', 'max:5120'], // 5MB max
         ];
     }
 

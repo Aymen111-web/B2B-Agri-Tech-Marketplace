@@ -51,17 +51,24 @@ class OrderFulfillmentPolicy
     }
 
     /**
-     * Check whether the given user has an active farmer capability or is an admin.
+     * Only the order's buyer can confirm received for a fulfillment.
+     */
+    public function confirmReceived(User $user, OrderFulfillment $fulfillment): bool
+    {
+        return $user->account_status === 'active'
+            && $fulfillment->order
+            && $fulfillment->order->buyer_id === $user->id;
+    }
+
+    /**
+     * Check whether the given user has an active farmer capability.
      */
     private function hasActiveFarmerCapability(User $user): bool
     {
-        if ($user->is_admin) {
-            return true;
-        }
-
-        return $user->capabilities()
-            ->where('capability_type', 'farmer')
-            ->where('status', 'active')
-            ->exists();
+        return $user->account_status === 'active'
+            && $user->capabilities()
+                ->where('capability_type', 'farmer')
+                ->where('status', 'active')
+                ->exists();
     }
 }

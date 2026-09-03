@@ -89,6 +89,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresFarmer: true, title: 'Farmer Fulfillment Portal — Agri Market' },
     },
     {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('@/views/profile/ProfileView.vue'),
+      meta: { requiresAuth: true, title: 'My Profile — Agri Market' },
+    },
+    {
       path: '/capabilities/apply',
       name: 'capability-apply',
       component: () => import('@/views/capabilities/CapabilityApplyView.vue'),
@@ -107,6 +113,12 @@ const router = createRouter({
       name: 'admin-capability-approval',
       component: () => import('@/views/admin/AdminCapabilityApprovalView.vue'),
       meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin Capability Approvals — Agri Market' },
+    },
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: () => import('@/views/admin/AdminUsersView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin User Management & Subscriptions — Agri Market' },
     },
 
     // ── Catch-all ──────────────────────────────────────
