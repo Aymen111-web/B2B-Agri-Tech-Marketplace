@@ -28,7 +28,7 @@ class UpdateProfileRequest extends FormRequest
             'bank_name'        => ['nullable', 'string', 'max:100'],
             'account_number'   => ['nullable', 'string', 'max:50'],
             'account_name'     => ['nullable', 'string', 'max:255'],
-            'profile_photo'    => ['nullable', 'image', 'max:5120'], // 5MB max
+            'profile_photo'    => ['nullable'], // 5MB max
         ];
     }
 

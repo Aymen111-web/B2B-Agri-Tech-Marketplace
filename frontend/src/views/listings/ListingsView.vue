@@ -124,21 +124,6 @@ function getCategoryIcon(catName) {
           Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
-          <router-link to="/dashboard" class="top-nav__link">
-            Dashboard
-          </router-link>
-          <router-link to="/listings" class="top-nav__link active">
-            Marketplace
-          </router-link>
-          <router-link v-if="auth.isAuthenticated" to="/cart" class="top-nav__link cart-link">
-            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
-          </router-link>
-          <router-link v-if="auth.isAuthenticated" to="/orders" class="top-nav__link">
-            My Orders
-          </router-link>
-          <router-link to="/capabilities/apply" class="top-nav__link">
-            Capabilities
-          </router-link>
           <router-link v-if="auth.isAdmin" to="/admin/capability-applications" class="top-nav__link">
             Approvals
           </router-link>
@@ -171,11 +156,6 @@ function getCategoryIcon(catName) {
             <h1 class="hero-title">Produce Marketplace</h1>
             <p class="hero-sub">Direct wholesale trade from verified Ethiopian farms</p>
           </div>
-          <div class="trust-chips">
-            <span class="chip"><img src="/images/agri_placeholder.svg" class="chip-img" /> Verified Farmers</span>
-            <span class="chip">Quality Inspected</span>
-            <span class="chip">Direct Delivery</span>
-          </div>
         </div>
 
         <!-- Search Bar & Controls -->
@@ -205,7 +185,10 @@ function getCategoryIcon(catName) {
 
             <label class="stock-toggle-label">
               <input type="checkbox" v-model="inStockOnly" />
-              <span>In-Stock Only</span>
+              <span class="stock-toggle-text">
+                <svg class="stock-icon-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                In-Stock Only
+              </span>
             </label>
           </div>
         </div>
@@ -266,7 +249,7 @@ function getCategoryIcon(catName) {
           >
             <!-- Card Produce Image Header -->
             <div class="card-img-header">
-              <img :src="getCropImage(item.title || item.category?.name)" class="produce-card-img" :alt="item.title" />
+              <img :src="getCropImage(item)" class="produce-card-img" :alt="item.title" />
               <div class="card-img-overlay">
                 <span class="category-tag">
                   {{ item.category?.name || 'Produce' }}
@@ -554,7 +537,7 @@ function getCategoryIcon(catName) {
 .stock-toggle-label {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
   font-size: 0.8rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
@@ -563,6 +546,16 @@ function getCategoryIcon(catName) {
 }
 .stock-toggle-label input[type="checkbox"] {
   accent-color: var(--brand-green);
+  width: 15px;
+  height: 15px;
+}
+.stock-toggle-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.stock-icon-svg {
+  color: #10b981;
 }
 
 /* Category Pills Carousel */

@@ -15,6 +15,7 @@ class Listing extends Model
         'batch_number',
         'title',
         'description',
+        'image_path',
         'unit',
         'price_per_unit',
         'quantity_available',

@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useListingStore } from '@/stores/listing'
-import { getAvatarImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
+import { getAvatarImage, getCropImage, EMPTY_STATE_IMAGE } from '@/utils/imageHelper'
 import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const auth = useAuthStore()
@@ -14,6 +14,11 @@ const router = useRouter()
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const selectedListing = ref(null)
+
+const createImageFile = ref(null)
+const createImagePreview = ref(null)
+const editImageFile = ref(null)
+const editImagePreview = ref(null)
 
 const form = ref({
   category_id: '',
@@ -60,9 +65,27 @@ async function loadMyListings() {
   await listingStore.fetchMyListings()
 }
 
+function handleCreateFileSelect(e) {
+  const file = e.target.files[0]
+  if (file) {
+    createImageFile.value = file
+    createImagePreview.value = URL.createObjectURL(file)
+  }
+}
+
+function handleEditFileSelect(e) {
+  const file = e.target.files[0]
+  if (file) {
+    editImageFile.value = file
+    editImagePreview.value = URL.createObjectURL(file)
+  }
+}
+
 function openCreateModal() {
   bannerSuccess.value = ''
   bannerError.value = ''
+  createImageFile.value = null
+  createImagePreview.value = null
   form.value = {
     category_id: listingStore.categories[0]?.id || '',
     title: '',
@@ -89,14 +112,27 @@ async function handleCreateSubmit() {
   bannerError.value = ''
 
   try {
-    const payload = {
-      category_id: form.value.category_id ? Number(form.value.category_id) : null,
-      title: form.value.title,
-      description: form.value.description,
-      unit: form.value.unit,
-      price_per_unit: Number(form.value.price_per_unit),
-      quantity_available: Number(form.value.quantity_available),
+    let payload
+    if (createImageFile.value) {
+      payload = new FormData()
+      if (form.value.category_id) payload.append('category_id', form.value.category_id)
+      payload.append('title', form.value.title)
+      if (form.value.description) payload.append('description', form.value.description)
+      payload.append('unit', form.value.unit)
+      payload.append('price_per_unit', form.value.price_per_unit)
+      payload.append('quantity_available', form.value.quantity_available)
+      payload.append('image', createImageFile.value)
+    } else {
+      payload = {
+        category_id: form.value.category_id ? Number(form.value.category_id) : null,
+        title: form.value.title,
+        description: form.value.description,
+        unit: form.value.unit,
+        price_per_unit: Number(form.value.price_per_unit),
+        quantity_available: Number(form.value.quantity_available),
+      }
     }
+
     const res = await listingStore.createListing(payload)
     bannerSuccess.value = res.message || 'Produce listing published successfully!'
     closeCreateModal()
@@ -112,6 +148,8 @@ function openEditModal(item) {
   selectedListing.value = item
   bannerSuccess.value = ''
   bannerError.value = ''
+  editImageFile.value = null
+  editImagePreview.value = item.image_url || (item.image_path ? getCropImage(item) : null)
   editForm.value = {
     id: item.id,
     category_id: item.category_id || '',
@@ -136,14 +174,27 @@ async function handleEditSubmit() {
   bannerError.value = ''
 
   try {
-    const payload = {
-      category_id: editForm.value.category_id ? Number(editForm.value.category_id) : null,
-      title: editForm.value.title,
-      description: editForm.value.description,
-      unit: editForm.value.unit,
-      price_per_unit: Number(editForm.value.price_per_unit),
-      quantity_available: Number(editForm.value.quantity_available),
-      status: editForm.value.status,
+    let payload
+    if (editImageFile.value) {
+      payload = new FormData()
+      if (editForm.value.category_id) payload.append('category_id', editForm.value.category_id)
+      payload.append('title', editForm.value.title)
+      if (editForm.value.description) payload.append('description', editForm.value.description)
+      payload.append('unit', editForm.value.unit)
+      payload.append('price_per_unit', editForm.value.price_per_unit)
+      payload.append('quantity_available', editForm.value.quantity_available)
+      payload.append('status', editForm.value.status)
+      payload.append('image', editImageFile.value)
+    } else {
+      payload = {
+        category_id: editForm.value.category_id ? Number(editForm.value.category_id) : null,
+        title: editForm.value.title,
+        description: editForm.value.description,
+        unit: editForm.value.unit,
+        price_per_unit: Number(editForm.value.price_per_unit),
+        quantity_available: Number(editForm.value.quantity_available),
+        status: editForm.value.status,
+      }
     }
 
     const res = await listingStore.updateListing(editForm.value.id, payload)
@@ -201,40 +252,6 @@ async function handleLogout() {
 
 <template>
   <div class="farmer-view">
-    <!-- Top Navigation Bar -->
-    <nav class="top-nav">
-      <div class="top-nav__inner">
-        <router-link to="/dashboard" class="top-nav__brand">
-          <img src="/images/agri_placeholder.svg" class="nav-brand-img" alt="AgriMarket" />
-          Agri<strong>Market</strong>
-        </router-link>
-        <div class="top-nav__right">
-          <router-link to="/dashboard" class="top-nav__link">
-            Dashboard
-          </router-link>
-          <router-link to="/listings" class="top-nav__link">
-            Marketplace
-          </router-link>
-          <router-link to="/farmer/listings" class="top-nav__link active">
-            Crop Listings
-          </router-link>
-          <router-link to="/farmer/fulfillments" class="top-nav__link">
-            Fulfillments
-          </router-link>
-          <router-link to="/capabilities/apply" class="top-nav__link">
-            Capabilities
-          </router-link>
-          <ThemeToggle />
-          <span class="user-pill">
-            <img :src="getAvatarImage('farmer')" class="user-pill-avatar" /> {{ auth.user?.first_name }}
-          </span>
-          <button @click="handleLogout" class="top-nav__logout">
-            Sign Out
-          </button>
-        </div>
-      </div>
-    </nav>
-
     <!-- Page Hero Header -->
     <header class="farmer-header">
       <div class="farmer-header__inner">
@@ -286,15 +303,6 @@ async function handleLogout() {
               <span class="stat-lbl">Active In Stock</span>
             </div>
           </div>
-          <div class="stat-card">
-            <img src="/images/seeds_produce.svg" class="stat-img-icon" alt="Reserved" />
-            <div>
-              <span class="stat-val">
-                {{ listingStore.myListings.reduce((sum, l) => sum + (l.quantity_reserved || 0), 0) }}
-              </span>
-              <span class="stat-lbl">Units Reserved in Orders</span>
-            </div>
-          </div>
         </div>
 
         <!-- Listings Table -->
@@ -330,8 +338,11 @@ async function handleLogout() {
                 <tr v-for="item in listingStore.myListings" :key="item.id">
                   <td>
                     <div class="produce-info">
-                      <span class="item-title">{{ item.title }}</span>
-                      <span class="item-cat">{{ item.category?.name || 'Produce' }}</span>
+                      <img :src="getCropImage(item)" class="table-produce-thumb" :alt="item.title" />
+                      <div>
+                        <span class="item-title">{{ item.title }}</span>
+                        <span class="item-cat">{{ item.category?.name || 'Produce' }}</span>
+                      </div>
                     </div>
                   </td>
                   <td class="price-cell">
@@ -404,9 +415,13 @@ async function handleLogout() {
               <select id="create-unit" v-model="form.unit" required>
                 <option value="kg">kilograms (kg)</option>
                 <option value="quintal">quintals (100 kg)</option>
-                <option value="litre">litres (L)</option>
-                <option value="crate">crates</option>
-                <option value="ton">tons</option>
+                <option value="ton">tons (ton)</option>
+                <option value="liter">liters (L)</option>
+                <option value="crate">crates (crate)</option>
+                <option value="box">boxes (box)</option>
+                <option value="bag">bags (bag)</option>
+                <option value="piece">pieces (piece)</option>
+                <option value="dozen">dozens (dozen)</option>
               </select>
             </div>
 
@@ -444,6 +459,29 @@ async function handleLogout() {
               v-model="form.description"
               placeholder="Describe harvest region, organic status, moisture level, etc."
             ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Crop / Produce Photo Upload</label>
+            <div class="photo-upload-row">
+              <div class="modal-preview-box">
+                <img v-if="createImagePreview" :src="createImagePreview" class="modal-preview-img" alt="Crop preview" />
+                <span v-else class="modal-preview-placeholder">🌾</span>
+              </div>
+              <div class="file-upload-controls">
+                <input
+                  id="create-image"
+                  type="file"
+                  accept="image/*"
+                  @change="handleCreateFileSelect"
+                  class="hidden-file-input"
+                />
+                <label for="create-image" class="btn-file-select">
+                  📷 Select Crop Photo
+                </label>
+                <p class="help-text">JPG, PNG, WEBP (Max 5MB)</p>
+              </div>
+            </div>
           </div>
 
           <div class="modal-actions">
@@ -507,6 +545,30 @@ async function handleLogout() {
           <div class="form-group">
             <label for="edit-desc">Description</label>
             <textarea id="edit-desc" rows="3" v-model="editForm.description"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Update Crop / Produce Photo</label>
+            <div class="photo-upload-row">
+              <div class="modal-preview-box">
+                <img v-if="editImagePreview" :src="editImagePreview" class="modal-preview-img" alt="Crop preview" />
+                <img v-else-if="selectedListing" :src="getCropImage(selectedListing)" class="modal-preview-img" alt="Current crop" />
+                <span v-else class="modal-preview-placeholder">🌾</span>
+              </div>
+              <div class="file-upload-controls">
+                <input
+                  id="edit-image"
+                  type="file"
+                  accept="image/*"
+                  @change="handleEditFileSelect"
+                  class="hidden-file-input"
+                />
+                <label for="edit-image" class="btn-file-select">
+                  📷 Replace Crop Photo
+                </label>
+                <p class="help-text">JPG, PNG, WEBP (Max 5MB)</p>
+              </div>
+            </div>
           </div>
 
           <div class="modal-actions">
@@ -592,7 +654,7 @@ async function handleLogout() {
 .banner--success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
 .banner--error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
 @media (max-width: 700px) { .stats-grid { grid-template-columns: 1fr; } }
 
 .stat-card {
@@ -662,4 +724,78 @@ async function handleLogout() {
 .stat-img-icon { width: 32px; height: 32px; object-fit: contain; }
 .stat-img-icon.crop-circle { border-radius: 50%; object-fit: cover; }
 .empty-farmer-box-img { width: 100px; height: 85px; margin: 0 auto 0.5rem; display: block; }
+
+.table-produce-thumb {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+.produce-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.form-file-input {
+  padding: 0.4rem !important;
+  font-size: 0.85rem !important;
+}
+.help-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.photo-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.modal-preview-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.modal-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.modal-preview-placeholder {
+  font-size: 1.75rem;
+}
+.file-upload-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.hidden-file-input {
+  display: none;
+}
+.btn-file-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f8fafc;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-file-select:hover {
+  background: #f1f5f9;
+}
 </style>

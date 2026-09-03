@@ -20,7 +20,8 @@ class UpdateListingRequest extends FormRequest
             'category_id'            => ['sometimes', 'nullable', 'integer', 'exists:categories,id'],
             'title'                  => ['sometimes', 'string', 'max:255'],
             'description'            => ['sometimes', 'nullable', 'string', 'max:2000'],
-            'unit'                   => ['sometimes', 'string', 'in:kg,quintal,ton,piece,liter,dozen'],
+            'image'                  => ['sometimes', 'nullable'],
+            'unit'                   => ['sometimes', 'string', 'max:50'],
             'price_per_unit'         => ['sometimes', 'numeric', 'min:0.01'],
             'quantity_available'     => ['sometimes', 'numeric', 'min:0'],
             'status'                 => ['sometimes', 'string', 'in:active,inactive'],
@@ -40,7 +41,7 @@ class UpdateListingRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'unit.in'               => 'Unit must be one of: kg, quintal, ton, piece, liter, dozen.',
+            'unit.max'               => 'Unit must not exceed 50 characters.',
             'price_per_unit.min'    => 'Price per unit must be at least 0.01.',
             'quantity_available.min' => 'Quantity available cannot be negative.',
             'status.in'             => 'Status must be either active or inactive.',

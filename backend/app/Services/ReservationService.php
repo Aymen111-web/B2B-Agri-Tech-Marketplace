@@ -5,24 +5,27 @@ namespace App\Services;
 use App\Models\Listing;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ReservationService
 {
     /**
      * Create a 15-minute stock reservation for a new order.
      */
-    public function createReservation(int $buyerId, array $cartItems): Order
+    public function createReservation(User|int $buyer, iterable $cartItems): Order
     {
+        $buyerId = $buyer instanceof User ? $buyer->id : (int) $buyer;
+
         return DB::transaction(function () use ($buyerId, $cartItems) {
             $totalAmount = 0;
-            $orderItemsData = [];
 
             // Generate cryptographically secure 6-digit handoff PIN
             $deliveryPin = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
             $order = Order::create([
-                'order_number'           => 'ORD-' . date('Y') . '-' . str_pad(random_int(1, 999999), 6, '0', STR_PAD_LEFT),
+                'order_number'           => 'ORD-' . date('Y') . '-' . strtoupper(Str::random(8)),
                 'buyer_id'               => $buyerId,
                 'status'                 => 'pending_payment',
                 'payment_status'         => 'pending',
@@ -39,18 +42,29 @@ class ReservationService
             $fulfillments = [];
 
             foreach ($cartItems as $item) {
-                // Atomic row locking for concurrency protection
-                $listing = Listing::where('id', $item['listing_id'])->lockForUpdate()->firstOrFail();
+                $listingId = is_array($item) ? $item['listing_id'] : ($item->listing_id ?? $item->listing?->id);
+                $quantity = is_array($item) ? $item['quantity'] : $item->quantity;
+                $unitPrice = is_array($item) 
+                    ? ($item['price_snapshot'] ?? $item['unit_price'] ?? 0) 
+                    : ($item->price_snapshot ?? $item->unit_price ?? $item->listing?->price_per_unit ?? 0);
 
-                if ($listing->quantity_available < $item['quantity']) {
+                // Atomic row locking for concurrency protection
+                $listing = Listing::where('id', $listingId)->lockForUpdate()->firstOrFail();
+
+                if ($listing->quantity_available < $quantity) {
                     throw new \Exception("Insufficient available stock for listing: {$listing->title}");
                 }
 
                 // Reserve inventory
-                $listing->decrement('quantity_available', $item['quantity']);
-                $listing->increment('quantity_reserved', $item['quantity']);
+                $listing->decrement('quantity_available', $quantity);
+                $listing->increment('quantity_reserved', $quantity);
 
-                $itemSubtotal = $item['quantity'] * $item['price_snapshot'];
+                // If unitPrice was not explicitly provided on cartItem, fallback to listing price
+                if ($unitPrice <= 0) {
+                    $unitPrice = (float) $listing->price_per_unit;
+                }
+
+                $itemSubtotal = $quantity * $unitPrice;
                 $totalAmount += $itemSubtotal;
 
                 $farmerId = $listing->farmer_id;
@@ -72,8 +86,8 @@ class ReservationService
                     'order_id'             => $order->id,
                     'order_fulfillment_id' => $fulfillment->id,
                     'listing_id'           => $listing->id,
-                    'quantity'             => $item['quantity'],
-                    'unit_price'           => $item['price_snapshot'],
+                    'quantity'             => $quantity,
+                    'unit_price'           => $unitPrice,
                     'subtotal'             => $itemSubtotal,
                 ]);
             }

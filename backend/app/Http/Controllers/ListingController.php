@@ -28,7 +28,7 @@ class ListingController extends Controller
             'per_page'    => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
 
-        $query = Listing::with(['farmer:id,first_name,second_name', 'category:id,name,slug'])
+        $query = Listing::with(['farmer:id,first_name,second_name,phone,bank_name,bank_code,account_name,account_number', 'category:id,name,slug'])
             ->active();
 
         if ($request->filled('category_id')) {
@@ -64,7 +64,7 @@ class ListingController extends Controller
     public function show(int $id): JsonResponse
     {
         $listing = Listing::with([
-            'farmer:id,first_name,second_name',
+            'farmer:id,first_name,second_name,phone,bank_name,bank_code,account_name,account_number',
             'category:id,name,slug',
             'priceHistory' => fn ($q) => $q->orderByDesc('effective_at')->limit(10),
         ])->findOrFail($id);
@@ -89,23 +89,32 @@ class ListingController extends Controller
 
         $validated = $request->validated();
 
+        if ($request->hasFile('image')) {
+            $validated['image_path'] = $request->file('image')->store('produce-photos', 'public');
+        }
+
         $listing = DB::transaction(function () use ($validated, $user) {
             $listing = Listing::create([
-                'farmer_id'          => $user->id,
-                'category_id'        => $validated['category_id'] ?? null,
-                'title'              => $validated['title'],
-                'description'        => $validated['description'] ?? null,
-                'unit'               => $validated['unit'],
-                'price_per_unit'     => $validated['price_per_unit'],
-                'quantity_available' => $validated['quantity_available'],
+                'farmer_id'              => $user->id,
+                'category_id'            => $validated['category_id'] ?? null,
+                'title'                  => $validated['title'],
+                'description'            => $validated['description'] ?? null,
+                'image_path'             => $validated['image_path'] ?? null,
+                'unit'                   => $validated['unit'],
+                'price_per_unit'         => $validated['price_per_unit'],
+                'quantity_available'     => $validated['quantity_available'],
+                'batch_number'           => $validated['batch_number'] ?? null,
+                'harvest_date'           => $validated['harvest_date'] ?? null,
+                'quality_grade'          => $validated['quality_grade'] ?? null,
+                'minimum_order_quantity' => !empty($validated['minimum_order_quantity']) ? $validated['minimum_order_quantity'] : 1.000,
             ]);
 
             // Record initial price in history.
             ListingPriceHistory::create([
-                'listing_id'    => $listing->id,
+                'listing_id'     => $listing->id,
                 'price_per_unit' => $listing->price_per_unit,
-                'changed_by'    => $user->id,
-                'effective_at'  => now(),
+                'changed_by'     => $user->id,
+                'effective_at'   => now(),
             ]);
 
             return $listing;
@@ -134,14 +143,18 @@ class ListingController extends Controller
 
         $validated = $request->validated();
 
+        if ($request->hasFile('image')) {
+            $validated['image_path'] = $request->file('image')->store('produce-photos', 'public');
+        }
+
         DB::transaction(function () use ($listing, $validated, $user) {
             // Track price change in history when price_per_unit is updated.
             if (isset($validated['price_per_unit']) && (float) $validated['price_per_unit'] !== (float) $listing->price_per_unit) {
                 ListingPriceHistory::create([
-                    'listing_id'    => $listing->id,
+                    'listing_id'     => $listing->id,
                     'price_per_unit' => $validated['price_per_unit'],
-                    'changed_by'    => $user->id,
-                    'effective_at'  => now(),
+                    'changed_by'     => $user->id,
+                    'effective_at'   => now(),
                 ]);
             }
 

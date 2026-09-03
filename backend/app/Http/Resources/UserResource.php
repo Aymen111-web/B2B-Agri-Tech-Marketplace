@@ -28,6 +28,7 @@ class UserResource extends JsonResource
             'bank_code'              => $this->bank_code,
             'bank_name'              => $this->bank_name,
             'account_name'           => $this->account_name,
+            'account_number'         => $this->account_number,
             'account_number_masked'  => $this->account_number ? ('******' . substr($this->account_number, -4)) : null,
             'created_at'             => $this->created_at,
             'updated_at'             => $this->updated_at,

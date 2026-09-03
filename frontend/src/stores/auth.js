@@ -160,9 +160,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       let response
       if (payload instanceof FormData) {
-        response = await api.post('/profile', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
+        response = await api.post('/profile', payload)
       } else {
         response = await api.put('/profile', payload)
       }

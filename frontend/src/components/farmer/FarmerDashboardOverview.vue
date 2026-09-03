@@ -17,12 +17,19 @@ onMounted(async () => {
   loading.value = false
 })
 
+const activeCapabilities = computed(() => {
+  const caps = auth.user?.capabilities || []
+  return caps.filter(c => c.status === 'active').map(c => c.capability_type)
+})
+const isFarmer = computed(() => activeCapabilities.value.includes('farmer'))
+const isBuyer = computed(() => activeCapabilities.value.includes('buyer'))
+
 const activeListings = computed(() => {
   return listingStore.myListings.filter(l => l.quantity_available > 0)
 })
 
 const totalReserved = computed(() => {
-  return listingStore.myListings.reduce((sum, l) => sum + (l.quantity_reserved || 0), 0)
+  return listingStore.myListings.reduce((sum, l) => sum + Number(l.quantity_reserved || 0), 0)
 })
 
 const totalInventoryValuation = computed(() => {
@@ -51,13 +58,21 @@ function formatDate(dateStr) {
     <header class="farmer-hero">
       <div class="farmer-hero__inner">
         <div class="farmer-hero__content">
-          <div class="status-pill">
-            <span class="pulse-dot"></span>
-            Certified Farmer Supplier
-          </div>
           <h1 class="hero-title">
-            <img :src="getAvatarImage('farmer')" class="farmer-title-avatar" /> Welcome, {{ auth.user?.first_name }} {{ auth.user?.second_name }}
+            <img :src="getAvatarImage('farmer')" class="farmer-title-avatar" />
+            <span class="welcome-text">Welcome, </span>
+            <span class="user-highlight">{{ auth.user?.first_name }} {{ auth.user?.second_name }}</span>
           </h1>
+
+          <div class="user-capability-badges">
+            <span v-if="isFarmer" class="verified-badge verified-badge--farmer">
+              ✓ Verified Farmer Supplier
+            </span>
+            <span v-if="isBuyer" class="verified-badge verified-badge--buyer">
+              ✓ Verified Commercial Buyer
+            </span>
+          </div>
+
           <p class="hero-sub">
             Ethiopian Produce Exchange Command Center • Manage crops, track reserved stocks & process fulfillments.
           </p>
@@ -66,12 +81,6 @@ function formatDate(dateStr) {
         <div class="hero-actions">
           <router-link to="/farmer/listings" class="action-btn action-btn--gold">
             + Publish New Crop
-          </router-link>
-          <router-link to="/farmer/fulfillments" class="action-btn action-btn--glass">
-            Fulfillment Orders
-          </router-link>
-          <router-link to="/listings" class="action-btn action-btn--glass">
-            Produce Exchange
           </router-link>
         </div>
       </div>
@@ -92,32 +101,12 @@ function formatDate(dateStr) {
 
       <div class="kpi-card">
         <div class="kpi-card__header">
-          <img src="/images/seeds_produce.svg" class="kpi-img-icon" alt="Reserved" />
-          <span class="kpi-badge kpi-badge--amber">Buyer Reserved</span>
-        </div>
-        <div class="kpi-val">{{ totalReserved }}</div>
-        <div class="kpi-lbl">Units Reserved in Orders</div>
-        <div class="kpi-sub">Pending harvest & dispatch</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-card__header">
           <img src="/images/coffee_produce.jpg" class="kpi-img-icon crop-circle" alt="Valuation" />
           <span class="kpi-badge kpi-badge--gold">Valuation</span>
         </div>
         <div class="kpi-val">{{ formatPrice(totalInventoryValuation) }} <span class="currency">ETB</span></div>
         <div class="kpi-lbl">Available Stock Value</div>
         <div class="kpi-sub">Current produce listing pool</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-card__header">
-          <img :src="getAvatarImage('farmer')" class="kpi-img-icon avatar-circle" alt="Portal Access" />
-          <span class="kpi-badge kpi-badge--emerald">Portal Access</span>
-        </div>
-        <div class="kpi-val">Approved</div>
-        <div class="kpi-lbl">Verified Supplier Capability</div>
-        <div class="kpi-sub">B2B Wholesale Privileges</div>
       </div>
 
     </div>
@@ -272,10 +261,25 @@ function formatDate(dateStr) {
 }
 
 .hero-title {
-  font-size: 1.6rem;
+  font-size: 2.35rem;
+  font-weight: 900;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.025em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.welcome-text {
+  color: #ffffff;
   font-weight: 800;
-  margin-bottom: 0.25rem;
-  letter-spacing: -0.02em;
+}
+
+.user-highlight {
+  color: #fbbf24;
+  font-weight: 900;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .hero-sub {
@@ -534,8 +538,37 @@ function formatDate(dateStr) {
 }
 .tips-list strong { color: var(--text-primary); }
 
+.user-capability-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.verified-badge--farmer {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.verified-badge--buyer {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
 /* Image Styling */
-.farmer-title-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; border: 1px solid rgba(255,255,255,0.4); }
+.farmer-title-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; border: 2px solid rgba(255,255,255,0.6); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
 .kpi-img-icon { width: 28px; height: 28px; object-fit: contain; }
 .kpi-img-icon.crop-circle { border-radius: 50%; object-fit: cover; }
 .kpi-img-icon.avatar-circle { border-radius: 50%; object-fit: cover; }

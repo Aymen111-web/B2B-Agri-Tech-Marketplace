@@ -25,6 +25,13 @@ onMounted(async () => {
   loading.value = false
 })
 
+const activeCapabilities = computed(() => {
+  const caps = auth.user?.capabilities || []
+  return caps.filter(c => c.status === 'active').map(c => c.capability_type)
+})
+const isFarmer = computed(() => activeCapabilities.value.includes('farmer'))
+const isBuyer = computed(() => activeCapabilities.value.includes('buyer'))
+
 const activeOrders = computed(() => {
   return orderStore.orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled')
 })
@@ -68,13 +75,21 @@ function getStatusBadgeClass(status) {
     <header class="buyer-hero">
       <div class="buyer-hero__inner">
         <div class="buyer-hero__content">
-          <div class="status-pill">
-            <span class="pulse-dot"></span>
-            Verified Commercial Buyer
-          </div>
           <h1 class="hero-title">
-            <img :src="getAvatarImage('buyer')" class="buyer-title-avatar" /> Welcome, {{ auth.user?.first_name }} {{ auth.user?.second_name }}
+            <img :src="getAvatarImage('buyer')" class="buyer-title-avatar" />
+            <span class="welcome-text">Welcome, </span>
+            <span class="user-highlight">{{ auth.user?.first_name }} {{ auth.user?.second_name }}</span>
           </h1>
+
+          <div class="user-capability-badges">
+            <span v-if="isFarmer" class="verified-badge verified-badge--farmer">
+              ✓ Verified Farmer Supplier
+            </span>
+            <span v-if="isBuyer" class="verified-badge verified-badge--buyer">
+              ✓ Verified Commercial Buyer
+            </span>
+          </div>
+
           <p class="hero-sub">
             Ethiopian B2B Produce Sourcing Portal • Order wholesale crops directly from verified farms across Ethiopia.
           </p>
@@ -283,10 +298,22 @@ function getStatusBadgeClass(status) {
 }
 
 .hero-title {
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 2.35rem;
+  font-weight: 900;
   margin-bottom: 0.25rem;
   letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.welcome-text {
+  color: #ffffff;
+}
+.user-highlight {
+  color: #fbbf24;
+  font-weight: 900;
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
 }
 
 .hero-sub {
@@ -581,8 +608,37 @@ function getStatusBadgeClass(status) {
 }
 .tips-list strong { color: var(--text-primary); }
 
+.user-capability-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.verified-badge--farmer {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.verified-badge--buyer {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
 /* Image Styling */
-.buyer-title-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; border: 1px solid rgba(255,255,255,0.4); }
+.buyer-title-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 0.35rem; border: 2px solid rgba(255,255,255,0.6); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
 .kpi-img-icon { width: 28px; height: 28px; object-fit: contain; }
 .kpi-img-icon.crop-circle { border-radius: 50%; object-fit: cover; }
 .kpi-img-icon.avatar-circle { border-radius: 50%; object-fit: cover; }
