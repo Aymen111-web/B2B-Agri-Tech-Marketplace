@@ -127,19 +127,22 @@ class ChapaService
         $secretKey = config('services.chapa.secret_key');
         $phone = $this->formatPhoneNumber($user->phone);
 
+        $email = filter_var($user->email, FILTER_VALIDATE_EMAIL) ? $user->email : 'buyer@gmail.com';
+        $orderNumClean = preg_replace('/[^A-Za-z0-9\-]/', '', (string) $order->order_number);
+
         $payload = [
             'amount'        => (float) $order->total_amount,
             'currency'      => $order->currency ?: 'ETB',
-            'email'         => $user->email ?: 'buyer@agrimarket.et',
-            'first_name'    => $user->first_name ?: 'Buyer',
-            'last_name'     => $user->second_name ?: 'User',
+            'email'         => $email,
+            'first_name'    => preg_replace('/[^A-Za-z0-9]/', '', $user->first_name ?: 'Buyer'),
+            'last_name'     => preg_replace('/[^A-Za-z0-9]/', '', $user->second_name ?: 'User'),
             'phone_number'  => $phone,
             'tx_ref'        => $txRef,
             'callback_url'  => config('services.chapa.callback_url'),
             'return_url'    => config('services.chapa.return_url'),
             'customization' => [
-                'title'       => 'Ethiopian Farmers Market',
-                'description' => "Payment for Order #{$order->order_number}",
+                'title'       => 'AgriMarket ET',
+                'description' => "Order Payment {$orderNumClean}",
             ],
             'meta' => $this->buildInvoicesMeta($order),
         ];
@@ -193,12 +196,15 @@ class ChapaService
         $secretKey = config('services.chapa.secret_key');
         $phone = $this->formatPhoneNumber($buyer->phone);
 
+        $email = filter_var($buyer->email, FILTER_VALIDATE_EMAIL) ? $buyer->email : 'buyer@gmail.com';
+        $farmerNameClean = preg_replace('/[^A-Za-z0-9 ]/', '', $farmer->first_name ?: 'Farmer');
+
         $payload = [
             'amount'        => (float) $fulfillment->subtotal_amount,
             'currency'      => 'ETB',
-            'email'         => $buyer->email ?: 'buyer@agrimarket.et',
-            'first_name'    => $buyer->first_name ?: 'Buyer',
-            'last_name'     => $buyer->second_name ?: 'User',
+            'email'         => $email,
+            'first_name'    => preg_replace('/[^A-Za-z0-9]/', '', $buyer->first_name ?: 'Buyer'),
+            'last_name'     => preg_replace('/[^A-Za-z0-9]/', '', $buyer->second_name ?: 'User'),
             'phone_number'  => $phone,
             'tx_ref'        => $txRef,
             'callback_url'  => config('services.chapa.callback_url'),
@@ -209,8 +215,8 @@ class ChapaService
                 'split_value' => 0,
             ],
             'customization' => [
-                'title'       => 'Ethiopian Farmers Market Direct Settlement',
-                'description' => "Direct payment to Farmer {$farmer->first_name} for Fulfillment #{$fulfillment->id}",
+                'title'       => 'AgriMarket Direct',
+                'description' => "Direct Settlement {$farmerNameClean}",
             ],
             'meta' => $this->buildInvoicesMeta($fulfillment),
         ];

@@ -92,16 +92,26 @@ class AuthController extends Controller
         ]);
 
         $rawPhone = trim($validated['phone']);
-        $normalizedPhone = $rawPhone;
-        if (preg_match('/^(09|07)\d{8}$/', $rawPhone)) {
-            $normalizedPhone = '+251' . substr($rawPhone, 1);
-        } elseif (preg_match('/^(9|7)\d{8}$/', $rawPhone)) {
-            $normalizedPhone = '+251' . $rawPhone;
+        $digits = preg_replace('/[^\d]/', '', $rawPhone);
+
+        $possiblePhones = [
+            $rawPhone,
+            '+' . $digits,
+            $digits,
+        ];
+
+        if (preg_match('/^251([79]\d{8})$/', $digits, $matches)) {
+            $possiblePhones[] = '+' . $digits;
+            $possiblePhones[] = '0' . $matches[1];
+            $possiblePhones[] = $matches[1];
+        } elseif (preg_match('/^0?([79]\d{8})$/', $digits, $matches)) {
+            $possiblePhones[] = '+251' . $matches[1];
+            $possiblePhones[] = '251' . $matches[1];
+            $possiblePhones[] = '0' . $matches[1];
+            $possiblePhones[] = $matches[1];
         }
 
-        $user = User::where('phone', $rawPhone)
-            ->orWhere('phone', $normalizedPhone)
-            ->first();
+        $user = User::whereIn('phone', array_unique($possiblePhones))->first();
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response([

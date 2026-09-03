@@ -5,24 +5,30 @@ namespace App\Services;
 use App\Models\Listing;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class ReservationService
 {
     /**
      * Create a 15-minute stock reservation for a new order.
+     *
+     * @param  User|int  $buyer
+     * @param  iterable|array  $cartItems
      */
-    public function createReservation(int $buyerId, array $cartItems): Order
+    public function createReservation(User|int $buyer, iterable $cartItems): Order
     {
+        $buyerId = ($buyer instanceof User) ? $buyer->id : (int) $buyer;
+
         return DB::transaction(function () use ($buyerId, $cartItems) {
             $totalAmount = 0;
-            $orderItemsData = [];
 
             // Generate cryptographically secure 6-digit handoff PIN
-            $deliveryPin = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $deliveryPin = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
             $order = Order::create([
-                'order_number'           => 'ORD-' . date('Y') . '-' . str_pad(random_int(1, 999999), 6, '0', STR_PAD_LEFT),
+                'order_number'           => 'ORD-' . date('Y') . '-' . str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT),
                 'buyer_id'               => $buyerId,
                 'status'                 => 'pending_payment',
                 'payment_status'         => 'pending',
@@ -39,29 +45,41 @@ class ReservationService
             $fulfillments = [];
 
             foreach ($cartItems as $item) {
-                // Atomic row locking for concurrency protection
-                $listing = Listing::where('id', $item['listing_id'])->lockForUpdate()->firstOrFail();
+                // Extract properties flexibly whether $item is an array or CartItem model
+                $listingId = is_array($item) ? ($item['listing_id'] ?? null) : ($item->listing_id ?? null);
+                $quantity  = is_array($item) ? ($item['quantity'] ?? 0) : ($item->quantity ?? 0);
+                
+                $unitPrice = is_array($item)
+                    ? ($item['price_snapshot'] ?? 0)
+                    : ($item->price_snapshot ?? $item->listing?->price_per_unit ?? 0);
 
-                if ($listing->quantity_available < $item['quantity']) {
-                    throw new \Exception("Insufficient available stock for listing: {$listing->title}");
+                if (! $listingId) {
+                    continue;
+                }
+
+                // Atomic row locking for concurrency protection
+                $listing = Listing::where('id', $listingId)->lockForUpdate()->firstOrFail();
+
+                if ($listing->quantity_available < $quantity) {
+                    throw new RuntimeException("Insufficient available stock for listing: {$listing->title}");
                 }
 
                 // Reserve inventory
-                $listing->decrement('quantity_available', $item['quantity']);
-                $listing->increment('quantity_reserved', $item['quantity']);
+                $listing->decrement('quantity_available', $quantity);
+                $listing->increment('quantity_reserved', $quantity);
 
-                $itemSubtotal = $item['quantity'] * $item['price_snapshot'];
+                $itemSubtotal = $quantity * $unitPrice;
                 $totalAmount += $itemSubtotal;
 
                 $farmerId = $listing->farmer_id;
-                if (!isset($fulfillments[$farmerId])) {
+                if (! isset($fulfillments[$farmerId])) {
                     $fulfillments[$farmerId] = $order->fulfillments()->create([
                         'farmer_id'          => $farmerId,
                         'status'             => 'pending',
-                        'delivery_status'   => 'pending',
-                        'inspection_status' => 'pending',
-                        'payout_status'     => 'locked',
-                        'subtotal_amount'   => 0,
+                        'delivery_status'    => 'pending',
+                        'inspection_status'  => 'pending',
+                        'payout_status'      => 'locked',
+                        'subtotal_amount'    => 0,
                     ]);
                 }
 
@@ -72,8 +90,8 @@ class ReservationService
                     'order_id'             => $order->id,
                     'order_fulfillment_id' => $fulfillment->id,
                     'listing_id'           => $listing->id,
-                    'quantity'             => $item['quantity'],
-                    'unit_price'           => $item['price_snapshot'],
+                    'quantity'             => $quantity,
+                    'unit_price'           => $unitPrice,
                     'subtotal'             => $itemSubtotal,
                 ]);
             }
@@ -117,5 +135,44 @@ class ReservationService
         }
 
         return $count;
+    }
+
+    /**
+     * Check if an order reservation has expired.
+     */
+    public function isExpired(Order $order): bool
+    {
+        return $order->status === 'pending_payment'
+            && $order->reservation_expires_at
+            && $order->reservation_expires_at->isPast();
+    }
+
+    /**
+     * Manually expire an order reservation and release inventory.
+     */
+    public function expireReservation(Order $order): bool
+    {
+        if ($order->status !== 'pending_payment') {
+            return false;
+        }
+
+        return DB::transaction(function () use ($order) {
+            foreach ($order->items as $item) {
+                $listing = Listing::where('id', $item->listing_id)->lockForUpdate()->first();
+                if ($listing) {
+                    $releaseQty = min($item->quantity, $listing->quantity_reserved);
+                    $listing->decrement('quantity_reserved', $releaseQty);
+                    $listing->increment('quantity_available', $releaseQty);
+                }
+            }
+
+            $order->update(['status' => 'cancelled']);
+
+            foreach ($order->fulfillments as $fulfillment) {
+                $fulfillment->update(['status' => 'cancelled']);
+            }
+
+            return true;
+        });
     }
 }
