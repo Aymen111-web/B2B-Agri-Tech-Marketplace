@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Resources\PaymentResource;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\ChapaService;
+use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class PaymentController extends Controller
@@ -16,15 +19,10 @@ class PaymentController extends Controller
      * Initiate payment for a pending order via Chapa hosted checkout.
      *
      * POST /api/orders/{id}/pay
-     *
-     * Creates a Payment record, calls Chapa's transaction/initialize endpoint,
-     * and returns the hosted checkout URL so the buyer can complete payment.
-     * The payment status will transition from "pending" to "confirmed" ONLY
-     * through the signed Chapa webhook — never from this controller.
      */
-    public function initiate(int $id): JsonResponse
+    public function initiate(int $id, ChapaService $chapaService): JsonResponse
     {
-        $order = Order::findOrFail($id);
+        $order = Order::with('items.listing')->findOrFail($id);
 
         $this->authorize('initiate', $order);
 
@@ -40,7 +38,6 @@ class PaymentController extends Controller
             ->first();
 
         if ($existingPayment) {
-            // If there is already a pending payment with a checkout URL, return it.
             if ($existingPayment->status === 'pending' && $existingPayment->chapa_checkout_url) {
                 return response()->json([
                     'message'      => 'Payment already initiated.',
@@ -62,59 +59,26 @@ class PaymentController extends Controller
         // Generate a unique transaction reference for Chapa.
         $txRef = 'TX-' . $order->order_number . '-' . strtoupper(Str::random(6));
 
-        // Build the Chapa initialization payload.
-        $chapaPayload = [
-            'amount'       => (float) $order->total_amount,
-            'currency'     => $order->currency,
-            'tx_ref'       => $txRef,
-            'callback_url' => config('services.chapa.callback_url'),
-            'return_url'   => config('services.chapa.return_url'),
-            'first_name'   => $user->first_name,
-            'last_name'    => $user->second_name,
-            'phone_number' => $user->phone,
-            'customization' => [
-                'title'       => 'Ethiopian Farmers Market',
-                'description' => "Payment for order {$order->order_number}",
-            ],
-        ];
+        $res = $chapaService->initializeOrderPayment($order, $user, $txRef);
 
-        try {
-            $response = Http::withToken(config('services.chapa.secret_key'))
-                ->post('https://api.chapa.co/v1/transaction/initialize', $chapaPayload);
-
-            if (! $response->successful()) {
-                return response()->json([
-                    'message' => 'Unable to initiate payment with the payment gateway. Please try again.',
-                ], 502);
-            }
-
-            $chapaData   = $response->json('data');
-            $checkoutUrl = $chapaData['checkout_url'] ?? null;
-
-            if (! $checkoutUrl) {
-                return response()->json([
-                    'message' => 'Payment gateway returned an unexpected response. Please try again.',
-                ], 502);
-            }
-        } catch (\Exception $e) {
+        if (! $res['success'] || empty($res['checkout_url'])) {
             return response()->json([
-                'message' => 'Unable to reach the payment gateway. Please try again later.',
-            ], 503);
+                'message' => 'Unable to initiate payment with the payment gateway.',
+            ], 502);
         }
 
-        // Create the payment record (status starts as "pending").
         $payment = Payment::create([
             'order_id'           => $order->id,
             'chapa_tx_ref'       => $txRef,
-            'chapa_checkout_url' => $checkoutUrl,
+            'chapa_checkout_url' => $res['checkout_url'],
             'amount'             => $order->total_amount,
-            'currency'           => $order->currency,
+            'currency'           => $order->currency ?: 'ETB',
             'status'             => 'pending',
         ]);
 
         return response()->json([
             'message'      => 'Payment initiated. Redirect the buyer to the checkout URL.',
-            'checkout_url' => $checkoutUrl,
+            'checkout_url' => $res['checkout_url'],
             'payment'      => new PaymentResource($payment),
         ], 201);
     }
@@ -124,9 +88,9 @@ class PaymentController extends Controller
      *
      * POST /api/fulfillments/{id}/pay
      */
-    public function initiateFulfillmentPayment(int $fulfillmentId, \App\Services\ChapaService $chapaService): JsonResponse
+    public function initiateFulfillmentPayment(int $fulfillmentId, ChapaService $chapaService): JsonResponse
     {
-        $fulfillment = \App\Models\OrderFulfillment::with(['order', 'farmer'])->findOrFail($fulfillmentId);
+        $fulfillment = \App\Models\OrderFulfillment::with(['order.items.listing', 'farmer'])->findOrFail($fulfillmentId);
 
         /** @var \App\Models\User $buyer */
         $buyer = Auth::user();
@@ -195,6 +159,140 @@ class PaymentController extends Controller
             'checkout_url' => $res['checkout_url'],
             'payment'      => new PaymentResource($payment),
         ], 201);
+    }
+
+    /**
+     * Verify payment status directly with Chapa API.
+     *
+     * GET /api/payments/verify/{txRef}
+     */
+    public function verify(string $txRef, ChapaService $chapaService, PaymentService $paymentService): JsonResponse
+    {
+        $payment = Payment::where('chapa_tx_ref', $txRef)->first();
+
+        if (! $payment) {
+            return response()->json([
+                'message' => 'Payment record not found.',
+            ], 404);
+        }
+
+        $verification = $chapaService->verifyTransaction($txRef);
+
+        if ($verification['success']) {
+            if ($payment->status !== 'confirmed') {
+                $paymentService->confirmPayment($payment, $verification['data'] ?? []);
+                $payment->refresh();
+            }
+
+            $chapaRef = $verification['data']['reference'] ?? $verification['data']['ref_id'] ?? null;
+            $receiptUrl = $chapaRef ? "https://chapa.link/payment-receipt/{$chapaRef}" : null;
+
+            return response()->json([
+                'message'      => 'Payment verified successfully.',
+                'status'       => 'success',
+                'payment'      => new PaymentResource($payment),
+                'chapa_data'   => $verification['data'] ?? [],
+                'receipt_url'  => $receiptUrl,
+            ]);
+        }
+
+        return response()->json([
+            'message'    => $verification['message'] ?? 'Payment verification pending or failed.',
+            'status'     => $verification['status'] ?? 'failed',
+            'payment'    => new PaymentResource($payment),
+            'chapa_data' => $verification['data'] ?? [],
+        ], 400);
+    }
+
+    /**
+     * Handle Chapa callback GET redirect after customer payment completes.
+     *
+     * GET /api/payments/callback
+     */
+    public function callback(Request $request, ChapaService $chapaService, PaymentService $paymentService): RedirectResponse|JsonResponse
+    {
+        $txRef  = $request->query('trx_ref') ?? $request->query('tx_ref');
+        $status = $request->query('status');
+        $refId  = $request->query('ref_id');
+
+        $frontendReturnUrl = config('services.chapa.return_url', 'http://localhost:5173/payment/success');
+
+        if ($txRef) {
+            $payment = Payment::where('chapa_tx_ref', $txRef)->first();
+
+            if ($payment) {
+                // Verify with Chapa server
+                $verification = $chapaService->verifyTransaction($txRef);
+
+                if ($verification['success']) {
+                    if ($payment->status !== 'confirmed') {
+                        $paymentService->confirmPayment($payment, $verification['data'] ?? []);
+                    }
+                }
+            }
+        }
+
+        $redirectUrl = $frontendReturnUrl . '?' . http_build_query([
+            'tx_ref' => $txRef,
+            'status' => $status ?? 'success',
+            'ref_id' => $refId,
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message'      => 'Callback processed.',
+                'tx_ref'       => $txRef,
+                'status'       => $status,
+                'redirect_url' => $redirectUrl,
+            ]);
+        }
+
+        return redirect()->away($redirectUrl);
+    }
+
+    /**
+     * Cancel an active Chapa transaction.
+     *
+     * POST /api/payments/cancel/{txRef}
+     */
+    public function cancel(string $txRef, ChapaService $chapaService): JsonResponse
+    {
+        $payment = Payment::where('chapa_tx_ref', $txRef)->first();
+
+        if (! $payment) {
+            return response()->json(['message' => 'Payment reference not found.'], 404);
+        }
+
+        if ($payment->status === 'confirmed') {
+            return response()->json(['message' => 'Cannot cancel a confirmed payment.'], 422);
+        }
+
+        $res = $chapaService->cancelTransaction($txRef);
+
+        if ($res['success']) {
+            $payment->update(['status' => 'failed']);
+
+            return response()->json([
+                'message' => 'Transaction cancelled successfully.',
+                'payment' => new PaymentResource($payment),
+            ]);
+        }
+
+        return response()->json([
+            'message' => $res['message'] ?? 'Failed to cancel transaction.',
+        ], 400);
+    }
+
+    /**
+     * Get list of supported currencies from Chapa.
+     *
+     * GET /api/payments/currencies
+     */
+    public function currencies(ChapaService $chapaService): JsonResponse
+    {
+        $data = $chapaService->getSupportedCurrencies();
+
+        return response()->json($data);
     }
 
     /**

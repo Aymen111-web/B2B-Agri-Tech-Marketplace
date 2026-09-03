@@ -250,7 +250,16 @@ function getStatusBadgeClass(status) {
 
                     <!-- Step 3: Completed -->
                     <template v-else-if="fulfillment.status === 'completed'">
-                      <span class="text-success font-bold">🎉 Settled 100% to Farmer Subaccount</span>
+                      <div class="flex flex-col items-end gap-1">
+                        <span class="text-success font-bold">🎉 Settled 100% to Farmer Subaccount</span>
+                        <a
+                          v-if="fulfillment.payment?.chapa_tx_ref"
+                          :href="`/payment/success?tx_ref=${fulfillment.payment.chapa_tx_ref}`"
+                          class="text-xs text-blue-600 underline font-medium hover:text-blue-800"
+                        >
+                          View Payment & Receipt Details →
+                        </a>
+                      </div>
                     </template>
 
                     <!-- Pending Farmer Acceptance -->

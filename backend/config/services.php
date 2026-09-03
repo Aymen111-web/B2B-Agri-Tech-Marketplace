@@ -41,9 +41,11 @@ return [
     ],
 
     'chapa' => [
+        'public_key'     => env('CHAPA_PUBLIC_KEY'),
         'secret_key'     => env('CHAPA_SECRET_KEY'),
+        'encryption_key' => env('CHAPA_ENCRYPTION_KEY'),
         'webhook_secret' => env('CHAPA_WEBHOOK_SECRET'),
-        'callback_url'   => env('CHAPA_CALLBACK_URL', 'http://127.0.0.1:8000/api/payments/webhook'),
+        'callback_url'   => env('CHAPA_CALLBACK_URL', 'http://127.0.0.1:8000/api/payments/callback'),
         'return_url'     => env('CHAPA_RETURN_URL', 'http://localhost:5173/payment/success'),
     ],
 
