@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const activeTab = ref('personal') // 'personal', 'security', 'payment'
+const activeTab = ref('personal') // 'personal', 'security'
 
 // Personal Info Form State
 const firstName = ref('')
@@ -20,12 +20,6 @@ const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
 
-// Farmer Payment Destination Form State
-const bankCode = ref('telebirr')
-const bankName = ref('Telebirr')
-const accountName = ref('')
-const accountNumber = ref('')
-
 const isSaving = ref(false)
 const toast = ref({ type: '', text: '' })
 
@@ -33,17 +27,6 @@ const isFarmer = computed(() => {
   const caps = authStore.user?.capabilities || []
   return caps.some(c => c.capability_type === 'farmer' && c.status === 'active') || authStore.user?.is_admin
 })
-
-const bankOptions = [
-  { code: 'telebirr', name: 'Telebirr Mobile Money' },
-  { code: 'cbe', name: 'Commercial Bank of Ethiopia (CBE)' },
-  { code: 'dashen', name: 'Dashen Bank' },
-  { code: 'awash', name: 'Awash Bank' },
-  { code: 'abyssinia', name: 'Bank of Abyssinia' },
-  { code: 'coop', name: 'Cooperative Bank of Oromia' },
-  { code: 'hibret', name: 'Hibret Bank' },
-  { code: 'zemen', name: 'Zemen Bank' },
-]
 
 onMounted(async () => {
   await authStore.fetchProfile()
@@ -59,11 +42,6 @@ function populateForm() {
   phone.value = u.phone || ''
 
   photoPreview.value = u.profile_photo_url || null
-
-  bankCode.value = u.bank_code || 'telebirr'
-  bankName.value = u.bank_name || 'Telebirr Mobile Money'
-  accountName.value = u.account_name || ''
-  accountNumber.value = u.account_number || ''
 }
 
 function handlePhotoSelect(event) {
@@ -71,13 +49,6 @@ function handlePhotoSelect(event) {
   if (file) {
     photoFile.value = file
     photoPreview.value = URL.createObjectURL(file)
-  }
-}
-
-function handleBankChange() {
-  const selected = bankOptions.find(b => b.code === bankCode.value)
-  if (selected) {
-    bankName.value = selected.name
   }
 }
 
@@ -145,31 +116,6 @@ async function savePassword() {
     toast.value = { type: 'error', text: res.message }
   }
 }
-
-async function savePaymentDestination() {
-  if (!accountName.value || !accountNumber.value) {
-    toast.value = { type: 'error', text: 'Please provide both Account Name and Account Number.' }
-    return
-  }
-
-  isSaving.value = true
-  toast.value = { type: '', text: '' }
-
-  const res = await authStore.updateProfile({
-    bank_code: bankCode.value,
-    bank_name: bankName.value,
-    account_name: accountName.value,
-    account_number: accountNumber.value,
-  })
-
-  isSaving.value = false
-
-  if (res.success) {
-    toast.value = { type: 'success', text: 'Payment destination and Chapa Subaccount updated successfully!' }
-  } else {
-    toast.value = { type: 'error', text: res.message }
-  }
-}
 </script>
 
 <template>
@@ -224,15 +170,6 @@ async function savePaymentDestination() {
               @click="activeTab = 'security'"
             >
               🔒 Security & Password
-            </button>
-
-            <button
-              v-if="isFarmer"
-              class="tab-btn"
-              :class="{ active: activeTab === 'payment' }"
-              @click="activeTab = 'payment'"
-            >
-              💳 Farmer Payment Subaccount
             </button>
           </div>
 
@@ -310,60 +247,6 @@ async function savePaymentDestination() {
               <div class="form-actions">
                 <button type="submit" :disabled="isSaving" class="btn btn--primary">
                   {{ isSaving ? 'Updating Password...' : 'Update Password 🔐' }}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- TAB 3: Farmer Payment Destination (Chapa Subaccount) -->
-          <div v-else-if="activeTab === 'payment' && isFarmer" class="card-box">
-            <div class="settlement-badge-box">
-              <span v-if="authStore.user?.chapa_subaccount_id" class="sub-status sub-status--active">
-                ✅ Chapa Subaccount Active: <strong>{{ authStore.user.chapa_subaccount_id }}</strong>
-              </span>
-              <span v-else class="sub-status sub-status--pending">
-                ⚠️ Payment Destination Needed for Direct Settlement
-              </span>
-            </div>
-
-            <h2 class="card-heading mt-2">Farmer Payment Destination (Chapa Direct Settlement)</h2>
-            <p class="card-sub">
-              Specify your Telebirr or Bank Account details. 100% of sales funds from buyers will settle directly to this account via Chapa.
-            </p>
-
-            <form @submit.prevent="savePaymentDestination" class="form-stack">
-              <!-- Bank / Provider Selection -->
-              <div class="form-group">
-                <label class="form-label">Bank / Payment Provider</label>
-                <select v-model="bankCode" @change="handleBankChange" class="form-select">
-                  <option v-for="b in bankOptions" :key="b.code" :value="b.code">
-                    {{ b.name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Account Name -->
-              <div class="form-group">
-                <label class="form-label">Account Holder Name (Must match bank/Telebirr name)</label>
-                <input v-model="accountName" type="text" required class="form-input" placeholder="e.g. Abebe Bikila" />
-              </div>
-
-              <!-- Account Number -->
-              <div class="form-group">
-                <label class="form-label">Account Number / Telebirr Phone Number</label>
-                <input v-model="accountNumber" type="text" required class="form-input" placeholder="100012345678 or 0911223344" />
-                <p v-if="authStore.user?.account_number_masked" class="help-text mt-1">
-                  Currently Saved: <strong>{{ authStore.user.account_number_masked }}</strong>
-                </p>
-              </div>
-
-              <div class="info-callout mt-4">
-                🔒 <strong>Direct Settlement Guarantee:</strong> Your account credentials and numbers are encrypted and synchronized with Chapa Subaccounts. The platform never holds your funds.
-              </div>
-
-              <div class="form-actions mt-4">
-                <button type="submit" :disabled="isSaving" class="btn btn--primary">
-                  {{ isSaving ? 'Syncing Subaccount...' : 'Save Payment Destination 💳' }}
                 </button>
               </div>
             </form>

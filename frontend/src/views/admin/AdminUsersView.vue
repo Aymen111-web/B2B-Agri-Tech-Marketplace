@@ -199,7 +199,6 @@ function formatDate(dateStr) {
                     <th>User / Account</th>
                     <th>Phone Identity</th>
                     <th>Role Capabilities</th>
-                    <th>Payment Subaccount</th>
                     <th>Account Status</th>
                     <th>Joined Date</th>
                     <th>Action</th>
@@ -232,13 +231,7 @@ function formatDate(dateStr) {
                         </template>
                       </div>
                     </td>
-                    <td>
-                      <div v-if="u.chapa_subaccount_id" class="sub-info">
-                        <span class="sub-id">💳 {{ u.chapa_subaccount_id }}</span>
-                        <span class="bank-name">{{ u.bank_name || 'Subaccount Active' }}</span>
-                      </div>
-                      <span v-else class="text-muted">Not Configured</span>
-                    </td>
+
                     <td>
                       <span :class="['status-badge', u.account_status === 'active' ? 'badge--active' : 'badge--inactive']">
                         {{ (u.account_status || 'active').toUpperCase() }}
