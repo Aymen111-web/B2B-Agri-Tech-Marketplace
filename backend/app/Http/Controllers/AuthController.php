@@ -72,6 +72,11 @@ class AuthController extends Controller
             'account_status'    => 'active',
         ]);
 
+        \App\Models\UserCapability::firstOrCreate(
+            ['user_id' => $user->id, 'capability_type' => 'buyer'],
+            ['status' => 'active', 'granted_at' => now()]
+        );
+
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response([

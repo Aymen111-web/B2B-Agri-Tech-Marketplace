@@ -22,7 +22,7 @@ onMounted(async () => {
   }
 })
 
-async function handlePlaceOrder(payImmediately = true) {
+async function handlePlaceOrder() {
   if (cartStore.items.length === 0) {
     checkoutError.value = 'Your cart is empty.'
     return
@@ -34,17 +34,6 @@ async function handlePlaceOrder(payImmediately = true) {
   const result = await orderStore.checkout()
 
   if (result.success && result.order) {
-    if (payImmediately) {
-      try {
-        const payRes = await api.post(`/orders/${result.order.id}/pay`)
-        if (payRes.data?.checkout_url) {
-          window.location.href = payRes.data.checkout_url
-          return
-        }
-      } catch (err) {
-        console.warn('Auto-pay initiation fallback:', err)
-      }
-    }
     isSubmitting.value = false
     router.push(`/orders/${result.order.id}`)
   } else {
@@ -173,22 +162,13 @@ async function handlePlaceOrder(payImmediately = true) {
 
               <div class="actions-stack mt-6">
                 <button
-                  @click="handlePlaceOrder(true)"
+                  @click="handlePlaceOrder"
                   :disabled="isSubmitting || cartStore.items.length === 0"
-                  class="btn btn--chapa btn--block btn--lg"
-                  id="pay-now-chapa-btn"
+                  class="btn btn--primary btn--block btn--lg"
+                  id="place-order-btn"
                 >
                   <span v-if="isSubmitting" class="inline-spinner"></span>
-                  <span v-else>💳 Pay Now via Chapa →</span>
-                </button>
-
-                <button
-                  @click="handlePlaceOrder(false)"
-                  :disabled="isSubmitting || cartStore.items.length === 0"
-                  class="btn btn--outline btn--block mt-2"
-                  id="reserve-order-btn"
-                >
-                  Reserve Stock & View Order
+                  <span v-else>📋 Place Order Request → (Awaiting Farmer Approval)</span>
                 </button>
               </div>
 

@@ -42,11 +42,6 @@ class PaymentService
                 'gateway_metadata' => $payload,
             ]);
 
-            $order->update([
-                'status'         => 'payment_confirmed',
-                'payment_status' => 'confirmed',
-            ]);
-
             // Convert quantity_reserved to finalized sold inventory
             foreach ($order->items as $item) {
                 $listing = Listing::where('id', $item->listing_id)->lockForUpdate()->first();
@@ -55,16 +50,35 @@ class PaymentService
                 }
             }
 
-            foreach ($order->fulfillments as $fulfillment) {
-                $fulfillment->update([
-                    'status'         => 'processing',
-                    'delivery_status'=> 'pending',
-                ]);
+            // Instantly complete accepted fulfillments upon payment
+            if ($payment->order_fulfillment_id) {
+                $fulfillment = \App\Models\OrderFulfillment::find($payment->order_fulfillment_id);
+                if ($fulfillment && in_array($fulfillment->status, ['accepted', 'paid_in_escrow'])) {
+                    $fulfillment->update([
+                        'status'          => 'completed',
+                        'delivery_status' => 'delivered',
+                        'completed_at'    => now(),
+                    ]);
+                }
+            } else {
+                foreach ($order->fulfillments()->whereIn('status', ['accepted', 'paid_in_escrow'])->get() as $fulfillment) {
+                    $fulfillment->update([
+                        'status'          => 'completed',
+                        'delivery_status' => 'delivered',
+                        'completed_at'    => now(),
+                    ]);
+                }
             }
+
+            // Synchronise parent order status to completed
+            $order->update([
+                'status'         => Order::STATUS_COMPLETED,
+                'payment_status' => 'paid',
+            ]);
 
             return [
                 'status'  => 'success',
-                'message' => 'Payment confirmed and order moved to processing.',
+                'message' => 'Payment confirmed and order completed successfully.',
             ];
         });
     }

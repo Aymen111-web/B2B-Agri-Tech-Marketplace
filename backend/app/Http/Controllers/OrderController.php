@@ -56,7 +56,7 @@ class OrderController extends Controller
             'items.listing:id,farmer_id,title,unit,harvest_date,quality_grade,minimum_order_quantity,price_valid_until,reference_market_price',
             'fulfillments.farmer:id,first_name,second_name',
             'fulfillments.items.listing:id,title,unit',
-            'payment:id,order_id,status,amount,currency,confirmed_at',
+            'payment',
         ])->findOrFail($id);
 
         $this->authorize('view', $order);
@@ -98,7 +98,7 @@ class OrderController extends Controller
             
             // Clear the buyer's cart after successful order creation
             $user->cartItems()->delete();
-        } catch (\Throwable $e) {
+        } catch (RuntimeException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], 422);

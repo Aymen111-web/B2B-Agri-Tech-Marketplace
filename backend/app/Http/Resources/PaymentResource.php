@@ -22,6 +22,7 @@ class PaymentResource extends JsonResource
             'amount'             => $this->amount,
             'currency'           => $this->currency,
             'status'             => $this->status,
+            'receipt_url'        => $this->chapa_tx_ref ? "https://chapa.link/payment-receipt/{$this->chapa_tx_ref}" : null,
             'confirmed_at'       => $this->confirmed_at,
             'gateway_metadata'   => $this->gateway_metadata,
             'created_at'         => $this->created_at,

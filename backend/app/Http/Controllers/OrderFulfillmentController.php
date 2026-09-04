@@ -122,7 +122,7 @@ class OrderFulfillmentController extends Controller
 
         $this->authorize('accept', $fulfillment);
 
-        if ($fulfillment->status !== 'pending') {
+        if (! in_array($fulfillment->status, ['pending', 'pending_farmer_approval'])) {
             return response()->json([
                 'message' => 'Only pending fulfillments can be accepted.',
             ], 422);
@@ -156,7 +156,7 @@ class OrderFulfillmentController extends Controller
 
         $this->authorize('reject', $fulfillment);
 
-        if ($fulfillment->status !== 'pending') {
+        if (! in_array($fulfillment->status, ['pending', 'pending_farmer_approval'])) {
             return response()->json([
                 'message' => 'Only pending fulfillments can be rejected.',
             ], 422);
@@ -204,9 +204,9 @@ class OrderFulfillmentController extends Controller
 
         $this->authorize('complete', $fulfillment);
 
-        if ($fulfillment->status !== 'accepted') {
+        if (! in_array($fulfillment->status, ['accepted', 'paid_in_escrow', 'buyer_received'])) {
             return response()->json([
-                'message' => 'Only accepted fulfillments can be marked as completed.',
+                'message' => 'Only accepted or escrow-paid fulfillments can be marked as completed.',
             ], 422);
         }
 
@@ -246,7 +246,7 @@ class OrderFulfillmentController extends Controller
      * POST /api/fulfillments/{id}/confirm-received
      *
      * The buyer confirms physical inspection & handoff.
-     * Status transitions to 'buyer_received', enabling the direct settlement "Pay Farmer" button.
+     * Status transitions to 'buyer_received', enabling inspection release.
      */
     public function confirmReceived(int $id): JsonResponse
     {
@@ -254,9 +254,9 @@ class OrderFulfillmentController extends Controller
 
         $this->authorize('confirmReceived', $fulfillment);
 
-        if ($fulfillment->status !== 'accepted') {
+        if (! in_array($fulfillment->status, ['accepted', 'paid_in_escrow'])) {
             return response()->json([
-                'message' => 'Only accepted fulfillments can be marked as received by the buyer.',
+                'message' => 'Produce receipt can only be confirmed for accepted or escrow-paid fulfillments.',
             ], 422);
         }
 
@@ -267,7 +267,7 @@ class OrderFulfillmentController extends Controller
         $this->syncOrderStatus($fulfillment->order_id);
 
         return response()->json([
-            'message'     => 'Produce inspection confirmed! You can now proceed to pay the farmer.',
+            'message'     => 'Produce inspection confirmed!',
             'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
                 'order', 'items.listing', 'farmer',
             ])),
@@ -280,50 +280,58 @@ class OrderFulfillmentController extends Controller
      */
     private function syncOrderStatus(int $orderId): void
     {
-        $order = Order::findOrFail($orderId);
+        $order = Order::with('fulfillments')->findOrFail($orderId);
 
-        if ($order->status === 'cancelled') {
+        if (in_array($order->status, [Order::STATUS_COMPLETED, Order::STATUS_CANCELLED])) {
             return;
         }
 
-        $statuses = $order->fulfillments()->pluck('status');
+        $fulfillments = $order->fulfillments;
 
-        if ($statuses->isEmpty()) {
+        if ($fulfillments->isEmpty()) {
             return;
         }
 
-        $allCompleted     = $statuses->every(fn ($s) => $s === 'completed');
-        $allRejected      = $statuses->every(fn ($s) => $s === 'rejected');
-        $hasPending       = $statuses->contains('pending');
-        $hasBuyerReceived = $statuses->contains('buyer_received');
+        $statuses = $fulfillments->pluck('status');
+
+        $allCompleted        = $statuses->every(fn ($s) => $s === 'completed');
+        $allRejected         = $statuses->every(fn ($s) => $s === 'rejected');
+        $hasPending          = $statuses->contains('pending') || $statuses->contains('pending_farmer_approval');
+        $hasAccepted         = $statuses->contains('accepted');
+        $hasPaidInEscrow     = $statuses->contains('paid_in_escrow');
+        $hasBuyerReceived    = $statuses->contains('buyer_received');
+        $hasRejected         = $statuses->contains('rejected');
+
+        // Recalculate order total to sum non-rejected fulfillments
+        if ($hasRejected) {
+            $activeTotal = $fulfillments->where('status', '!=', 'rejected')->sum('subtotal_amount');
+            $order->total_amount = $activeTotal;
+        }
 
         if ($allCompleted) {
-            $order->update(['status' => 'completed']);
+            $order->status = Order::STATUS_COMPLETED;
         } elseif ($allRejected) {
-            $order->update(['status' => 'cancelled']);
+            $order->status = Order::STATUS_CANCELLED;
         } elseif ($hasBuyerReceived) {
-            $order->update(['status' => 'processing']);
-        } elseif (! $hasPending) {
+            $order->status = Order::STATUS_PROCESSING;
+        } elseif ($hasPaidInEscrow) {
+            $order->status = Order::STATUS_PAID_IN_ESCROW;
+        } elseif ($hasAccepted) {
+            $order->status = Order::STATUS_AWAITING_BUYER_PAYMENT;
+        } elseif ($hasPending) {
+            $order->status = Order::STATUS_PENDING_FARMER_APPROVAL;
+        } else {
             $hasCompleted = $statuses->contains('completed');
-            $hasRejected  = $statuses->contains('rejected');
 
             if ($hasCompleted && $hasRejected) {
-                $order->update(['status' => 'partially_fulfilled']);
+                $order->status = Order::STATUS_PARTIALLY_FULFILLED;
             } else {
-                $order->update(['status' => 'processing']);
+                $order->status = Order::STATUS_PROCESSING;
             }
         }
-    }
 
-    /**
-     * Check whether the given user has an active farmer capability.
-     */
-    private function hasActiveFarmerCapability(\App\Models\User $user): bool
-    {
-        return $user->capabilities()
-            ->where('capability_type', 'farmer')
-            ->where('status', 'active')
-            ->exists();
+        $order->save();
     }
 }
+
 

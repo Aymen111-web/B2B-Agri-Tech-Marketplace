@@ -74,7 +74,7 @@ class ChapaService
      *
      * POST https://api.chapa.co/v1/subaccount
      */
-    public function createSubaccount(User $user, array $paymentDetails): string
+    public function createSubaccount(User $user, array $paymentDetails): ?string
     {
         $secretKey = config('services.chapa.secret_key');
         $businessName = trim("{$user->first_name} {$user->second_name}");
@@ -114,7 +114,7 @@ class ChapaService
             }
         }
 
-        return $user->chapa_subaccount_id ?: 'SUB-' . strtoupper(Str::random(10));
+        return $user->chapa_subaccount_id;
     }
 
     /**
@@ -122,16 +122,17 @@ class ChapaService
      *
      * POST https://api.chapa.co/v1/transaction/initialize
      */
-    public function initializeOrderPayment(Order $order, User $user, string $txRef): array
+    public function initializeOrderPayment(Order $order, User $user, string $txRef, ?float $amountOverride = null): array
     {
         $secretKey = config('services.chapa.secret_key');
         $phone = $this->formatPhoneNumber($user->phone);
 
         $email = filter_var($user->email, FILTER_VALIDATE_EMAIL) ? $user->email : 'buyer@gmail.com';
         $orderNumClean = preg_replace('/[^A-Za-z0-9\-]/', '', (string) $order->order_number);
+        $amount = $amountOverride !== null ? (float) $amountOverride : (float) $order->total_amount;
 
         $payload = [
-            'amount'        => (float) $order->total_amount,
+            'amount'        => $amount,
             'currency'      => $order->currency ?: 'ETB',
             'email'         => $email,
             'first_name'    => preg_replace('/[^A-Za-z0-9]/', '', $user->first_name ?: 'Buyer'),
@@ -139,7 +140,6 @@ class ChapaService
             'phone_number'  => $phone,
             'tx_ref'        => $txRef,
             'callback_url'  => config('services.chapa.callback_url'),
-            'return_url'    => config('services.chapa.return_url'),
             'customization' => [
                 'title'       => 'AgriMarket ET',
                 'description' => "Order Payment {$orderNumClean}",
@@ -162,23 +162,37 @@ class ChapaService
                     }
                 }
 
+                $errBody = $response->json();
+                $errMsg = is_array($errBody) && isset($errBody['message']) 
+                    ? (is_array($errBody['message']) ? json_encode($errBody['message']) : $errBody['message']) 
+                    : 'Chapa API request failed with status ' . $response->status();
+
                 Log::warning('Chapa order payment initialization failed:', [
                     'order_id' => $order->id,
                     'status'   => $response->status(),
                     'body'     => $response->body(),
                 ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Chapa error: ' . $errMsg,
+                ];
             } catch (\Exception $e) {
                 Log::error('Chapa order payment initialization exception:', [
                     'order_id' => $order->id,
                     'message'  => $e->getMessage(),
                 ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Chapa gateway error: ' . $e->getMessage(),
+                ];
             }
         }
 
-        // Sandbox / Fallback test link
         return [
-            'success'      => true,
-            'checkout_url' => 'https://checkout.chapa.co/pay/test-' . strtolower($txRef),
+            'success' => false,
+            'message' => 'Chapa secret key is not configured.',
         ];
     }
 
@@ -208,18 +222,20 @@ class ChapaService
             'phone_number'  => $phone,
             'tx_ref'        => $txRef,
             'callback_url'  => config('services.chapa.callback_url'),
-            'return_url'    => config('services.chapa.return_url'),
-            'subaccounts'   => [
+            'customization' => [
+                'title'       => 'AgriMarket ET',
+                'description' => "Direct Settlement {$farmerNameClean}",
+            ],
+        ];
+
+        // Attach subaccounts split ONLY if valid real subaccount ID exists
+        if (! empty($farmer->chapa_subaccount_id) && ! str_starts_with($farmer->chapa_subaccount_id, 'SUB-')) {
+            $payload['subaccounts'] = [
                 'id'          => $farmer->chapa_subaccount_id,
                 'split_type'  => 'percentage',
                 'split_value' => 0,
-            ],
-            'customization' => [
-                'title'       => 'AgriMarket Direct',
-                'description' => "Direct Settlement {$farmerNameClean}",
-            ],
-            'meta' => $this->buildInvoicesMeta($fulfillment),
-        ];
+            ];
+        }
 
         if ($secretKey) {
             try {
@@ -228,7 +244,6 @@ class ChapaService
 
                 if ($response->successful()) {
                     $data = $response->json('data');
-
                     if (! empty($data['checkout_url'])) {
                         return [
                             'success'      => true,
@@ -237,22 +252,37 @@ class ChapaService
                     }
                 }
 
+                $errBody = $response->json();
+                $errMsg = is_array($errBody) && isset($errBody['message']) 
+                    ? (is_array($errBody['message']) ? json_encode($errBody['message']) : $errBody['message']) 
+                    : 'Chapa API request failed with status ' . $response->status();
+
                 Log::warning('Chapa direct payment initialization failure:', [
                     'fulfillment_id' => $fulfillment->id,
                     'status'         => $response->status(),
                     'body'           => $response->body(),
                 ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Chapa error: ' . $errMsg,
+                ];
             } catch (\Exception $e) {
                 Log::error('Chapa direct payment initialization exception:', [
                     'fulfillment_id' => $fulfillment->id,
                     'message'        => $e->getMessage(),
                 ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Chapa gateway error: ' . $e->getMessage(),
+                ];
             }
         }
 
         return [
-            'success'      => true,
-            'checkout_url' => 'https://checkout.chapa.co/pay/test-' . strtolower($txRef),
+            'success' => false,
+            'message' => 'Chapa secret key is not configured.',
         ];
     }
 

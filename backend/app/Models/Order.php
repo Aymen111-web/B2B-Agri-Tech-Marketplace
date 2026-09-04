@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    public const STATUS_PENDING_PAYMENT         = 'pending_payment';
+    public const STATUS_PENDING_FARMER_APPROVAL  = 'pending_farmer_approval';
+    public const STATUS_AWAITING_BUYER_PAYMENT   = 'awaiting_buyer_payment';
+    public const STATUS_PAID_IN_ESCROW           = 'paid_in_escrow';
+    public const STATUS_PROCESSING               = 'processing';
+    public const STATUS_PARTIALLY_FULFILLED      = 'partially_fulfilled';
+    public const STATUS_COMPLETED                = 'completed';
+    public const STATUS_CANCELLED                = 'cancelled';
+    public const STATUS_REJECTED                 = 'rejected';
+
     protected $fillable = [
         'order_number',
         'buyer_id',
@@ -26,6 +36,7 @@ class Order extends Model
     ];
 
     protected $casts = [
+        'buyer_id' => 'integer',
         'total_amount' => 'decimal:2',
         'placed_at' => 'datetime',
         'reservation_expires_at' => 'datetime',

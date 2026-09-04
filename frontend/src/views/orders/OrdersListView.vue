@@ -41,17 +41,24 @@ async function handleLogout() {
 import api from '@/services/api'
 
 const processingOrderId = ref(null)
+const listPaymentError = ref('')
 
 async function handlePayOrderNow(event, orderId) {
   event.stopPropagation()
   processingOrderId.value = orderId
+  listPaymentError.value = ''
 
   try {
     const res = await api.post(`/orders/${orderId}/pay`)
-    if (res.data?.checkout_url) {
-      window.location.href = res.data.checkout_url
+    const checkoutUrl = res.data?.checkout_url
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl
+    } else {
+      listPaymentError.value = res.data?.message || 'Checkout URL was not returned by payment gateway.'
     }
   } catch (err) {
+    const msg = err.response?.data?.message || 'Unable to initiate payment for this order.'
+    listPaymentError.value = msg
     console.error('Failed to initiate payment from list:', err)
   } finally {
     processingOrderId.value = null
@@ -94,6 +101,18 @@ function getStatusBadgeClass(status) {
           Agri<strong>Market</strong>
         </router-link>
         <div class="top-nav__right">
+          <router-link to="/listings" class="top-nav__link">
+            Marketplace
+          </router-link>
+          <router-link to="/cart" class="top-nav__link">
+            Cart <span v-if="cartStore.itemCount > 0" class="cart-badge">{{ cartStore.itemCount }}</span>
+          </router-link>
+          <router-link to="/orders" class="top-nav__link active">
+            My Orders
+          </router-link>
+          <router-link v-if="authStore.isAuthenticated" to="/dashboard" class="top-nav__link">
+            Dashboard
+          </router-link>
           <ThemeToggle />
           <button v-if="authStore.isAuthenticated" @click="handleLogout" class="top-nav__logout">
             Sign Out
@@ -171,6 +190,9 @@ function getStatusBadgeClass(status) {
         <div v-if="orderStore.error" class="alert alert-error">
           {{ orderStore.error }}
         </div>
+        <div v-if="listPaymentError" class="alert alert-error">
+          {{ listPaymentError }}
+        </div>
 
         <!-- Loading State -->
         <div v-if="orderStore.loading" class="state-card">
@@ -231,13 +253,13 @@ function getStatusBadgeClass(status) {
 
               <div class="footer-actions">
                 <button
-                  v-if="order.status === 'pending_payment'"
+                  v-if="order.status === 'awaiting_buyer_payment' || order.status === 'pending_payment'"
                   @click="handlePayOrderNow($event, order.id)"
                   :disabled="processingOrderId === order.id"
                   class="btn btn--chapa btn--sm mr-2"
                 >
                   <span v-if="processingOrderId === order.id">Processing...</span>
-                  <span v-else>💳 Pay Now</span>
+                  <span v-else>💳 Pay ETB {{ formatPrice(order.total_amount) }}</span>
                 </button>
 
                 <button class="btn-text">

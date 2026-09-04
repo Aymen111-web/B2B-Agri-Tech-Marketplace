@@ -23,7 +23,7 @@ class OrderFulfillmentPolicy
      */
     public function view(User $user, OrderFulfillment $fulfillment): bool
     {
-        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $fulfillment->farmer_id === $user->id);
+        return $user->is_admin || (int) $fulfillment->farmer_id === (int) $user->id;
     }
 
     /**
@@ -31,7 +31,7 @@ class OrderFulfillmentPolicy
      */
     public function accept(User $user, OrderFulfillment $fulfillment): bool
     {
-        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $fulfillment->farmer_id === $user->id);
+        return $user->is_admin || (int) $fulfillment->farmer_id === (int) $user->id;
     }
 
     /**
@@ -39,7 +39,7 @@ class OrderFulfillmentPolicy
      */
     public function reject(User $user, OrderFulfillment $fulfillment): bool
     {
-        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $fulfillment->farmer_id === $user->id);
+        return $user->is_admin || (int) $fulfillment->farmer_id === (int) $user->id;
     }
 
     /**
@@ -47,7 +47,7 @@ class OrderFulfillmentPolicy
      */
     public function complete(User $user, OrderFulfillment $fulfillment): bool
     {
-        return $user->is_admin || ($this->hasActiveFarmerCapability($user) && $fulfillment->farmer_id === $user->id);
+        return $user->is_admin || (int) $fulfillment->farmer_id === (int) $user->id;
     }
 
     /**
@@ -55,9 +55,8 @@ class OrderFulfillmentPolicy
      */
     public function confirmReceived(User $user, OrderFulfillment $fulfillment): bool
     {
-        return $user->account_status === 'active'
-            && $fulfillment->order
-            && $fulfillment->order->buyer_id === $user->id;
+        return $fulfillment->order
+            && (int) $fulfillment->order->buyer_id === (int) $user->id;
     }
 
     /**

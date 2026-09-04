@@ -23,15 +23,32 @@ class OrderPolicy
      */
     public function view(User $user, Order $order): bool
     {
-        return $user->is_admin || ($this->hasActiveBuyerCapability($user) && $order->buyer_id === $user->id);
+        if ($user->is_admin) {
+            return true;
+        }
+
+        if ((int) $order->buyer_id === (int) $user->id) {
+            return true;
+        }
+
+        // Allow farmers to view order details if they are assigned a fulfillment on this order
+        return $order->fulfillments()->where('farmer_id', (int) $user->id)->exists();
     }
 
     /**
-     * Users with active buyer capability or admins can checkout (create orders).
+     * Active users can checkout (create orders).
      */
     public function create(User $user): bool
     {
-        return $this->hasActiveBuyerCapability($user);
+        return true;
+    }
+
+    /**
+     * Only the order's buyer or admin can initiate a payment.
+     */
+    public function initiate(User $user, Order $order): bool
+    {
+        return $user->is_admin || (int) $order->buyer_id === (int) $user->id;
     }
 
     /**
@@ -39,7 +56,7 @@ class OrderPolicy
      */
     public function cancel(User $user, Order $order): bool
     {
-        return $user->is_admin || ($this->hasActiveBuyerCapability($user) && $order->buyer_id === $user->id);
+        return $user->is_admin || (int) $order->buyer_id === (int) $user->id;
     }
 
     /**

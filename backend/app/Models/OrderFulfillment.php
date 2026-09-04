@@ -25,6 +25,8 @@ class OrderFulfillment extends Model
     ];
 
     protected $casts = [
+        'order_id'          => 'integer',
+        'farmer_id'         => 'integer',
         'subtotal_amount'   => 'decimal:2',
         'accepted_quantity' => 'decimal:3',
         'rejected_quantity' => 'decimal:3',

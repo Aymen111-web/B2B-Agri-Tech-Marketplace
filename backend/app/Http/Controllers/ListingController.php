@@ -216,15 +216,5 @@ class ListingController extends Controller
 
         return ListingResource::collection($listings)->response();
     }
-
-    /**
-     * Check whether the given user has an active farmer capability.
-     */
-    private function hasActiveFarmerCapability(\App\Models\User $user): bool
-    {
-        return $user->capabilities()
-            ->where('capability_type', 'farmer')
-            ->where('status', 'active')
-            ->exists();
-    }
 }
+

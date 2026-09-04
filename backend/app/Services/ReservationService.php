@@ -7,7 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use RuntimeException;
 
 class ReservationService
 {
@@ -19,7 +19,7 @@ class ReservationService
      */
     public function createReservation(User|int $buyer, iterable $cartItems): Order
     {
-        $buyerId = $buyer instanceof User ? $buyer->id : (int) $buyer;
+        $buyerId = ($buyer instanceof User) ? $buyer->id : (int) $buyer;
 
         return DB::transaction(function () use ($buyerId, $cartItems) {
             $totalAmount = 0;
@@ -28,7 +28,7 @@ class ReservationService
             $deliveryPin = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
             $order = Order::create([
-                'order_number'           => 'ORD-' . date('Y') . '-' . strtoupper(Str::random(8)),
+                'order_number'           => 'ORD-' . date('Y') . '-' . str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT),
                 'buyer_id'               => $buyerId,
                 'status'                 => 'pending_payment',
                 'payment_status'         => 'pending',
@@ -45,27 +45,28 @@ class ReservationService
             $fulfillments = [];
 
             foreach ($cartItems as $item) {
-                $listingId = is_array($item) ? $item['listing_id'] : ($item->listing_id ?? $item->listing?->id);
-                $quantity = is_array($item) ? $item['quantity'] : $item->quantity;
-                $unitPrice = is_array($item) 
-                    ? ($item['price_snapshot'] ?? $item['unit_price'] ?? 0) 
-                    : ($item->price_snapshot ?? $item->unit_price ?? $item->listing?->price_per_unit ?? 0);
+                // Extract properties flexibly whether $item is an array or CartItem model
+                $listingId = is_array($item) ? ($item['listing_id'] ?? null) : ($item->listing_id ?? null);
+                $quantity  = is_array($item) ? ($item['quantity'] ?? 0) : ($item->quantity ?? 0);
+                
+                $unitPrice = is_array($item)
+                    ? ($item['price_snapshot'] ?? 0)
+                    : ($item->price_snapshot ?? $item->listing?->price_per_unit ?? 0);
+
+                if (! $listingId) {
+                    continue;
+                }
 
                 // Atomic row locking for concurrency protection
                 $listing = Listing::where('id', $listingId)->lockForUpdate()->firstOrFail();
 
                 if ($listing->quantity_available < $quantity) {
-                    throw new \Exception("Insufficient available stock for listing: {$listing->title}");
+                    throw new RuntimeException("Insufficient available stock for listing: {$listing->title}");
                 }
 
                 // Reserve inventory
                 $listing->decrement('quantity_available', $quantity);
                 $listing->increment('quantity_reserved', $quantity);
-
-                // If unitPrice was not explicitly provided on cartItem, fallback to listing price
-                if ($unitPrice <= 0) {
-                    $unitPrice = (float) $listing->price_per_unit;
-                }
 
                 $itemSubtotal = $quantity * $unitPrice;
                 $totalAmount += $itemSubtotal;

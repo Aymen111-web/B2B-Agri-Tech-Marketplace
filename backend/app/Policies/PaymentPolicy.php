@@ -12,27 +12,14 @@ class PaymentPolicy
      */
     public function initiate(User $user, Order $order): bool
     {
-        return $this->hasActiveBuyerCapability($user)
-            && $order->buyer_id === $user->id;
+        return $user->is_admin || (int) $order->buyer_id === (int) $user->id;
     }
 
     /**
-     * Only the order's buyer with an active buyer capability can view payment details.
+     * Only the order's buyer or admin can view payment details.
      */
     public function view(User $user, Order $order): bool
     {
-        return $this->hasActiveBuyerCapability($user)
-            && $order->buyer_id === $user->id;
-    }
-
-    /**
-     * Check whether the given user has an active buyer capability.
-     */
-    private function hasActiveBuyerCapability(User $user): bool
-    {
-        return $user->capabilities()
-            ->where('capability_type', 'buyer')
-            ->where('status', 'active')
-            ->exists();
+        return $user->is_admin || (int) $order->buyer_id === (int) $user->id;
     }
 }

@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrderStore } from '@/stores/order'
 import { useAuthStore } from '@/stores/auth'
+import { getCropImage, getAvatarImage } from '@/utils/imageHelper'
 import api from '@/services/api'
 
 const route = useRoute()
@@ -15,6 +16,25 @@ const processingFulfillmentId = ref(null)
 const actionMsg = ref({ type: '', text: '' })
 
 const order = computed(() => orderStore.currentOrder)
+
+const acceptedFulfillments = computed(() => {
+  return (order.value?.fulfillments || []).filter(f => f.status === 'accepted' || f.status === 'paid_in_escrow' || f.status === 'buyer_received' || f.status === 'completed')
+})
+
+const isPaymentUnlocked = computed(() => {
+  if (!order.value) return false
+  if (order.value.status === 'awaiting_buyer_payment') return true
+  return acceptedFulfillments.value.length > 0
+})
+
+const acceptedTotal = computed(() => {
+  if (!acceptedFulfillments.value.length) return Number(order.value?.total_amount || 0)
+  return acceptedFulfillments.value.reduce((sum, f) => sum + Number(f.subtotal_amount || 0), 0)
+})
+
+const totalFulfillmentsCount = computed(() => {
+  return (order.value?.fulfillments || []).length
+})
 
 onMounted(async () => {
   const id = route.params.id
@@ -65,8 +85,15 @@ async function handlePayFarmer(fulfillmentId) {
   try {
     const response = await api.post(`/fulfillments/${fulfillmentId}/pay`)
     const checkoutUrl = response.data.checkout_url
+    const txRef = response.data.payment?.chapa_tx_ref
 
     if (checkoutUrl) {
+      // Save tx_ref & order_id to sessionStorage so PaymentSuccessView can retrieve
+      // them when Chapa redirects back WITHOUT query params
+      sessionStorage.setItem('pending_payment', JSON.stringify({
+        tx_ref:   txRef,
+        order_id: order.value?.id,
+      }))
       actionMsg.value = { type: 'success', text: 'Redirecting to Chapa Hosted Checkout...' }
       window.location.href = checkoutUrl
     } else {
@@ -90,8 +117,13 @@ async function handlePayOrder() {
   try {
     const response = await api.post(`/orders/${order.value.id}/pay`)
     const checkoutUrl = response.data.checkout_url
+    const txRef = response.data.payment?.chapa_tx_ref
 
     if (checkoutUrl) {
+      sessionStorage.setItem('pending_payment', JSON.stringify({
+        tx_ref:   txRef,
+        order_id: order.value.id,
+      }))
       actionMsg.value = { type: 'success', text: 'Redirecting to Chapa Hosted Checkout...' }
       window.location.href = checkoutUrl
     } else {
@@ -142,6 +174,15 @@ function getStatusBadgeClass(status) {
         </router-link>
 
         <div class="top-nav__right">
+          <router-link to="/orders" class="top-nav__link">
+            ← My Orders
+          </router-link>
+          <router-link to="/listings" class="top-nav__link">
+            Browse Marketplace
+          </router-link>
+          <router-link v-if="authStore.isAuthenticated" to="/dashboard" class="top-nav__link">
+            Dashboard
+          </router-link>
         </div>
       </div>
     </nav>
@@ -188,6 +229,23 @@ function getStatusBadgeClass(status) {
             <!-- Action Toast -->
             <div v-if="actionMsg.text" :class="['alert-toast', actionMsg.type === 'error' ? 'alert-toast--error' : 'alert-toast--success']" class="mt-4">
               <span>{{ actionMsg.text }}</span>
+            </div>
+
+            <!-- Completed Payment & Escrow Success Banner -->
+            <div v-if="order.status === 'completed' || order.status === 'paid_in_escrow' || order.payment_status === 'paid'" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mt-4 flex items-center justify-between gap-3 shadow-sm">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                  ✓
+                </div>
+                <div>
+                  <h4 class="font-bold text-emerald-950 text-base">
+                    {{ order.status === 'completed' ? '🎉 Order Completed & Escrow Settled!' : '🔒 Escrow Payment Confirmed' }}
+                  </h4>
+                  <p class="text-xs text-emerald-700">
+                    Funds safely secured via Chapa Escrow. Produce handoff and inspection status verified.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -240,48 +298,42 @@ function getStatusBadgeClass(status) {
                     <strong>ETB {{ formatPrice(fulfillment.subtotal_amount) }}</strong>
                   </div>
 
-                  <!-- Direct Settlement Action Buttons -->
+                  <!-- Fulfillment Actions: Instant Auto-Complete Settlement -->
                   <div class="fulfillment-actions">
-                    <!-- Step 1: Confirm Received (If Accepted by farmer) -->
+                    <!-- Case 1: Farmer Accepted -> Buyer can Pay via Chapa! -->
                     <template v-if="fulfillment.status === 'accepted'">
-                      <button
-                        @click="handleConfirmReceived(fulfillment.id)"
-                        :disabled="processingFulfillmentId === fulfillment.id"
-                        class="btn btn--success btn--sm"
-                      >
-                        Confirm Received (Inspect Produce) 🚚
-                      </button>
-                    </template>
-
-                    <!-- Step 2: Pay Farmer (If Buyer Received & Pending Payment) -->
-                    <template v-else-if="fulfillment.status === 'buyer_received'">
-                      <div class="chapa-badge">💳 Direct Settlement</div>
                       <button
                         @click="handlePayFarmer(fulfillment.id)"
                         :disabled="processingFulfillmentId === fulfillment.id"
-                        class="btn btn--primary btn--sm"
+                        class="btn btn--chapa btn--sm"
                       >
-                        Pay Farmer via Chapa →
+                        <span v-if="processingFulfillmentId === fulfillment.id" class="spinner-sm"></span>
+                        <span v-else>🔒 Pay ETB {{ formatPrice(fulfillment.subtotal_amount) }} via Chapa →</span>
                       </button>
                     </template>
 
-                    <!-- Step 3: Completed -->
-                    <template v-else-if="fulfillment.status === 'completed'">
-                      <div class="flex flex-col items-end gap-1">
-                        <span class="text-success font-bold">🎉 Settled 100% to Farmer Subaccount</span>
-                        <a
-                          v-if="fulfillment.payment?.chapa_tx_ref"
-                          :href="`/payment/success?tx_ref=${fulfillment.payment.chapa_tx_ref}`"
-                          class="text-xs text-blue-600 underline font-medium hover:text-blue-800"
-                        >
-                          View Payment & Receipt Details →
-                        </a>
+                    <!-- Case 2: Completed / Settled -->
+                    <template v-else-if="fulfillment.status === 'completed' || fulfillment.status === 'paid_in_escrow' || fulfillment.status === 'buyer_received'">
+                      <span class="text-success font-bold text-xs">🎉 Order Completed & Settled</span>
+                    </template>
+
+                    <!-- Case 5: Pending Farmer Acceptance -->
+                    <template v-else-if="fulfillment.status === 'pending' || fulfillment.status === 'pending_farmer_approval'">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs bg-amber-100 text-amber-900 px-2.5 py-1 rounded-md font-medium">
+                          ⏳ Awaiting Farmer Acceptance
+                        </span>
+                        <button disabled class="btn btn--disabled btn--sm cursor-not-allowed opacity-50">
+                          🔒 Payment Locked
+                        </button>
                       </div>
                     </template>
 
-                    <!-- Pending Farmer Acceptance -->
-                    <template v-else-if="fulfillment.status === 'pending'">
-                      <span class="text-warning">⏳ Awaiting Farmer Acceptance</span>
+                    <!-- Case 6: Rejected -->
+                    <template v-else-if="fulfillment.status === 'rejected'">
+                      <span class="text-xs bg-red-100 text-red-800 px-2.5 py-1 rounded-md font-medium">
+                        ❌ Farmer Declined (Stock Released)
+                      </span>
                     </template>
                   </div>
                 </div>
@@ -293,16 +345,50 @@ function getStatusBadgeClass(status) {
               <div class="payment-card">
                 <h3 class="card-title">Order Payment & Settlement</h3>
 
-                <div v-if="order.status === 'pending_payment'" class="pay-banner mb-4">
-                  <p class="pay-banner-text">This order is awaiting payment.</p>
-                  <button
-                    @click="handlePayOrder"
-                    :disabled="isPayingOrder"
-                    class="btn btn--chapa btn--block btn--lg mt-3"
-                  >
-                    <span v-if="isPayingOrder" class="spinner-sm"></span>
-                    <span v-else>💳 Pay Order via Chapa →</span>
-                  </button>
+                <!-- Escrow Payment Status Box -->
+                <div v-if="order.payment_status !== 'confirmed' && order.status !== 'completed' && order.status !== 'cancelled'" class="mb-4">
+                  
+                  <!-- State A: Payment Locked (Waiting for Farmer Approval) -->
+                  <div v-if="!isPaymentUnlocked" class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 mb-3">
+                    <div class="flex items-center gap-2 font-bold text-amber-900 text-base mb-1">
+                      <span>⏳</span>
+                      <span>Awaiting Farmer Acceptance</span>
+                    </div>
+                    <p class="text-xs text-amber-700 leading-relaxed mb-3">
+                      Payment is locked until the farmer confirms their stock is available. You will be notified as soon as payment is unlocked.
+                    </p>
+                    <button
+                      disabled
+                      class="w-full py-3 px-4 rounded-lg bg-gray-200 text-gray-500 font-semibold text-sm cursor-not-allowed border border-gray-300 shadow-inner flex items-center justify-center gap-2"
+                    >
+                      <span>🔒</span>
+                      <span>Payment Locked (Waiting for Farmer)</span>
+                    </button>
+                  </div>
+
+                  <!-- State B: Payment Unlocked (Farmer Accepted) -->
+                  <div v-else class="pay-banner">
+                    <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold mb-2 flex items-center gap-2">
+                      <span>✅</span>
+                      <span v-if="totalFulfillmentsCount > 1">
+                        {{ acceptedFulfillments.length }} of {{ totalFulfillmentsCount }} Farmers Confirmed Stock!
+                      </span>
+                      <span v-else>
+                        Farmer confirmed stock availability!
+                      </span>
+                    </div>
+                    <p class="pay-banner-text text-xs text-gray-600 mb-3">
+                      Secure accepted produce by paying into escrow. Funds are safely held until delivery and inspection.
+                    </p>
+                    <button
+                      @click="handlePayOrder"
+                      :disabled="isPayingOrder"
+                      class="btn btn--chapa btn--block btn--lg"
+                    >
+                      <span v-if="isPayingOrder" class="spinner-sm"></span>
+                      <span v-else>🔒 Pay ETB {{ formatPrice(acceptedTotal) }} to Escrow →</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div class="payment-meta">
@@ -566,4 +652,77 @@ function getStatusBadgeClass(status) {
   animation: spin 0.8s linear infinite; margin: 0 auto 1rem;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Receipt Modal Styles */
+.receipt-backdrop {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.receipt-modal {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  max-width: 650px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex; flex-direction: column;
+}
+.receipt-header {
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex; justify-content: space-between; align-items: center;
+  background: #f8fafc;
+  border-top-left-radius: 1.25rem; border-top-right-radius: 1.25rem;
+}
+.receipt-brand { display: flex; align-items: center; gap: 0.75rem; }
+.receipt-logo { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; }
+.receipt-close-btn {
+  background: transparent; border: none; font-size: 1.75rem; color: #64748b; cursor: pointer; line-height: 1;
+}
+.receipt-close-btn:hover { color: #0f172a; }
+
+.receipt-body { padding: 1.5rem 1.75rem; }
+.receipt-status-banner {
+  background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.75rem;
+  padding: 0.85rem 1.25rem; display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1.25rem;
+}
+.status-shield { font-size: 1.5rem; }
+
+.receipt-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;
+  background: #f8fafc; padding: 1rem; border-radius: 0.75rem; border: 1px solid #e2e8f0;
+}
+.receipt-meta-item { display: flex; flex-direction: column; gap: 0.15rem; }
+.meta-label { font-size: 0.75rem; color: #64748b; font-weight: 500; }
+
+.receipt-divider { height: 1px; background: #e2e8f0; margin: 1.25rem 0; }
+.receipt-section-title { font-size: 0.9rem; font-weight: 700; color: #0f172a; margin-bottom: 0.75rem; }
+
+.receipt-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.receipt-table th { text-align: left; padding: 0.5rem 0; border-bottom: 2px solid #e2e8f0; color: #475569; font-weight: 600; }
+.receipt-table td { padding: 0.65rem 0; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+.text-right { text-align: right; }
+
+.receipt-summary { display: flex; flex-direction: column; gap: 0.5rem; }
+.summary-row { display: flex; justify-content: space-between; font-size: 0.9rem; color: #475569; }
+.summary-row--total { font-size: 1.05rem; padding-top: 0.5rem; border-top: 1px dashed #cbd5e1; color: #0f172a; }
+
+.receipt-footer {
+  padding: 1.25rem 1.75rem; background: #f8fafc; border-top: 1px solid #e2e8f0;
+  display: flex; justify-content: flex-end; gap: 0.75rem;
+  border-bottom-left-radius: 1.25rem; border-bottom-right-radius: 1.25rem;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  .receipt-modal, .receipt-modal * { visibility: visible; }
+  .receipt-modal { position: absolute; left: 0; top: 0; width: 100%; max-width: 100%; box-shadow: none; }
+  .receipt-footer, .receipt-close-btn { display: none !important; }
+}
 </style>
