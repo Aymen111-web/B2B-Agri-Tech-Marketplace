@@ -1,41 +1,30 @@
 {
-  "name": "frontend",
-  "version": "0.0.0",
+  "name": "agrimarket-frontend",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "run-s \"lint:*\"",
-    "lint:oxlint": "oxlint . --fix",
-    "lint:eslint": "eslint . --fix --cache",
-    "format": "prettier --write --experimental-cli src/"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.2",
-    "axios": "^1.19.0",
-    "pinia": "^3.0.4",
-    "tailwindcss": "^4.3.2",
-    "vue": "^3.5.38",
-    "vue-router": "^5.1.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "lucide-react": "^0.460.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@vitejs/plugin-vue": "^6.0.7",
-    "eslint": "^10.5.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-oxlint": "~1.69.0",
-    "eslint-plugin-vue": "~10.9.2",
-    "globals": "^17.6.0",
-    "npm-run-all2": "^9.0.2",
-    "oxlint": "~1.69.0",
-    "prettier": "3.8.4",
-    "vite": "^8.0.16",
-    "vite-plugin-vue-devtools": "^8.1.2",
-    "vue-eslint-parser": "^10.4.1"
-  },
-  "engines": {
-    "node": "^22.18.0 || >=24.12.0"
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.0"
   }
 }

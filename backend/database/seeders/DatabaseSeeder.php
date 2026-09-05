@@ -24,29 +24,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $defaultPassword = 'password';
+        $defaultPassword = '123456';
 
-        // 1. System Administrator
+        // 1. System Administrator — Ibrahim Admin (0921283801)
         $admin = User::updateOrCreate(
-            ['phone' => '+251708943727'],
+            ['phone' => '+251921283801'],
             [
-                'first_name'        => 'Admin',
-                'second_name'       => 'Aymen',
+                'first_name'        => 'Ibrahim',
+                'second_name'       => 'Admin',
                 'phone_verified_at' => now(),
-                'password'          => Hash::make('admin123456'),
+                'password'          => Hash::make('123456'),
                 'is_admin'          => true,
                 'account_status'    => 'active',
             ]
         );
 
-        // 2. Verified Farmer User
+        // 2. Verified Farmer User — Aymen Farmer (0718280155)
         $farmer = User::updateOrCreate(
-            ['phone' => '+251911111111'],
+            ['phone' => '+251718280155'],
             [
-                'first_name'        => 'Abebe',
-                'second_name'       => 'Bikila',
+                'first_name'        => 'Aymen',
+                'second_name'       => 'Farmer',
                 'phone_verified_at' => now(),
-                'password'          => Hash::make('farmer123456'),
+                'password'          => Hash::make('123456'),
                 'is_admin'          => false,
                 'account_status'    => 'active',
             ]
@@ -57,14 +57,14 @@ class DatabaseSeeder extends Seeder
             ['status' => 'active', 'granted_at' => now(), 'granted_by' => $admin->id]
         );
 
-        // 3. Verified Buyer User
+        // 3. Verified Buyer User — Awol Buyer (0918982161)
         $buyer = User::updateOrCreate(
-            ['phone' => '+251922222222'],
+            ['phone' => '+251918982161'],
             [
-                'first_name'        => 'Kebede',
-                'second_name'       => 'Tessema',
+                'first_name'        => 'Awol',
+                'second_name'       => 'Buyer',
                 'phone_verified_at' => now(),
-                'password'          => Hash::make('buyer123456'),
+                'password'          => Hash::make('123456'),
                 'is_admin'          => false,
                 'account_status'    => 'active',
             ]

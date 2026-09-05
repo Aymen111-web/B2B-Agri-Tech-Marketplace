@@ -44,11 +44,25 @@ class AuthController extends Controller
      */
     public function register(Request $request): Response
     {
+        // Normalize Ethiopian phone number format
+        $rawPhone = trim($request->input('phone', ''));
+        $digits = preg_replace('/[^\d]/', '', $rawPhone);
+        if (preg_match('/^0([79]\d{8})$/', $digits, $matches)) {
+            $normalizedPhone = '+251' . $matches[1];
+        } elseif (preg_match('/^251([79]\d{8})$/', $digits, $matches)) {
+            $normalizedPhone = '+' . $digits;
+        } elseif (preg_match('/^([79]\d{8})$/', $digits, $matches)) {
+            $normalizedPhone = '+251' . $matches[1];
+        } else {
+            $normalizedPhone = $rawPhone;
+        }
+        $request->merge(['phone' => $normalizedPhone]);
+
         $validated = $request->validate([
             'first_name'  => 'required|string|max:255',
             'second_name' => 'required|string|max:255',
             'phone'       => 'required|string|unique:users,phone',
-            'password'    => 'required|string|min:8',
+            'password'    => 'required|string|min:6',
             'code'        => 'nullable|string|digits:6',
         ]);
 
@@ -76,6 +90,14 @@ class AuthController extends Controller
             ['user_id' => $user->id, 'capability_type' => 'buyer'],
             ['status' => 'active', 'granted_at' => now()]
         );
+
+        $requestedRole = strtolower((string) $request->input('role', 'buyer'));
+        if ($requestedRole === 'farmer') {
+            \App\Models\UserCapability::firstOrCreate(
+                ['user_id' => $user->id, 'capability_type' => 'farmer'],
+                ['status' => 'active', 'granted_at' => now()]
+            );
+        }
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
