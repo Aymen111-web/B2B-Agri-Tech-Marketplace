@@ -210,6 +210,29 @@ export const api = {
         return request<any>('/orders');
     },
 
+    // Order & Payment Endpoints
+    async checkoutOrder(payload?: { listing_id?: string | number; quantity_kg?: number; cart_item_ids?: (string | number)[] }): Promise<{ message: string; order: any }> {
+        return request<{ message: string; order: any }>('/orders/checkout', {
+            method: 'POST',
+            body: JSON.stringify(payload || {}),
+        });
+    },
+
+    async initiateOrderPayment(orderId: string | number): Promise<{ message: string; checkout_url: string; payment: any }> {
+        return request<{ message: string; checkout_url: string; payment: any }>(`/orders/${orderId}/pay`, {
+            method: 'POST',
+        });
+    },
+
+    async verifyOrderPayment(txRef: string): Promise<{ message: string; status: string; payment: any; receipt_url?: string }> {
+        return request<{ message: string; status: string; payment: any; receipt_url?: string }>(`/payments/verify/${txRef}`);
+    },
+
+    // Buyer Dashboard Endpoints
+    async fetchBuyerDashboardStats(): Promise<any> {
+        return request<any>('/buyer/dashboard/stats');
+    },
+
     // Payouts Endpoints
     async fetchPayoutSummary(): Promise<any> {
         return request<any>('/payouts/summary');

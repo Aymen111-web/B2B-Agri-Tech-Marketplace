@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BuyerDashboardController;
 use App\Http\Controllers\CapabilityApplicationController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CartItemController;
@@ -73,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
 ////// Orders — Buyer (authenticated, requires buyer capability) /////
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/buyer/dashboard/stats',            [BuyerDashboardController::class, 'stats']);
     Route::get('/orders',                          [OrderController::class, 'index']);
     Route::get('/orders/{id}',                     [OrderController::class, 'show']);
     Route::post('/orders/checkout',                [OrderController::class, 'checkout']);

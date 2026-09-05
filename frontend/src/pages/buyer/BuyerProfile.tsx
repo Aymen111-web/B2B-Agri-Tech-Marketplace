@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ChevronLeft,
-    ChevronRight,
-    User,
-    Eye,
-    EyeOff,
+    ArrowLeft,
     Camera,
-    CreditCard,
     CheckCircle2,
-    AlertCircle,
     ArrowLeftRight,
-    Award,
     X,
-    Lock,
     Phone,
-    Building2,
     BadgeCheck,
-    ShieldCheck
+    MapPin,
+    Warehouse,
+    Edit3,
+    Check,
+    Shield,
+    User,
+    Building2,
+    Calendar,
+    TrendingUp,
+    Globe,
+    Award
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Buyer } from '@/types';
@@ -27,529 +28,387 @@ export const BuyerProfile: React.FC = () => {
     const { user, switchRole, hasFarmerCapability } = useAuth();
     const buyer = user as Buyer;
 
-    // Display Identity State (persisted until updated via modal)
-    const [firstName, setFirstName] = useState(buyer?.name?.split(' ')[0] || 'Aymen');
-    const [lastName, setLastName] = useState(buyer?.name?.split(' ').slice(1).join(' ') || 'Buyer');
-    const [companyName, setCompanyName] = useState(buyer?.companyName || 'Addis Supply Co.');
-    const [phone, setPhone] = useState(buyer?.phone || '+251718280155');
+    // Display Identity State
+    const [fullName, setFullName] = useState(buyer?.name || 'Aymen Buyer');
+    const [companyName, setCompanyName] = useState(buyer?.companyName || 'Addis Enterprise Supply Ltd.');
+    const [phone, setPhone] = useState(buyer?.phone || '+251 911 234 567');
+    const [region, setRegion] = useState('Addis Ababa, Ethiopia');
+    const [warehouseAddress, setWarehouseAddress] = useState('Kality Industrial Zone, Warehouse B4, Addis Ababa');
 
-    // Security & Name Update Modal State
-    const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+    // Modal Edit State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [modalFullName, setModalFullName] = useState(fullName);
     const [modalCompanyName, setModalCompanyName] = useState(companyName);
-    const [modalFirstName, setModalFirstName] = useState(firstName);
-    const [modalLastName, setModalLastName] = useState(lastName);
     const [modalPhone, setModalPhone] = useState(phone);
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [showCurrentPw, setShowCurrentPw] = useState(false);
-    const [showNewPw, setShowNewPw] = useState(false);
-    const [showConfirmPw, setShowConfirmPw] = useState(false);
+    const [modalRegion, setModalRegion] = useState(region);
+    const [modalWarehouse, setModalWarehouse] = useState(warehouseAddress);
 
-    // Bank Account & Payment System State
-    const [paymentProvider, setPaymentProvider] = useState('Commercial Bank of Ethiopia (CBE)');
-    const [accountName, setAccountName] = useState(companyName || `${firstName} ${lastName}`);
-    const [accountNumber, setAccountNumber] = useState('1000298192819');
-    const [bankBranch, setBankBranch] = useState('Addis Ababa Main Branch');
+    // Toast Notice
+    const [toastMsg, setToastMsg] = useState('');
 
-    // Feedback Messages
-    const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
-    const [paymentSuccessMsg, setPaymentSuccessMsg] = useState('');
-
-    const openUpdateModal = () => {
+    const openEditModal = () => {
+        setModalFullName(fullName);
         setModalCompanyName(companyName);
-        setModalFirstName(firstName);
-        setModalLastName(lastName);
         setModalPhone(phone);
-        setIsSecurityModalOpen(true);
+        setModalRegion(region);
+        setModalWarehouse(warehouseAddress);
+        setIsEditModalOpen(true);
     };
 
-    const handleProfileSecuritySubmit = (e: React.FormEvent) => {
+    const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setFullName(modalFullName);
         setCompanyName(modalCompanyName);
-        setFirstName(modalFirstName);
-        setLastName(modalLastName);
         setPhone(modalPhone);
-        setIsSecurityModalOpen(false);
+        setRegion(modalRegion);
+        setWarehouseAddress(modalWarehouse);
+        setIsEditModalOpen(false);
 
-        setProfileSuccessMsg('Buyer profile details & security credentials updated successfully!');
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setTimeout(() => setProfileSuccessMsg(''), 4000);
+        setToastMsg('Buyer profile updated successfully');
+        setTimeout(() => setToastMsg(''), 3000);
     };
 
-    const handlePaymentSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setPaymentSuccessMsg('Bank account & payment system choice saved successfully!');
-        setTimeout(() => setPaymentSuccessMsg(''), 4000);
+    const getInitials = (nameStr: string) => {
+        const parts = nameStr.trim().split(' ');
+        if (parts.length >= 2) {
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+        return (nameStr[0] || 'A').toUpperCase();
     };
-
-    const initials = (firstName[0] || 'U') + (lastName[0] || '');
 
     return (
-        <div className="w-full flex flex-col min-h-full pb-12 max-w-5xl mx-auto space-y-6">
-            {/* Top Navigation & Breadcrumb Header */}
-            <div className="flex items-center justify-between">
-                <button
-                    onClick={() => navigate('/buyer')}
-                    className="flex items-center gap-1 text-xs font-bold text-[#1E9444] hover:text-[#0F5C2A] transition-colors cursor-pointer"
-                >
-                    <ChevronLeft className="w-4 h-4" />
-                    <span>Back</span>
-                </button>
+        <div className="w-full min-h-screen bg-[#F0F2F5] text-[#1E2328] font-sans pb-20 animate-fade-in -mx-4 -mt-6 sm:-mx-6 sm:-mt-8 p-4 sm:p-6 max-w-4xl mx-auto">
 
-                <div className="flex items-center gap-1 text-xs font-bold text-gray-400">
-                    <span>Account</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                    <span className="text-[#1E9444]">Profile & Settings</span>
-                </div>
-            </div>
-
-            {/* Title Section */}
-            <div>
-                <h1 className="text-2xl font-black text-[#1E2328] tracking-tight">Buyer Profile</h1>
-                <p className="text-xs text-[#5A6270] mt-0.5 font-medium">
-                    Manage corporate details, payment preferences, and security credentials
-                </p>
-            </div>
-
-            {/* Main 2-Column Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                {/* LEFT COLUMN: Corporate Identity Card (Redesigned Info Display) */}
-                <div className="lg:col-span-5 space-y-6">
-                    <div className="bg-white border border-[#E2E4E7] rounded-3xl overflow-hidden shadow-xs space-y-4">
-                        <div className="bg-gradient-to-r from-[#0D1117] via-[#0F2A18] to-[#1E9444] h-28 relative">
-                            {hasFarmerCapability && (
-                                <button
-                                    onClick={() => switchRole('farmer')}
-                                    className="absolute top-3 right-3 px-3 py-1 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30 text-[10px] font-extrabold rounded-full flex items-center gap-1 transition-all cursor-pointer"
-                                >
-                                    <ArrowLeftRight className="w-3 h-3 text-[#C3EFCF]" />
-                                    <span>Switch to Farmer</span>
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Avatar & Corporate Info */}
-                        <div className="px-5 pb-5 pt-0 relative">
-                            <div className="flex items-end justify-between -mt-12">
-                                <div className="relative group">
-                                    <div className="w-20 h-20 rounded-2xl bg-[#0D1117] text-white flex items-center justify-center text-2xl font-black shadow-lg border-4 border-white shrink-0">
-                                        {initials || 'ZA'}
-                                    </div>
-
-                                    {/* Photo Update Camera Button on Avatar */}
-                                    <button
-                                        type="button"
-                                        onClick={() => alert('Company logo / photo picker initialized')}
-                                        title="Update Profile Photo"
-                                        className="absolute -bottom-1 -right-1 w-7 h-7 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white border-2 border-white flex items-center justify-center shadow-md transition-transform hover:scale-110 cursor-pointer"
-                                    >
-                                        <Camera className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={openUpdateModal}
-                                    className="px-3.5 py-1.5 rounded-xl border border-gray-200 bg-[#F8F9FA] hover:bg-gray-100 text-xs font-bold text-[#1E2328] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                                >
-                                    <User className="w-3.5 h-3.5 text-[#1E9444]" />
-                                    <span>Edit Profile</span>
-                                </button>
-                            </div>
-
-                            <div className="mt-3">
-                                <h2 className="text-lg font-black text-[#1E2328] tracking-tight">
-                                    {companyName}
-                                </h2>
-                                <p className="text-xs text-[#5A6270] font-medium">Rep: {firstName} {lastName}</p>
-
-                                <div className="mt-2 flex items-center gap-2">
-                                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-extrabold capitalize">
-                                        Commercial Buyer Mode
-                                    </span>
-                                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-[#1E9444]" /> Business Verified
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* REDESIGNED INFO DISPLAY LAYOUT (NO EDITING PLACEHOLDER LOOK) */}
-                            <div className="mt-5 pt-4 border-t border-gray-100 space-y-3">
-                                <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0">
-                                            <Building2 className="w-3.5 h-3.5" />
-                                        </div>
-                                        <span className="text-xs font-bold text-[#5A6270]">Company Entity</span>
-                                    </div>
-                                    <span className="text-xs font-black text-[#1E2328]">{companyName}</span>
-                                </div>
-
-                                <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0">
-                                            <User className="w-3.5 h-3.5" />
-                                        </div>
-                                        <span className="text-xs font-bold text-[#5A6270]">Representative</span>
-                                    </div>
-                                    <span className="text-xs font-black text-[#1E2328]">{firstName} {lastName}</span>
-                                </div>
-
-                                <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0">
-                                            <Phone className="w-3.5 h-3.5" />
-                                        </div>
-                                        <span className="text-xs font-bold text-[#5A6270]">Phone Number</span>
-                                    </div>
-                                    <span className="text-xs font-black text-[#1E2328]">{phone}</span>
-                                </div>
-
-                                <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0">
-                                            <BadgeCheck className="w-3.5 h-3.5" />
-                                        </div>
-                                        <span className="text-xs font-bold text-[#5A6270]">Tier Status</span>
-                                    </div>
-                                    <span className="text-xs font-black text-[#0B57D0]">Trade Verified Buyer</span>
-                                </div>
-
-                                <div className="flex items-center justify-between py-2">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-7 h-7 rounded-lg bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0">
-                                            <ShieldCheck className="w-3.5 h-3.5" />
-                                        </div>
-                                        <span className="text-xs font-bold text-[#5A6270]">Account Security</span>
-                                    </div>
-                                    <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Protected</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Capability Status Card */}
-                    <div className="bg-white border border-[#E2E4E7] rounded-3xl p-5 shadow-xs space-y-3">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-extrabold text-[#1E2328]">Account Capabilities</h3>
-                            {hasFarmerCapability ? (
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">Dual Role Active</span>
-                            ) : (
-                                <a href="/apply" className="text-xs font-bold text-[#1E9444] hover:underline flex items-center gap-1">
-                                    <Award className="w-3.5 h-3.5" /> Upgrade Role
-                                </a>
-                            )}
-                        </div>
-
-                        <div className="p-3 bg-[#EEF2F6] border border-blue-200 rounded-xl flex items-center justify-between">
-                            <div>
-                                <span className="text-xs font-bold text-[#0B57D0] block">Commercial Buyer Capability</span>
-                                <span className="text-[10px] text-[#5A6270]">Trade License & VAT Verified</span>
-                            </div>
-                            <span className="px-2 py-0.5 rounded-md bg-[#0B57D0] text-white text-[10px] font-extrabold">Active</span>
-                        </div>
+            {/* LIGHT TOP HEADER BAR */}
+            <div className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between rounded-t-3xl shadow-xs">
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/buyer')}
+                        className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                        title="Back"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <div>
+                        <h2 className="text-sm font-black text-[#1E2328] tracking-wide">Buyer Profile</h2>
+                        <span className="text-[11px] text-[#1E9444] font-bold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#1E9444] animate-pulse" />
+                            online • Verified Commercial Buyer
+                        </span>
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN: Account Security Button Card & Bank Payment System */}
-                <div className="lg:col-span-7 space-y-6">
+                <div className="flex items-center gap-2">
+                    {hasFarmerCapability && (
+                        <button
+                            type="button"
+                            onClick={() => switchRole('farmer')}
+                            className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1E9444] border border-emerald-200 text-xs font-extrabold transition-colors cursor-pointer flex items-center gap-1.5"
+                        >
+                            <ArrowLeftRight className="w-3.5 h-3.5" />
+                            <span>Farmer Mode</span>
+                        </button>
+                    )}
 
-                    {/* SECTION 1: Account Security & Profile Details Button Card */}
-                    <div className="bg-white border border-[#E2E4E7] rounded-3xl p-6 shadow-xs space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0 border border-emerald-100">
-                                    <User className="w-5 h-5" />
+                    <button
+                        type="button"
+                        onClick={openEditModal}
+                        className="p-2 rounded-full hover:bg-gray-100 text-[#0B57D0] transition-colors cursor-pointer"
+                        title="Edit Profile"
+                    >
+                        <Edit3 className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* LIGHT TOAST NOTICE */}
+            {toastMsg && (
+                <div className="mt-3 px-4 py-2.5 bg-emerald-50 text-emerald-900 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-xs border border-emerald-200 animate-fade-in">
+                    <Check className="w-4 h-4 text-[#1E9444]" />
+                    <span>{toastMsg}</span>
+                </div>
+            )}
+
+            {/* LIGHT PROFILE HERO (AVATAR & MAIN TITLE) */}
+            <div className="bg-white rounded-b-3xl p-6 sm:p-8 flex flex-col items-center text-center relative border-b border-gray-200 shadow-xs space-y-3">
+                <div className="relative group">
+                    {/* Circular Avatar */}
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-tr from-[#1E9444] via-emerald-600 to-[#0B57D0] p-1 shadow-md">
+                        <div className="w-full h-full rounded-full bg-[#1E2328] flex items-center justify-center text-white text-3xl font-black tracking-wider">
+                            {getInitials(fullName)}
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => alert('Change profile photo')}
+                        className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#1E9444] hover:bg-[#0F5C2A] text-white flex items-center justify-center border-2 border-white shadow-md transition-transform hover:scale-110 cursor-pointer"
+                        title="Change Photo"
+                    >
+                        <Camera className="w-4 h-4" />
+                    </button>
+                </div>
+
+                <div>
+                    <div className="flex items-center justify-center gap-1.5">
+                        <h1 className="text-xl sm:text-2xl font-black text-[#1E2328] tracking-tight">
+                            {fullName}
+                        </h1>
+                        <BadgeCheck className="w-5 h-5 text-[#1E9444]" />
+                    </div>
+                    <p className="text-xs text-[#5A6270] font-bold mt-0.5">
+                        {companyName}
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1 flex-wrap justify-center text-xs">
+                    <span className="px-3 py-1 rounded-full bg-emerald-50 text-[#1E9444] border border-emerald-200 font-extrabold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#1E9444]" /> Verified Buyer
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-amber-50 text-[#D88C0A] border border-amber-200 font-extrabold flex items-center gap-1">
+                        <Award className="w-3.5 h-3.5 text-[#D88C0A]" /> 3 Years on Platform
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-blue-50 text-[#0B57D0] border border-blue-200 font-extrabold flex items-center gap-1">
+                        <TrendingUp className="w-3.5 h-3.5 text-[#0B57D0]" /> ETB 400M Spend
+                    </span>
+                </div>
+            </div>
+
+            {/* LIGHT GROUPED PROFILE CARDS */}
+            <div className="mt-4 space-y-3">
+
+                {/* GROUP 1: BUYER INFORMATION */}
+                <div className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden shadow-2xs">
+                    <div className="px-4 py-2.5 text-[11px] font-extrabold text-[#0B57D0] uppercase tracking-wider bg-gray-50 border-b border-gray-100">
+                        Buyer Details
+                    </div>
+
+                    <div className="divide-y divide-gray-100">
+
+                        {/* Row: Full Name */}
+                        <div className="px-4 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-9 h-9 rounded-full bg-blue-50 text-[#0B57D0] flex items-center justify-center shrink-0">
+                                    <User className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-extrabold text-[#1E2328]">Account Security & Credentials</h3>
-                                    <p className="text-[11px] text-[#5A6270]">Update your company, name, and security password</p>
+                                    <span className="text-xs font-black text-[#1E2328] block">{fullName}</span>
+                                    <span className="text-[11px] text-[#5A6270] font-medium">Full Name</span>
                                 </div>
                             </div>
-
-                            {/* UPDATE BUTTON THAT TRIGGERS POP-UP MODAL */}
-                            <button
-                                type="button"
-                                onClick={openUpdateModal}
-                                className="px-4 py-2 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                            >
-                                <Lock className="w-3.5 h-3.5" />
-                                <span>Update Security</span>
-                            </button>
                         </div>
 
-                        {profileSuccessMsg && (
-                            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4 text-[#1E9444]" />
-                                <span>{profileSuccessMsg}</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* SECTION 2: BANK ACCOUNT & PAYMENT SYSTEM CHOICE */}
-                    <form onSubmit={handlePaymentSubmit} className="bg-white border border-[#E2E4E7] rounded-3xl p-6 shadow-xs space-y-5">
-                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                            <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                                    <CreditCard className="w-4 h-4" />
+                        {/* Row: Company Name */}
+                        <div className="px-4 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-9 h-9 rounded-full bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0">
+                                    <Building2 className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-extrabold text-[#1E2328]">Bank Account & Escrow System</h3>
-                                    <p className="text-[11px] text-[#5A6270]">Set up your choice of bank account or payment system for purchase orders</p>
+                                    <span className="text-xs font-black text-[#1E2328] block">{companyName}</span>
+                                    <span className="text-[11px] text-[#5A6270] font-medium">Company Name</span>
                                 </div>
                             </div>
                         </div>
 
-                        {paymentSuccessMsg && (
-                            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4 text-[#1E9444]" />
-                                <span>{paymentSuccessMsg}</span>
-                            </div>
-                        )}
-
-                        <div className="space-y-3">
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-[#1E2328]">Payment System Choice</label>
-                                <select
-                                    value={paymentProvider}
-                                    onChange={(e) => setPaymentProvider(e.target.value)}
-                                    className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#1E2328] focus:outline-none focus:border-[#1E9444] transition-colors"
-                                >
-                                    <option value="Commercial Bank of Ethiopia (CBE)">Commercial Bank of Ethiopia (CBE)</option>
-                                    <option value="Telebirr (Ethio Telecom Mobile Money)">Telebirr (Ethio Telecom)</option>
-                                    <option value="Dashen Bank / Amole">Dashen Bank / Amole</option>
-                                    <option value="Awash International Bank">Awash International Bank</option>
-                                    <option value="Bank of Abyssinia">Bank of Abyssinia</option>
-                                </select>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div className="space-y-1">
-                                    <label className="text-xs font-bold text-[#1E2328]">Account Holder Name</label>
-                                    <input
-                                        type="text"
-                                        value={accountName}
-                                        onChange={(e) => setAccountName(e.target.value)}
-                                        placeholder="Company / Personal Name in Bank"
-                                        className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444] transition-colors"
-                                    />
+                        {/* Row: Phone Number */}
+                        <div className="px-4 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors cursor-pointer">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-9 h-9 rounded-full bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0">
+                                    <Phone className="w-4 h-4" />
                                 </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-xs font-bold text-[#1E2328]">Account Number / Telebirr Phone</label>
-                                    <input
-                                        type="text"
-                                        value={accountNumber}
-                                        onChange={(e) => setAccountNumber(e.target.value)}
-                                        placeholder="e.g. 1000298192819"
-                                        className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444] transition-colors"
-                                    />
+                                <div>
+                                    <span className="text-xs font-black text-[#1E2328] block">{phone}</span>
+                                    <span className="text-[11px] text-[#5A6270] font-medium">Phone Number</span>
                                 </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-[#1E2328]">Bank Branch / Settlement Hub</label>
-                                <input
-                                    type="text"
-                                    value={bankBranch}
-                                    onChange={(e) => setBankBranch(e.target.value)}
-                                    placeholder="e.g. Addis Ababa Main Branch"
-                                    className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444] transition-colors"
-                                />
                             </div>
                         </div>
 
-                        <div className="flex justify-end pt-2">
-                            <button
-                                type="submit"
-                                className="px-6 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
-                            >
-                                Save Payment System Choice
-                            </button>
+                        {/* Row: Region */}
+                        <div className="px-4 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-9 h-9 rounded-full bg-blue-50 text-[#0B57D0] flex items-center justify-center shrink-0">
+                                    <Globe className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <span className="text-xs font-black text-[#1E2328] block">{region}</span>
+                                    <span className="text-[11px] text-[#5A6270] font-medium">Region / Operating Territory</span>
+                                </div>
+                            </div>
                         </div>
-                    </form>
 
+                    </div>
+                </div>
+
+                {/* GROUP 2: PLATFORM TRUST & PROCUREMENT VOLUME */}
+                <div className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden shadow-2xs">
+                    <div className="px-4 py-2.5 text-[11px] font-extrabold text-[#D88C0A] uppercase tracking-wider bg-gray-50 border-b border-gray-100 flex items-center gap-1.5">
+                        <Shield className="w-3.5 h-3.5 text-[#D88C0A]" /> Platform Trust & Trade Metrics
+                    </div>
+
+                    <div className="divide-y divide-gray-100">
+                        {/* Row: 3 Years on Platform */}
+                        <div className="px-4 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-9 h-9 rounded-full bg-amber-50 text-[#D88C0A] flex items-center justify-center shrink-0">
+                                    <Calendar className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <span className="text-xs font-black text-[#1E2328] block">3 Years on this Platform</span>
+                                    <span className="text-[11px] text-[#5A6270] font-medium">Active Verified Buyer since 2023 (High Trust Rating)</span>
+                                </div>
+                            </div>
+                            <span className="px-2.5 py-0.5 rounded-lg bg-amber-50 text-[#D88C0A] text-[10px] font-extrabold border border-amber-200">
+                                TRUSTED
+                            </span>
+                        </div>
+
+                        {/* Row: Spent 400M Birr */}
+                        <div className="px-4 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-9 h-9 rounded-full bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0">
+                                    <TrendingUp className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <span className="text-xs font-black text-[#1E9444] block">ETB 400,000,000 Birr</span>
+                                    <span className="text-[11px] text-[#5A6270] font-medium">Total Procurement Spend Transacted via Escrow</span>
+                                </div>
+                            </div>
+                            <span className="px-2.5 py-0.5 rounded-lg bg-emerald-50 text-[#1E9444] text-[10px] font-extrabold border border-emerald-200">
+                                VIP VOLUME
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* GROUP 3: LOGISTICS & WAREHOUSE HUB */}
+                <div className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden shadow-2xs">
+                    <div className="px-4 py-2.5 text-[11px] font-extrabold text-[#0B57D0] uppercase tracking-wider bg-gray-50 border-b border-gray-100">
+                        Delivery & Warehouse Hub
+                    </div>
+
+                    <div className="divide-y divide-gray-100">
+                        <div className="px-4 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
+                            <div className="flex items-start gap-3.5">
+                                <div className="w-9 h-9 rounded-full bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0 mt-0.5">
+                                    <MapPin className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <span className="text-xs font-black text-[#1E2328] block">{warehouseAddress}</span>
+                                    <span className="text-[11px] text-[#5A6270] font-medium">Primary Delivery Destination</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="px-4 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition-colors">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-9 h-9 rounded-full bg-blue-50 text-[#0B57D0] flex items-center justify-center shrink-0">
+                                    <Warehouse className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <span className="text-xs font-black text-[#1E2328] block">Dawit Haile (Logistics Manager)</span>
+                                    <span className="text-[11px] text-[#5A6270] font-medium">Receiving Manager • Cold Storage Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
 
-            {/* POP-UP MODAL: UPDATE ACCOUNT SECURITY, NAME & PASSWORD */}
-            {isSecurityModalOpen && (
+            {/* LIGHT MODAL DIALOG: EDIT BUYER PROFILE */}
+            {isEditModalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-                    <div className="bg-white border border-[#E2E4E7] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 relative">
-                        {/* Modal Header */}
+                    <div className="bg-white border border-gray-200 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 text-[#1E2328] relative">
                         <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#1E9444] flex items-center justify-center shrink-0">
-                                    <Lock className="w-4 h-4" />
+                                <div className="w-8 h-8 rounded-full bg-[#1E9444] text-white flex items-center justify-center shrink-0">
+                                    <Edit3 className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-extrabold text-[#1E2328]">Update Account & Security</h3>
-                                    <p className="text-[11px] text-[#5A6270]">Update company, contact details, and password</p>
+                                    <h3 className="text-sm font-black text-[#1E2328]">Edit Buyer Profile</h3>
+                                    <p className="text-[11px] text-[#5A6270]">Update buyer information & details</p>
                                 </div>
                             </div>
                             <button
                                 type="button"
-                                onClick={() => setIsSecurityModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 cursor-pointer"
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
                             >
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
 
-                        {/* Modal Form */}
-                        <form onSubmit={handleProfileSecuritySubmit} className="space-y-4">
-
-                            {/* Profile Photo Area inside modal */}
-                            <div className="flex items-center gap-4 p-3 bg-[#F8F9FA] rounded-2xl border border-gray-200/60">
-                                <div className="w-12 h-12 rounded-xl bg-[#0D1117] text-white flex items-center justify-center text-base font-black shrink-0 border border-white shadow-xs">
-                                    {initials || 'ZA'}
-                                </div>
-                                <div>
-                                    <button
-                                        type="button"
-                                        onClick={() => alert('Company logo / photo selection initialized')}
-                                        className="px-3 py-1 rounded-lg border border-gray-300 bg-white text-xs font-bold text-[#1E2328] hover:bg-gray-50 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                                    >
-                                        <Camera className="w-3.5 h-3.5 text-[#1E9444]" />
-                                        <span>Change Logo</span>
-                                    </button>
-                                </div>
+                        <form onSubmit={handleFormSubmit} className="space-y-3.5 text-xs">
+                            <div className="space-y-1">
+                                <label className="text-[#1E2328] font-bold">Full Name</label>
+                                <input
+                                    type="text"
+                                    value={modalFullName}
+                                    onChange={(e) => setModalFullName(e.target.value)}
+                                    className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-[#1E2328] font-bold focus:outline-none focus:border-[#1E9444]"
+                                    required
+                                />
                             </div>
 
-                            {/* Company & Name Input Fields inside Modal */}
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-[#1E2328]">Company Name</label>
+                                <label className="text-[#1E2328] font-bold">Company Name</label>
                                 <input
                                     type="text"
                                     value={modalCompanyName}
                                     onChange={(e) => setModalCompanyName(e.target.value)}
-                                    placeholder="Company Name"
-                                    className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444]"
+                                    className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-[#1E2328] font-bold focus:outline-none focus:border-[#1E9444]"
+                                    required
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="space-y-1">
-                                    <label className="text-xs font-bold text-[#1E2328]">First Name</label>
-                                    <input
-                                        type="text"
-                                        value={modalFirstName}
-                                        onChange={(e) => setModalFirstName(e.target.value)}
-                                        placeholder="First Name"
-                                        className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444]"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs font-bold text-[#1E2328]">Last Name</label>
-                                    <input
-                                        type="text"
-                                        value={modalLastName}
-                                        onChange={(e) => setModalLastName(e.target.value)}
-                                        placeholder="Last Name"
-                                        className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444]"
-                                    />
-                                </div>
-                            </div>
-
                             <div className="space-y-1">
-                                <label className="text-xs font-bold text-[#1E2328]">Phone Number</label>
+                                <label className="text-[#1E2328] font-bold">Phone Number</label>
                                 <input
                                     type="text"
                                     value={modalPhone}
                                     onChange={(e) => setModalPhone(e.target.value)}
-                                    placeholder="Phone Number"
-                                    className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444]"
+                                    className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-[#1E2328] font-bold focus:outline-none focus:border-[#1E9444]"
+                                    required
                                 />
                             </div>
 
-                            {/* Password Section */}
-                            <div className="pt-2 border-t border-gray-100 space-y-3">
-                                <div className="space-y-1">
-                                    <label className="text-xs font-bold text-[#1E2328]">Current Password</label>
-                                    <div className="relative">
-                                        <input
-                                            type={showCurrentPw ? 'text' : 'password'}
-                                            value={currentPassword}
-                                            onChange={(e) => setCurrentPassword(e.target.value)}
-                                            placeholder="Enter Current Password"
-                                            className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444] pr-10"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowCurrentPw(!showCurrentPw)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
-                                        >
-                                            {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-bold text-[#1E2328]">New Password</label>
-                                        <div className="relative">
-                                            <input
-                                                type={showNewPw ? 'text' : 'password'}
-                                                value={newPassword}
-                                                onChange={(e) => setNewPassword(e.target.value)}
-                                                placeholder="New Password"
-                                                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444] pr-8"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowNewPw(!showNewPw)}
-                                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
-                                            >
-                                                {showNewPw ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-bold text-[#1E2328]">Confirm Password</label>
-                                        <div className="relative">
-                                            <input
-                                                type={showConfirmPw ? 'text' : 'password'}
-                                                value={confirmPassword}
-                                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                                placeholder="Confirm Password"
-                                                className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium text-[#1E2328] focus:outline-none focus:border-[#1E9444] pr-8"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowConfirmPw(!showConfirmPw)}
-                                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
-                                            >
-                                                {showConfirmPw ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="space-y-1">
+                                <label className="text-[#1E2328] font-bold">Region</label>
+                                <input
+                                    type="text"
+                                    value={modalRegion}
+                                    onChange={(e) => setModalRegion(e.target.value)}
+                                    className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-[#1E2328] font-bold focus:outline-none focus:border-[#1E9444]"
+                                    required
+                                />
                             </div>
 
-                            <p className="text-[11px] text-[#5A6270] font-medium flex items-center gap-1 pt-1">
-                                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                                <span>Leave password fields blank to keep current password.</span>
-                            </p>
+                            <div className="space-y-1">
+                                <label className="text-[#1E2328] font-bold">Delivery Warehouse Destination</label>
+                                <input
+                                    type="text"
+                                    value={modalWarehouse}
+                                    onChange={(e) => setModalWarehouse(e.target.value)}
+                                    className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-[#1E2328] font-bold focus:outline-none focus:border-[#1E9444]"
+                                    required
+                                />
+                            </div>
 
-                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                            <div className="pt-3 border-t border-gray-100 flex justify-end gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => setIsSecurityModalOpen(false)}
-                                    className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                                    onClick={() => setIsEditModalOpen(false)}
+                                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-5 py-2 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                                    className="px-4 py-2 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-bold cursor-pointer shadow-xs"
                                 >
-                                    Save Updates
+                                    Save
                                 </button>
                             </div>
                         </form>

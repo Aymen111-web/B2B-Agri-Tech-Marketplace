@@ -51,6 +51,7 @@ export const router = createBrowserRouter([
                     { index: true, element: <Home /> },
                     { path: 'marketplace', element: <Marketplace /> },
                     { path: 'listing/:id', element: <ListingDetail /> },
+                    { path: 'checkout', element: <Checkout /> },
                     { path: 'checkout/:id', element: <Checkout /> },
                     { path: 'orders', element: <Orders /> },
                     { path: 'profile', element: <BuyerProfile /> },

@@ -33,7 +33,7 @@ class PaymentController extends Controller
             ->whereIn('status', ['accepted', 'paid_in_escrow'])
             ->get();
 
-        if ($acceptedFulfillments->isEmpty() && $order->status !== 'awaiting_buyer_payment') {
+        if ($acceptedFulfillments->isEmpty() && ! in_array($order->status, ['pending_payment', 'placed', 'awaiting_buyer_payment'])) {
             return response()->json([
                 'message' => 'Payment is locked until at least one farmer confirms stock availability.',
                 'status'  => $order->status,

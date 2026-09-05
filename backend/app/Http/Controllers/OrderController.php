@@ -73,35 +73,80 @@ class OrderController extends Controller
     }
 
     /**
-     * Checkout: convert the buyer's cart into a new order with concurrency-safe
-     * stock reservation and 15-minute expiration timer.
+     * Checkout: convert the buyer's cart or single/bulk produce payload into a new order with
+     * concurrency-safe stock reservation and 15-minute expiration timer.
      *
      * POST /api/orders/checkout
+     * Body: { "listing_id": 1, "quantity_kg": 1000 } OR { "cart_item_ids": [1, 2] }
      */
-    public function checkout(): JsonResponse
+    public function checkout(Request $request): JsonResponse
     {
         $this->authorize('create', Order::class);
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $cartItems = $user->cartItems()->with('listing')->get();
+        $itemsToReserve = [];
 
-        if ($cartItems->isEmpty()) {
-            return response()->json([
-                'message' => 'Your cart is empty.',
-            ], 422);
+        // 1. Single Separate Item Checkout
+        if ($request->has('listing_id')) {
+            $listingId  = $request->input('listing_id');
+            $quantityKg = max(1, (int) $request->input('quantity_kg', 1000));
+
+            $listing = \App\Models\Listing::find($listingId);
+            if (! $listing) {
+                return response()->json(['message' => 'Requested produce listing was not found.'], 404);
+            }
+
+            $itemsToReserve[] = [
+                'listing_id'     => $listing->id,
+                'quantity'       => $quantityKg,
+                'price_snapshot' => $listing->price_per_unit,
+            ];
+        }
+        // 2. Selective / Bulk Cart Items Checkout
+        elseif ($request->has('cart_item_ids') && is_array($request->input('cart_item_ids'))) {
+            $cartIds = $request->input('cart_item_ids');
+            $cartItems = $user->cartItems()->with('listing')->whereIn('id', $cartIds)->get();
+
+            if ($cartItems->isEmpty()) {
+                return response()->json(['message' => 'No matching cart items found for checkout.'], 422);
+            }
+
+            foreach ($cartItems as $cItem) {
+                $itemsToReserve[] = [
+                    'listing_id'     => $cItem->listing_id,
+                    'quantity'       => $cItem->quantity,
+                    'price_snapshot' => $cItem->price_snapshot ?: $cItem->listing?->price_per_unit,
+                ];
+            }
+
+            // Remove selected cart items after reservation
+            $user->cartItems()->whereIn('id', $cartIds)->delete();
+        }
+        // 3. Fallback: All Cart Items
+        else {
+            $cartItems = $user->cartItems()->with('listing')->get();
+
+            if ($cartItems->isEmpty()) {
+                return response()->json(['message' => 'Your cart is empty.'], 422);
+            }
+
+            foreach ($cartItems as $cItem) {
+                $itemsToReserve[] = [
+                    'listing_id'     => $cItem->listing_id,
+                    'quantity'       => $cItem->quantity,
+                    'price_snapshot' => $cItem->price_snapshot ?: $cItem->listing?->price_per_unit,
+                ];
+            }
+
+            $user->cartItems()->delete();
         }
 
         try {
-            $order = $this->reservationService->createReservation($user, $cartItems);
-            
-            // Clear the buyer's cart after successful order creation
-            $user->cartItems()->delete();
+            $order = $this->reservationService->createReservation($user, $itemsToReserve);
         } catch (RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
+            return response()->json(['message' => $e->getMessage()], 422);
         }
 
         $order->load([
@@ -111,7 +156,7 @@ class OrderController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Order placed successfully. Inventory reserved for ' . config('marketplace.reservation_duration_minutes', 15) . ' minutes.',
+            'message' => 'Order placed successfully. Stock reserved for ' . config('marketplace.reservation_duration_minutes', 15) . ' minutes.',
             'order'   => new OrderResource($order),
         ], 201);
     }
