@@ -156,8 +156,13 @@
                   :class="['w-4 h-4 shrink-0', isNavActive(item) ? (isFarmerTheme ? 'text-white' : 'text-[#1E9444]') : 'text-[#5A6270] group-hover:text-[#1E2328]']" />
                 <span v-if="isSidebarOpen" class="truncate">{{ item.label }}</span>
               </div>
-              <ChevronRight v-if="isSidebarOpen"
-                :class="['w-3.5 h-3.5 shrink-0', isNavActive(item) ? (isFarmerTheme ? 'text-white' : 'text-[#1E9444]') : 'text-gray-400 opacity-60 group-hover:opacity-100']" />
+              <div v-if="isSidebarOpen" class="flex items-center gap-1.5 shrink-0">
+                <span v-if="item.badge" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#E69500] text-white shadow-2xs">
+                  {{ item.badge }}
+                </span>
+                <ChevronRight :class="['w-3.5 h-3.5 shrink-0', isNavActive(item) ? (isFarmerTheme ? 'text-white' : 'text-[#1E9444]') : 'text-gray-400 opacity-60 group-hover:opacity-100']" />
+              </div>
+              <span v-else-if="item.badge" class="absolute top-1 right-2 w-2 h-2 rounded-full bg-[#E69500]" />
             </button>
           </template>
         </nav>
@@ -181,9 +186,14 @@
     <!-- Mobile Bottom Navigation -->
     <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E2E4E7] py-2 px-4 flex items-center justify-around md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
       <button v-for="item in navItems" :key="item.path" @click="$router.push(item.path)"
-        :class="['flex flex-col items-center gap-0.5 text-center min-w-[56px] py-1 transition-colors',
+        :class="['flex flex-col items-center gap-0.5 text-center min-w-[56px] py-1 transition-colors relative',
           isNavActive(item) ? 'text-[#1E9444]' : 'text-[#9BA1AA] hover:text-[#5A6270]']">
-        <component :is="item.icon" :class="['w-5 h-5', isNavActive(item) ? 'stroke-[2.5]' : 'stroke-[1.75]']" />
+        <div class="relative">
+          <component :is="item.icon" :class="['w-5 h-5', isNavActive(item) ? 'stroke-[2.5]' : 'stroke-[1.75]']" />
+          <span v-if="item.badge" class="absolute -top-1.5 -right-2.5 px-1.5 py-0.2 min-w-[16px] h-[16px] text-[9px] font-black bg-[#E69500] text-white rounded-full flex items-center justify-center border border-white shadow-2xs">
+            {{ item.badge }}
+          </span>
+        </div>
         <span :class="['text-[11px]', isNavActive(item) ? 'font-bold' : 'font-medium']">{{ item.label }}</span>
       </button>
     </nav>

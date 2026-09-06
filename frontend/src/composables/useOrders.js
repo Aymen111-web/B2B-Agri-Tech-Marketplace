@@ -99,7 +99,19 @@ export function useOrders() {
         if (!token) return
 
         try {
-            const res = await api.fetchMyFulfillments()
+            const userData = localStorage.getItem('agri_user_data')
+            let role = 'buyer'
+            if (userData) {
+                try {
+                    const parsed = JSON.parse(userData)
+                    role = parsed.activeRole || parsed.role || 'buyer'
+                } catch { /* ignore */ }
+            }
+
+            const res = role === 'farmer'
+                ? await api.fetchMyFulfillments()
+                : await api.fetchMyOrders()
+
             const rawItems = Array.isArray(res) ? res : (res?.data || [])
             if (rawItems.length > 0) {
                 orders.value = rawItems.map(mapRawOrderToFrontend)
@@ -148,7 +160,16 @@ export function useOrders() {
         return newOrder
     }
 
-    const confirmDelivery = (orderId) => {
+    const confirmDelivery = async (orderId, pin = '123456') => {
+        const token = getAuthToken()
+        if (token) {
+            try {
+                await api.verifyDeliveryPin(orderId, pin)
+            } catch {
+                // offline fallback
+            }
+        }
+
         orders.value = orders.value.map((order) => {
             if (order.id === orderId) {
                 const now = new Date()

@@ -3,22 +3,22 @@ import { api, getAuthToken } from '@/services/api'
 
 const INITIAL_LISTINGS = [
     {
-        id: 'listing-1', farmerId: 'farmer-1',
+        id: 1, farmerId: 'farmer-1',
         farmer: { id: 'farmer-1', name: 'Dawit Bekele', email: 'dawit@sidamafarm.et', phone: '+251 912 345 678', role: 'farmer', status: 'verified', region: 'SNNPR', farmSize: 14.5, totalEarned: 890000, rating: 4.9, reviewCount: 38, crops: ['Coffee', 'Teff'], createdAt: new Date('2023-11-10') },
         cropName: 'Sidama Washed Coffee G1', cropEmoji: '☕', category: 'coffee', grade: 'Grade 1', region: 'SNNPR', zone: 'Sidama', process: 'Washed', pricePerKg: 85, availableQty: 12000, minOrderQty: 500, harvestDate: new Date('2024-02-10'), moistureContent: 11.2, description: 'Highland washed specialty grade 1 coffee from Hawassa zuriya.', images: [], isActive: true, isVerified: true, createdAt: new Date('2024-02-15'), viewCount: 342,
     },
     {
-        id: 'listing-2', farmerId: 'farmer-2',
+        id: 2, farmerId: 'farmer-2',
         farmer: { id: 'farmer-2', name: 'Lemlem Haile', email: 'lemlem@tigraysesame.et', phone: '+251 914 567 890', role: 'farmer', status: 'verified', region: 'Tigray', farmSize: 22.0, totalEarned: 1420000, rating: 4.8, reviewCount: 29, crops: ['Sesame'], createdAt: new Date('2023-09-01') },
         cropName: 'Humera White Sesame', cropEmoji: '🌱', category: 'oilseeds', grade: 'Export Quality', region: 'Tigray', zone: 'Humera', process: 'Sun-dried', pricePerKg: 62, availableQty: 30000, minOrderQty: 1000, harvestDate: new Date('2024-01-20'), moistureContent: 6.5, description: 'Premium white Humera type sesame seed.', images: [], isActive: true, isVerified: true, createdAt: new Date('2024-01-25'), viewCount: 512,
     },
     {
-        id: 'listing-3', farmerId: 'farmer-3',
+        id: 3, farmerId: 'farmer-3',
         farmer: { id: 'farmer-3', name: 'Abebe Girma', email: 'abebe@balegrains.et', phone: '+251 911 876 543', role: 'farmer', status: 'verified', region: 'Oromia', farmSize: 45.0, totalEarned: 2150000, rating: 4.7, reviewCount: 44, crops: ['Wheat', 'Barley'], createdAt: new Date('2023-05-12') },
         cropName: 'Bale Durum Wheat', cropEmoji: '🌾', category: 'grains', grade: 'Grade A', region: 'Oromia', zone: 'Bale', process: 'Combine Harvested', pricePerKg: 28, availableQty: 55000, minOrderQty: 2000, harvestDate: new Date('2024-01-10'), moistureContent: 12.0, description: 'High-gluten durum wheat ideal for pasta and flour milling.', images: [], isActive: true, isVerified: true, createdAt: new Date('2024-01-15'), viewCount: 420,
     },
     {
-        id: 'listing-4', farmerId: 'farmer-4',
+        id: 4, farmerId: 'farmer-4',
         farmer: { id: 'farmer-4', name: 'Tigist Alemu', email: 'tigist@amharaspices.et', phone: '+251 918 234 111', role: 'farmer', status: 'verified', region: 'Amhara', farmSize: 8.0, totalEarned: 640000, rating: 5.0, reviewCount: 52, crops: ['Chili', 'Ginger'], createdAt: new Date('2023-10-05') },
         cropName: 'Berbere Chili Blend', cropEmoji: '🌶️', category: 'spices', grade: 'Premium', region: 'Amhara', zone: 'Mareko', process: 'Natural Sun-dried', pricePerKg: 110, availableQty: 8000, minOrderQty: 100, harvestDate: new Date('2024-02-01'), moistureContent: 9.0, description: 'Pungent Mareko Fana red peppers.', images: [], isActive: true, isVerified: true, createdAt: new Date('2024-02-05'), viewCount: 680,
     },
@@ -83,7 +83,19 @@ export function useListings() {
 
         isLoading.value = true
         try {
-            const res = await api.fetchMyListings()
+            const userData = localStorage.getItem('agri_user_data')
+            let role = 'buyer'
+            if (userData) {
+                try {
+                    const parsed = JSON.parse(userData)
+                    role = parsed.activeRole || parsed.role || 'buyer'
+                } catch { /* ignore */ }
+            }
+
+            const res = role === 'farmer'
+                ? await api.fetchMyListings()
+                : await api.fetchPublicListings()
+
             const rawItems = Array.isArray(res) ? res : (res?.data || [])
             if (rawItems.length > 0) {
                 listings.value = rawItems.map(mapRawListingToFrontend)
@@ -138,7 +150,8 @@ export function useListings() {
     }
 
     const getListingById = (id) => {
-        return listings.value.find((item) => item.id === id)
+        if (!id) return null
+        return listings.value.find((item) => String(item.id) === String(id))
     }
 
     const filterListings = (category, query) => {

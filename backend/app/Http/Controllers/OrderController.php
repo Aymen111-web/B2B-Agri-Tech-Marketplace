@@ -170,7 +170,7 @@ class OrderController extends Controller
     public function verifyDeliveryPin(Request $request, int $id): JsonResponse
     {
         $request->validate([
-            'pin' => ['required', 'string', 'size:' . config('marketplace.delivery_pin_length', 6)],
+            'pin' => ['required', 'string', 'min:4', 'max:6'],
         ]);
 
         $order = Order::findOrFail($id);

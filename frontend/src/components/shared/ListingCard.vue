@@ -75,11 +75,13 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ShoppingCart, Check } from 'lucide-vue-next'
 import VerifiedBadge from './VerifiedBadge.vue'
 import GradeBadge from './GradeBadge.vue'
 import { formatETB } from '@/utils/helpers'
+import { useCart } from '@/composables/useCart'
 
 const props = defineProps({
   listing: { type: Object, required: true },
@@ -90,6 +92,15 @@ const props = defineProps({
 
 const emit = defineEmits(['addToCart'])
 const router = useRouter()
+const { cartItems, addToCart, removeFromCart } = useCart()
+
+const isAddedToCart = computed(() => {
+  if (props.isAddedToCart) return true
+  return cartItems.value.some(item => 
+    String(item.listingId) === String(props.listing.id) || 
+    String(item.listing?.id) === String(props.listing.id)
+  )
+})
 
 const getCategoryGradient = (category) => {
   const gradients = {
@@ -110,9 +121,17 @@ const handleClick = () => {
 }
 
 const handleCartClick = (e) => {
-  emit('addToCart', props.listing, e)
-  if (!props.isAddedToCart) {
-    router.push(`/buyer/checkout/${props.listing.id}`)
+  e?.stopPropagation?.()
+  const existing = cartItems.value.find(item => 
+    String(item.listingId) === String(props.listing.id) || 
+    String(item.listing?.id) === String(props.listing.id)
+  )
+
+  if (existing) {
+    removeFromCart(existing.id)
+  } else {
+    addToCart(props.listing)
   }
+  emit('addToCart', props.listing, e)
 }
 </script>

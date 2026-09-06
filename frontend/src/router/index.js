@@ -18,6 +18,8 @@ import ListingDetail from '@/pages/buyer/ListingDetail.vue'
 import Checkout from '@/pages/buyer/Checkout.vue'
 import BuyerOrders from '@/pages/buyer/Orders.vue'
 import BuyerProfile from '@/pages/buyer/BuyerProfile.vue'
+import Cart from '@/pages/buyer/Cart.vue'
+import PaymentSuccess from '@/pages/buyer/PaymentSuccess.vue'
 
 // Farmer Pages
 import FarmerDashboard from '@/pages/farmer/Dashboard.vue'
@@ -52,6 +54,7 @@ const routes = [
     { path: '/login', name: 'Login', component: Login },
     { path: '/register', name: 'Register', component: Register },
     { path: '/apply', name: 'CapabilityApplication', component: CapabilityApplication },
+    { path: '/payment/success', name: 'PaymentSuccess', component: PaymentSuccess },
     {
         path: '/buyer',
         component: BuyerLayout,
@@ -60,8 +63,10 @@ const routes = [
             { path: '', name: 'BuyerHome', component: BuyerHome },
             { path: 'marketplace', name: 'Marketplace', component: Marketplace },
             { path: 'listing/:id', name: 'ListingDetail', component: ListingDetail },
+            { path: 'cart', name: 'BuyerCart', component: Cart },
             { path: 'checkout', name: 'Checkout', component: Checkout },
             { path: 'checkout/:id', name: 'CheckoutListing', component: Checkout },
+            { path: 'payment-success', name: 'BuyerPaymentSuccess', component: PaymentSuccess },
             { path: 'orders', name: 'BuyerOrders', component: BuyerOrders },
             { path: 'profile', name: 'BuyerProfile', component: BuyerProfile },
         ],
