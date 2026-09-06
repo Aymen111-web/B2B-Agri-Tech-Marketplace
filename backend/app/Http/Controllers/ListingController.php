@@ -216,5 +216,64 @@ class ListingController extends Controller
 
         return ListingResource::collection($listings)->response();
     }
+
+    /**
+     * Admin: Browse all listings across the system regardless of status.
+     *
+     * GET /api/admin/listings?status=active&search=teff
+     */
+    public function adminIndex(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Listing::class);
+
+        $request->validate([
+            'status'   => ['sometimes', 'string', 'in:active,inactive,sold_out,suspended,flagged'],
+            'search'   => ['sometimes', 'string', 'max:100'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        $query = Listing::with(['farmer:id,first_name,second_name,phone,bank_name', 'category:id,name,slug']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $listings = $query->orderByDesc('created_at')->paginate($request->input('per_page', 20));
+
+        return ListingResource::collection($listings)->response();
+    }
+
+    /**
+     * Admin: Moderate a listing status (active, suspended, flagged, inactive).
+     *
+     * PATCH /api/admin/listings/{id}/moderate
+     * Body: { "status": "active" | "suspended" | "flagged" | "inactive" }
+     */
+    public function moderate(Request $request, int $id): JsonResponse
+    {
+        $listing = Listing::findOrFail($id);
+
+        $this->authorize('update', $listing);
+
+        $validated = $request->validate([
+            'status' => ['required', 'string', 'in:active,suspended,flagged,inactive'],
+        ]);
+
+        $listing->update(['status' => $validated['status']]);
+
+        return response()->json([
+            'message' => 'Listing status updated to ' . $validated['status'] . '.',
+            'listing' => new ListingResource($listing->fresh()->load(['farmer', 'category'])),
+        ]);
+    }
 }
+
 

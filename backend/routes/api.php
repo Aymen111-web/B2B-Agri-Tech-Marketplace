@@ -44,6 +44,9 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/capability-applications',              [CapabilityApplicationController::class, 'index']);
     Route::post('/capability-applications/{id}/approve', [CapabilityApplicationController::class, 'approve']);
     Route::post('/capability-applications/{id}/reject',  [CapabilityApplicationController::class, 'reject']);
+    Route::get('/listings',                              [ListingController::class, 'adminIndex']);
+    Route::patch('/listings/{id}/moderate',              [ListingController::class, 'moderate']);
+    Route::get('/orders',                                [OrderController::class, 'adminIndex']);
 });
 
 

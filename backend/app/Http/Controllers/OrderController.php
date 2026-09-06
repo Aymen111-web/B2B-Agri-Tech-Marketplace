@@ -215,5 +215,48 @@ class OrderController extends Controller
             'order'   => new OrderResource($order->fresh(['fulfillments', 'payment'])),
         ]);
     }
+
+    /**
+     * Admin: List all orders across the entire platform.
+     *
+     * GET /api/admin/orders?status=pending_payment&search=ORD
+     */
+    public function adminIndex(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', Order::class);
+
+        $request->validate([
+            'status'   => ['sometimes', 'string'],
+            'search'   => ['sometimes', 'string', 'max:100'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+
+        $query = Order::with([
+            'buyer:id,first_name,second_name,phone',
+            'items.listing:id,title,unit',
+            'fulfillments.farmer:id,first_name,second_name,phone',
+            'payment:id,order_id,status,chapa_tx_ref',
+        ]);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhereHas('buyer', function ($b) use ($search) {
+                      $b->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('second_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $orders = $query->orderByDesc('placed_at')->paginate($request->input('per_page', 20));
+
+        return OrderResource::collection($orders)->response();
+    }
 }
+
 

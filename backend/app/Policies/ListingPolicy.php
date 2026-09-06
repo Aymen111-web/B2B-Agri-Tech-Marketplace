@@ -20,6 +20,14 @@ class ListingPolicy
     }
 
     /**
+     * Admin-only: Browse and moderate all listings across system.
+     */
+    public function viewAny(User $user): bool
+    {
+        return (bool) $user->is_admin;
+    }
+
+    /**
      * Users with active farmer capability or admins can create listings.
      */
     public function create(User $user): bool
