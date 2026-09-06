@@ -8,7 +8,6 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Models\Order;
 use App\Models\PaymentException;
-use App\Models\Payout;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
@@ -32,9 +31,6 @@ class AdminDashboardController extends Controller
 
         $pendingApplicationsCount = CapabilityApplication::where('status', 'pending')->count();
         $activeListingsCount      = Listing::where('status', 'active')->count();
-
-        $pendingPayoutsCount   = Payout::where('status', 'pending')->count();
-        $pendingPayoutsAmount  = Payout::where('status', 'pending')->sum('amount');
 
         $paymentExceptionsCount = PaymentException::whereIn('status', ['pending', 'investigating'])->count();
 
@@ -84,8 +80,6 @@ class AdminDashboardController extends Controller
                 'total_buyers'              => (int) $totalBuyers,
                 'pending_applications'      => (int) $pendingApplicationsCount,
                 'active_listings'           => (int) $activeListingsCount,
-                'pending_payouts_count'     => (int) $pendingPayoutsCount,
-                'pending_payouts_amount'    => (float) $pendingPayoutsAmount,
                 'payment_exceptions_count'  => (int) $paymentExceptionsCount,
             ],
             'recent_activity'               => $recentActivity,

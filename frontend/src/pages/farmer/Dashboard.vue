@@ -9,13 +9,13 @@
         <div>
           <div class="flex items-center gap-2">
             <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">
-              Welcome back, {{ farmer?.name || 'Dawit Bekele' }}
+              Welcome back, {{ farmer?.name || farmer?.first_name || 'Loading...' }}
             </h2>
             <ShieldCheck class="w-5 h-5 text-[#E69500]" />
           </div>
           <p class="text-xs text-[#C3EFCF] mt-1 font-medium flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-[#E69500] animate-pulse" />
-            <span>{{ farmer?.region || 'Sidama' }} Region Agricultural Member · Verified Producer</span>
+            <span>{{ farmer?.region || 'Not Set' }} Region Agricultural Member</span>
           </p>
         </div>
 
@@ -24,7 +24,7 @@
             <Sparkles class="w-3 h-3 text-[#E69500]" /> Total Earned
           </span>
           <span class="text-xl font-black text-[#E69500] block leading-tight mt-0.5">
-            {{ formatETB(farmer?.totalEarned || 890000) }}
+            {{ formatETB(farmer?.totalEarned || 0) }}
           </span>
         </div>
       </div>
@@ -44,25 +44,25 @@
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
         <div class="absolute top-0 left-0 right-0 h-1 bg-[#F5B73A]" />
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270]">Regional Depots & Hubs</span><h3 class="text-2xl font-black text-[#1E2328] mt-1">30</h3></div>
+          <div><span class="text-xs font-bold text-[#5A6270]">Regional Depots & Hubs</span><h3 class="text-2xl font-black text-[#1E2328] mt-1">0</h3></div>
           <div class="w-9 h-9 rounded-xl bg-amber-50 text-[#F5B73A] border border-amber-100 flex items-center justify-center shrink-0"><Building2 class="w-5 h-5" /></div>
         </div>
-        <span class="text-[10px] font-bold text-amber-700">Sidama & Oromia Logistics</span>
+        <span class="text-[10px] font-bold text-amber-700">Supported Logistics</span>
       </div>
 
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
         <div class="absolute top-0 left-0 right-0 h-1 bg-[#E6533C]" />
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270]">Primary Union Co-ops</span><h3 class="text-2xl font-black text-[#1E2328] mt-1">1</h3></div>
+          <div><span class="text-xs font-bold text-[#5A6270]">Primary Union Co-ops</span><h3 class="text-2xl font-black text-[#1E2328] mt-1">{{ farmer?.union ? 1 : 0 }}</h3></div>
           <div class="w-9 h-9 rounded-xl bg-red-50 text-[#E6533C] border border-red-100 flex items-center justify-center shrink-0"><UserCheck class="w-5 h-5" /></div>
         </div>
-        <span class="text-[10px] font-bold text-red-600">Sidama Coffee Farmers Union</span>
+        <span class="text-[10px] font-bold text-red-600">{{ farmer?.union || 'None' }}</span>
       </div>
 
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
         <div class="absolute top-0 left-0 right-0 h-1 bg-[#14B8A6]" />
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270]">Verified Buyers & Agents</span><h3 class="text-2xl font-black text-[#1E2328] mt-1">2</h3></div>
+          <div><span class="text-xs font-bold text-[#5A6270]">Verified Buyers</span><h3 class="text-2xl font-black text-[#1E2328] mt-1">0</h3></div>
           <div class="w-9 h-9 rounded-xl bg-teal-50 text-[#14B8A6] border border-teal-100 flex items-center justify-center shrink-0"><Users class="w-5 h-5" /></div>
         </div>
         <span class="text-[10px] font-bold text-teal-700">Commercial Escrow Buyers</span>
@@ -80,7 +80,7 @@
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
         <div class="absolute top-0 left-0 right-0 h-1 bg-[#E6533C]" />
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270]">SMS Dispatch Installers</span><h3 class="text-2xl font-black text-[#1E2328] mt-1">36</h3></div>
+          <div><span class="text-xs font-bold text-[#5A6270]">SMS Dispatch Notifications</span><h3 class="text-2xl font-black text-[#1E2328] mt-1">0</h3></div>
           <div class="w-9 h-9 rounded-xl bg-red-50 text-[#E6533C] border border-red-100 flex items-center justify-center shrink-0"><Smartphone class="w-5 h-5" /></div>
         </div>
         <span class="text-[10px] font-bold text-red-600">Active Mobile SMS Channel</span>
@@ -88,16 +88,16 @@
     </div>
 
     <!-- LIVE ORDER TRANSIT STATUS CARD -->
-    <div @click="$router.push('/farmer/orders')"
+    <div v-if="orders.length > 0 && orders[0].status === 'in_transit'" @click="$router.push('/farmer/orders')"
       class="w-full bg-[#EDFAF2] border border-[#C3EFCF] rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:bg-[#D8F6E0] transition-colors shadow-2xs">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-2xl bg-[#1E9444] text-white flex items-center justify-center shrink-0 shadow-xs"><Truck class="w-5 h-5" /></div>
         <div>
           <div class="flex items-center gap-2">
-            <h4 class="text-xs font-extrabold text-[#0F5C2A]">Order #ORD-8921 in Transit</h4>
+            <h4 class="text-xs font-extrabold text-[#0F5C2A]">Order #{{ orders[0].id }} in Transit</h4>
             <span class="px-2 py-0.5 rounded-full bg-[#1E9444] text-white text-[10px] font-extrabold">Escrow Secured</span>
           </div>
-          <p class="text-[11px] text-[#5A6270] mt-0.5 font-medium">Sidama Coffee Grade 1 → Hawassa Hub to Addis Ababa · Driver: Kebede T.</p>
+          <p class="text-[11px] text-[#5A6270] mt-0.5 font-medium">Batch on its way to buyer hub.</p>
         </div>
       </div>
       <ChevronRight class="w-5 h-5 text-[#1E9444] shrink-0" />
@@ -122,14 +122,17 @@
         </div>
       </div>
 
-      <div class="space-y-2.5">
+      <div v-if="displayListings.length === 0" class="text-[#5A6270] text-xs text-center py-5">
+        You have no live listings.
+      </div>
+      <div v-else class="space-y-2.5">
         <div v-for="item in displayListings" :key="item.id" @click="$router.push(`/farmer/listings/edit/${item.id}`)"
           class="bg-[#F8F9FA] border border-[#E2E4E7] rounded-xl p-3.5 flex items-center justify-between hover:border-[#1E9444] hover:bg-white transition-all cursor-pointer shadow-2xs">
           <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-2xl shrink-0 shadow-2xs">{{ item.cropEmoji }}</div>
             <div>
               <h4 class="text-xs font-black text-[#1E2328]">{{ item.cropName }}</h4>
-              <p class="text-[11px] text-[#5A6270] mt-0.5">{{ farmer?.region || 'Sidama' }} Region · Verified Harvest</p>
+              <p class="text-[11px] text-[#5A6270] mt-0.5">{{ farmer?.region || 'Not set' }} Region · Verified Harvest</p>
             </div>
           </div>
           <div class="text-right flex items-center gap-4">
@@ -159,8 +162,8 @@ const { listings } = useListings()
 const { orders } = useOrders()
 
 const farmerListings = computed(() => listings.value.filter(l => l.farmerId === farmer.value?.id || l.farmer?.name === farmer.value?.name))
-const displayListings = computed(() => farmerListings.value.length >= 3 ? farmerListings.value.slice(0, 3) : [...farmerListings.value, ...listings.value.filter(l => l.farmerId !== farmer.value?.id)].slice(0, 3))
-const activeCount = computed(() => farmerListings.value.filter(l => l.isActive).length || 64)
-const pendingPayoutETB = computed(() => orders.value.filter(o => o.escrowStatus === 'held' && (o.farmerId === farmer.value?.id || o.farmer?.name === farmer.value?.name)).reduce((sum, o) => sum + o.totalAmountETB, 0) || 170000)
-const receivedOrdersCount = computed(() => orders.value.filter(o => o.farmerId === farmer.value?.id || o.farmer?.name === farmer.value?.name).length || 4)
+const displayListings = computed(() => farmerListings.value.length > 0 ? farmerListings.value.slice(0, 3) : [])
+const activeCount = computed(() => farmerListings.value.filter(l => l.isActive).length || 0)
+const pendingPayoutETB = computed(() => orders.value.filter(o => o.escrowStatus === 'held' && (o.farmerId === farmer.value?.id || o.farmer?.name === farmer.value?.name)).reduce((sum, o) => sum + o.totalAmountETB, 0) || 0)
+const receivedOrdersCount = computed(() => orders.value.filter(o => o.farmerId === farmer.value?.id || o.farmer?.name === farmer.value?.name).length || 0)
 </script>

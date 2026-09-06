@@ -50,10 +50,8 @@ const loadListings = async () => {
   try {
     listings.value = await adminApi.fetchListings()
   } catch {
-    listings.value = [
-      { id: '1', cropName: 'Sidama Coffee Grade 1', cropEmoji: '☕', pricePerKg: 120, availableQty: 10000, grade: 'Grade 1', region: 'Sidama', isActive: true, farmer: { name: 'Dawit Bekele' } },
-      { id: '2', cropName: 'Bale Red Teff Special', cropEmoji: '🌾', pricePerKg: 95, availableQty: 25000, grade: 'Export Quality', region: 'Oromia', isActive: true, farmer: { name: 'Girma Taddesse' } },
-    ]
+    listings.value = []
+    alert('Failed to fetch listings from server.')
   } finally {
     isLoading.value = false
   }

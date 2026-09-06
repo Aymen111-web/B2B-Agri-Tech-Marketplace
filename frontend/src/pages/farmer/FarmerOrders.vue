@@ -21,7 +21,7 @@
             <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg"><Package class="w-5 h-5" /></div>
             <div>
               <h3 class="text-sm font-black text-[#1E2328]">Order #{{ order.id }}</h3>
-              <p class="text-xs text-[#5A6270]">Buyer: {{ order.buyer?.name || 'Commercial Buyer' }} · {{ formatDate(order.createdAt) }}</p>
+              <p class="text-xs text-[#5A6270]">Buyer: {{ order.buyer?.name || 'Commercial Buyer' }} · {{ formatDate(order.createdAt || order.placedAt || order.created_at) }}</p>
             </div>
           </div>
           <span :class="['px-3 py-1 rounded-full text-xs font-black capitalize', statusBadgeClass(order.status)]">{{ order.status }}</span>

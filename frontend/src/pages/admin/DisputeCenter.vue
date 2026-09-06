@@ -53,9 +53,8 @@ const loadDisputes = async () => {
   try {
     disputes.value = await adminApi.fetchDisputes()
   } catch {
-    disputes.value = [
-      { id: 'DSP-101', orderId: 'ORD-8902', filedBy: 'Addis Food Co. (Buyer)', reason: 'Moisture content discrepancy', details: 'Buyer claims moisture reading was 14% instead of agreed 11%. Requesting partial refund of ETB 15,000.', status: 'pending' }
-    ]
+    disputes.value = []
+    alert('Failed to fetch disputes from server.')
   } finally {
     isLoading.value = false
   }

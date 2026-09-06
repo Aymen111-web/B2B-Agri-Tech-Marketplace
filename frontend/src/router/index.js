@@ -27,7 +27,6 @@ import MyListings from '@/pages/farmer/MyListings.vue'
 import NewListing from '@/pages/farmer/NewListing.vue'
 import EditListing from '@/pages/farmer/EditListing.vue'
 import FarmerOrders from '@/pages/farmer/FarmerOrders.vue'
-import Payouts from '@/pages/farmer/Payouts.vue'
 import FarmerProfile from '@/pages/farmer/FarmerProfile.vue'
 
 // Admin Pages
@@ -81,7 +80,6 @@ const routes = [
             { path: 'listings/new', name: 'NewListing', component: NewListing },
             { path: 'listings/edit/:id', name: 'EditListing', component: EditListing },
             { path: 'orders', name: 'FarmerOrders', component: FarmerOrders },
-            { path: 'payouts', name: 'Payouts', component: Payouts },
             { path: 'profile', name: 'FarmerProfile', component: FarmerProfile },
         ],
     },

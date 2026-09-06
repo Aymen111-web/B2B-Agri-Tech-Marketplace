@@ -123,10 +123,8 @@
           v-model="selectedHub" 
           class="w-full px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E2E4E7] rounded-xl text-xs font-semibold text-[#1E2328] focus:border-[#0B57D0] focus:outline-none"
         >
-          <option value="hub-1">Kality Logistics Center Hub #4 (Addis Ababa)</option>
-          <option value="hub-2">Modjo Dry Port & Freight Terminal</option>
-          <option value="hub-3">Adama Regional Aggregation Hub</option>
-          <option value="hub-4">Hawassa Agri-Terminal Hub</option>
+          <option value="" disabled>Select Delivery Destination (Loading...)</option>
+          <option v-for="hub in availableHubs" :key="hub.id" :value="hub.id">{{ hub.name }}</option>
         </select>
       </div>
 
@@ -208,7 +206,8 @@ const { user } = useAuth()
 const { selectedItems, cartItems, updateQuantity, updateUnit, getItemSubtotal, clearCart } = useCart()
 
 const isProcessing = ref(false)
-const selectedHub = ref('hub-1')
+const selectedHub = ref('')
+const availableHubs = ref([]) // To be populated by backend
 
 const checkoutItems = computed(() => {
   // 1. If explicit listing ID passed in URL path
@@ -320,19 +319,9 @@ const handleCheckout = async () => {
     }
 
     // 5. Fallback redirect if backend is offline or mock order used
-    const txRef = `TX-CHP-${Date.now()}`
-    clearCart()
-    router.push({
-      path: '/buyer/payment-success',
-      query: { 
-        tx_ref: txRef, 
-        order_id: orderId ? `ORD-${orderId}` : `ORD-${Math.floor(1000 + Math.random() * 9000)}`, 
-        chapa_ref: `CHP-REF-${Math.floor(100000 + Math.random() * 900000)}`,
-        status: 'success'
-      }
-    })
+    alert('Payment Initiation Failed: Make sure the local backend API and Chapa keys are active.')
   } catch (err) {
-    router.push('/buyer/orders')
+    alert(err.message || 'Payment initiation failed.')
   } finally {
     isProcessing.value = false
   }

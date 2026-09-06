@@ -51,10 +51,8 @@ const loadOrders = async () => {
   try {
     orders.value = await adminApi.fetchOrders()
   } catch {
-    orders.value = [
-      { id: 'ORD-8921', status: 'in_transit', escrowStatus: 'held', quantityKg: 2000, totalAmountETB: 240000, createdAt: new Date(), buyer: { name: 'Alemayehu Tadesse' }, farmer: { name: 'Dawit Bekele' } },
-      { id: 'ORD-8910', status: 'delivered', escrowStatus: 'released', quantityKg: 5000, totalAmountETB: 475000, createdAt: new Date(), buyer: { name: 'Addis Food Co.' }, farmer: { name: 'Girma Taddesse' } },
-    ]
+    orders.value = []
+    alert('Failed to fetch orders from server.')
   } finally {
     isLoading.value = false
   }

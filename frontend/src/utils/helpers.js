@@ -1,14 +1,22 @@
 export function formatETB(amount) {
-    return `ETB ${amount.toLocaleString('en-US')}`
+    if (amount === undefined || amount === null || isNaN(amount)) return 'ETB 0'
+    const val = Number(amount) || 0
+    return `ETB ${val.toLocaleString('en-US')}`
 }
 
 export function formatDate(date) {
-    const d = typeof date === 'string' ? new Date(date) : date
-    return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-    })
+    if (!date) return 'Recently'
+    try {
+        const d = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
+        if (!d || !(d instanceof Date) || isNaN(d.getTime())) return 'Recently'
+        return d.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+        })
+    } catch {
+        return 'Recently'
+    }
 }
 
 /**

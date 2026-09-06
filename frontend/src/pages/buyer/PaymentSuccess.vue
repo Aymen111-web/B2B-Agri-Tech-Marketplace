@@ -153,16 +153,15 @@ onMounted(async () => {
     try {
       await api.verifyOrderPayment(txRef.value)
       verified.value = true
-    } catch {
-      verified.value = true
-    } fontLoaded()
+    } catch (err) {
+      verified.value = false
+      errorMessage.value = err.message || 'Payment verification failed with the gateway.'
+    }
   } else {
     verified.value = true
   }
   isVerifying.value = false
 })
 
-function fontLoaded() {
-  isVerifying.value = false
-}
+// removed undefined fontLoaded
 </script>

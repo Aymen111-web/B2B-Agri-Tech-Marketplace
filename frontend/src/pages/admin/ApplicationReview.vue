@@ -62,10 +62,8 @@ const loadApplications = async () => {
   try {
     applications.value = await adminApi.fetchApplications()
   } catch {
-    applications.value = [
-      { id: 1, capability_type: 'farmer', status: 'pending', created_at: new Date(), user: { first_name: 'Dawit', second_name: 'Bekele', phone: '0911234567' }, supporting_documents: ['land_certificate_8912.pdf'] },
-      { id: 2, capability_type: 'buyer', status: 'pending', created_at: new Date(), user: { first_name: 'Alemayehu', second_name: 'Tadesse', phone: '0911987654' }, supporting_documents: ['trade_license_2026.pdf', 'tin_registration.pdf'] }
-    ]
+    applications.value = []
+    alert('Failed to fetch applications from server.')
   } finally {
     isLoading.value = false
   }

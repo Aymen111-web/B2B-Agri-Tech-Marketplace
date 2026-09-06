@@ -59,6 +59,17 @@ class PaymentService
                         'delivery_status' => 'delivered',
                         'completed_at'    => now(),
                     ]);
+
+                    \App\Models\Payout::firstOrCreate(
+                        ['order_fulfillment_id' => $fulfillment->id],
+                        [
+                            'farmer_id'    => $fulfillment->farmer_id,
+                            'amount'       => $payment->amount,
+                            'status'       => 'processed',
+                            'reference'    => $payment->chapa_tx_ref,
+                            'processed_at' => now(),
+                        ]
+                    );
                 }
             } else {
                 foreach ($order->fulfillments()->whereIn('status', ['accepted', 'paid_in_escrow'])->get() as $fulfillment) {
@@ -81,5 +92,20 @@ class PaymentService
                 'message' => 'Payment confirmed and order completed successfully.',
             ];
         });
+    }
+
+    /**
+     * Mark a payment as failed based on webhook failure.
+     */
+    public function failPayment(Payment $payment, array $payload): void
+    {
+        if ($payment->status !== 'pending') {
+            return;
+        }
+
+        $payment->update([
+            'status'           => 'failed',
+            'gateway_metadata' => $payload,
+        ]);
     }
 }

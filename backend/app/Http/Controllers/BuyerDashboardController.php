@@ -34,10 +34,7 @@ class BuyerDashboardController extends Controller
             ->whereIn('status', ['placed', 'confirmed', 'dispatched', 'in_transit', 'delivered', 'completed'])
             ->sum('total_amount_etb');
 
-        // Fallback default for demo/unseeded accounts
-        if ($totalProcurementETB == 0) {
-            $totalProcurementETB = 340000;
-        }
+
 
         // 2. Pending Delivery Handoffs (orders in transit awaiting PIN delivery confirmation)
         $pendingHandoffsCount = (clone $userOrdersQuery)
@@ -49,9 +46,7 @@ class BuyerDashboardController extends Controller
             $q->where('capability_type', 'farmer')->where('status', 'active');
         })->count();
 
-        if ($verifiedFarmersCount == 0) {
-            $verifiedFarmersCount = 2840;
-        }
+
 
         // 4. Cart Items / Saved Listings Count
         $cartItemsCount = $user ? $user->cartItems()->count() : 0;
@@ -78,13 +73,13 @@ class BuyerDashboardController extends Controller
 
         return response()->json([
             'stats' => [
-                'active_orders'          => $activeOrdersCount > 0 ? $activeOrdersCount : 3,
+                'active_orders'          => (int) $activeOrdersCount,
                 'total_procurement_etb'  => (float) $totalProcurementETB,
-                'regional_hubs_count'    => 30,
-                'primary_unions_count'   => 12,
-                'verified_farmers_count' => $verifiedFarmersCount,
-                'pending_handoffs_count' => $pendingHandoffsCount > 0 ? $pendingHandoffsCount : 1,
-                'active_contracts_count' => 5,
+                'regional_hubs_count'    => 0,
+                'primary_unions_count'   => 0,
+                'verified_farmers_count' => (int) $verifiedFarmersCount,
+                'pending_handoffs_count' => (int) $pendingHandoffsCount,
+                'active_contracts_count' => 0,
                 'cart_items_count'       => $cartItemsCount,
             ],
             'live_shipments'    => OrderResource::collection($liveShipments),

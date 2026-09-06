@@ -34,13 +34,7 @@ async function request(endpoint, options = {}) {
     try {
         let response = await fetch(primaryUrl, { ...options, headers })
 
-        if (response.status === 404 && API_BASE_URL === '/api') {
-            const fallbackUrl = `http://127.0.0.1:8000/api${endpoint}`
-            const fallbackRes = await fetch(fallbackUrl, { ...options, headers }).catch(() => null)
-            if (fallbackRes && fallbackRes.ok) {
-                response = fallbackRes
-            }
-        }
+        // Removed dangerous hardcoded localhost 404 fallback here
 
         const data = await response.json().catch(() => ({}))
 
@@ -55,73 +49,7 @@ async function request(endpoint, options = {}) {
 
         return data
     } catch (err) {
-        if (API_BASE_URL === '/api') {
-            try {
-                const directUrl = `http://127.0.0.1:8000/api${endpoint}`
-                const directRes = await fetch(directUrl, { ...options, headers })
-                const data = await directRes.json().catch(() => ({}))
-                if (!directRes.ok) {
-                    if (directRes.status === 401) {
-                        clearAuthToken()
-                        localStorage.removeItem('agri_active_role')
-                    }
-                    throw new Error(data?.error || data?.message || `HTTP ${directRes.status}: Server request failed`)
-                }
-                return data
-            } catch (fallbackErr) {
-                if (endpoint === '/auth/login' && options.body) {
-                    try {
-                        const parsed = JSON.parse(options.body)
-                        const rawP = parsed.phone || ''
-                        const digits = rawP.replace(/[^\d]/g, '')
-
-                        if (digits.endsWith('918982161') || rawP.includes('918982161')) {
-                            return {
-                                token: 'demo-token-buyer-918982161',
-                                user: {
-                                    id: 'usr-buyer-1',
-                                    first_name: 'Awol',
-                                    second_name: 'Buyer',
-                                    phone: '+251918982161',
-                                    is_admin: false,
-                                    account_status: 'active',
-                                    capabilities: [{ capability_type: 'buyer', status: 'active' }]
-                                }
-                            }
-                        }
-                        if (digits.endsWith('718280155') || rawP.includes('718280155')) {
-                            return {
-                                token: 'demo-token-farmer-718280155',
-                                user: {
-                                    id: 'usr-farmer-1',
-                                    first_name: 'Aymen',
-                                    second_name: 'Farmer',
-                                    phone: '+251718280155',
-                                    is_admin: false,
-                                    account_status: 'active',
-                                    capabilities: [{ capability_type: 'farmer', status: 'active' }]
-                                }
-                            }
-                        }
-                        if (digits.endsWith('921283801') || rawP.includes('921283801')) {
-                            return {
-                                token: 'demo-token-admin-921283801',
-                                user: {
-                                    id: 'usr-admin-1',
-                                    first_name: 'Ibrahim',
-                                    second_name: 'Admin',
-                                    phone: '+251921283801',
-                                    is_admin: true,
-                                    account_status: 'active',
-                                    capabilities: ['admin', 'farmer', 'buyer']
-                                }
-                            }
-                        }
-                    } catch { /* ignore */ }
-                }
-                throw new Error('Unable to connect to backend server. Please make sure Laravel server is running at http://127.0.0.1:8000')
-            }
-        }
+        // If the fetch completely fails due to CORS or offline error, bubble it up cleanly.
         throw err
     }
 }

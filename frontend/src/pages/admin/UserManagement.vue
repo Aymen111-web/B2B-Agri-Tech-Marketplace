@@ -44,11 +44,8 @@ const loadUsers = async () => {
   try {
     users.value = await adminApi.fetchUsers()
   } catch {
-    users.value = [
-      { id: '1', name: 'Dawit Bekele', role: 'farmer', phone: '0911234567', email: 'dawit@sidamafarm.et', status: 'verified', created_at: new Date() },
-      { id: '2', name: 'Alemayehu Tadesse', role: 'buyer', phone: '0911987654', email: 'buyer@addissupply.et', status: 'verified', created_at: new Date() },
-      { id: '3', name: 'Admin Administrator', role: 'admin', phone: '0900000000', email: 'admin@qelemmeda.et', status: 'verified', created_at: new Date() },
-    ]
+    users.value = []
+    alert('Failed to fetch users from server.')
   } finally {
     isLoading.value = false
   }

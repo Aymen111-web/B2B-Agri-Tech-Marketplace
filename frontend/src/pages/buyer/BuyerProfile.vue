@@ -53,7 +53,7 @@
 
         <div class="space-y-1.5 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
-            <h2 class="text-xl font-black text-[#1E2328] tracking-tight">{{ user?.name || 'Awol Buyer' }}</h2>
+            <h2 class="text-xl font-black text-[#1E2328] tracking-tight">{{ user?.name || user?.first_name || 'Buyer Account' }}</h2>
             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
               <ShieldCheck class="w-3.5 h-3.5 text-[#1E9444]" />
               <span>Verified Buyer</span>
@@ -62,30 +62,25 @@
 
           <p class="text-xs text-[#5A6270] flex items-center gap-2 font-semibold">
             <Phone class="w-3.5 h-3.5 text-[#0B57D0]" />
-            <span>{{ user?.phone || '+251 918 982 161' }}</span>
+            <span>{{ user?.phone || 'Loading...' }}</span>
             <span>•</span>
-            <span class="text-[#1E2328]">{{ profileData.region }}</span>
+            <span class="text-[#1E2328]">{{ profileData.region || 'Region not set' }}</span>
             <span>•</span>
             <button @click="triggerPhotoUpload" class="text-[11px] font-extrabold text-[#0B57D0] hover:underline">
               Change Photo
             </button>
           </p>
 
-          <!-- Small Compact Badges (3 Years & 4M Invested) -->
+          <!-- Small Compact Badges (Dynamic or Removed) -->
           <div class="pt-1 flex items-center gap-2 flex-wrap">
             <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-blue-50 text-[#0B57D0] border border-blue-200 flex items-center gap-1">
               <Wallet class="w-3 h-3 text-[#0B57D0]" />
-              <span>4M+ ETB Invested</span>
+              <span>Escrow Protected</span>
             </span>
 
             <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-amber-50 text-[#E69500] border border-amber-200 flex items-center gap-1">
               <Clock class="w-3 h-3 text-[#E69500]" />
-              <span>3 Years Member</span>
-            </span>
-
-            <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-50 text-[#1E9444] border border-emerald-200 flex items-center gap-1">
-              <Building2 class="w-3 h-3 text-[#1E9444]" />
-              <span>34 Batches</span>
+              <span>Verified Account</span>
             </span>
           </div>
         </div>
@@ -106,15 +101,15 @@
         <div class="space-y-3 text-xs">
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Registered Full Name:</span>
-            <span class="font-bold text-[#1E2328]">{{ user?.name || 'Awol Buyer' }}</span>
+            <span class="font-bold text-[#1E2328]">{{ user?.name || user?.first_name || 'Buyer' }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Business / Company Name:</span>
-            <span class="font-bold text-[#1E2328]">{{ profileData.businessName }}</span>
+            <span class="font-bold text-[#1E2328]">{{ profileData.businessName || 'Not specified' }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Tax Identification (TIN):</span>
-            <span class="font-mono font-bold text-[#1E2328]">{{ profileData.tinNumber }}</span>
+            <span class="font-mono font-bold text-[#1E2328]">{{ profileData.tinNumber || 'Not specified' }}</span>
           </div>
           <div class="flex justify-between py-1.5">
             <span class="text-[#5A6270] font-semibold">Primary Commercial Region:</span>
@@ -135,7 +130,7 @@
         <div class="space-y-3 text-xs">
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Default Delivery Hub:</span>
-            <span class="font-bold text-[#1E2328]">{{ profileData.deliveryHub }}</span>
+            <span class="font-bold text-[#1E2328]">{{ profileData.deliveryHub || 'Not configured' }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Escrow Provider:</span>
@@ -211,10 +206,10 @@ const fileInput = ref(null)
 const customPhotoUrl = ref(null)
 
 const profileData = reactive({
-  businessName: user.value?.businessName || 'QMT Commercial Procurement Ltd',
-  tinNumber: '0098471203',
-  region: user.value?.region || 'Addis Ababa',
-  deliveryHub: 'Kality Logistics Center Hub #4',
+  businessName: user.value?.businessName || '',
+  tinNumber: user.value?.tinNumber || '',
+  region: user.value?.region || '',
+  deliveryHub: user.value?.deliveryHub || '',
 })
 
 const triggerPhotoUpload = () => {

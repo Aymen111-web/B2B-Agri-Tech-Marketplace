@@ -121,10 +121,10 @@
 
             <!-- Price & Status Badge -->
             <div class="flex items-center gap-3 self-start sm:self-auto">
-              <span :class="['px-3 py-1 rounded-full text-xs font-extrabold capitalize border shadow-2xs', statusBadgeClass(order.status)]">
-                {{ order.status.replace('_', ' ') }}
+              <span :class="['px-3 py-1 rounded-full text-xs font-extrabold capitalize border shadow-2xs', statusBadgeClass(order.status || 'placed')]">
+                {{ (order.status || 'placed').replace('_', ' ') }}
               </span>
-              <span class="text-lg font-black text-[#0B57D0]">{{ formatETB(order.totalAmountETB) }}</span>
+              <span class="text-lg font-black text-[#0B57D0]">{{ formatETB(order.totalAmountETB || 0) }}</span>
             </div>
           </div>
 
@@ -285,7 +285,7 @@ const filteredOrders = computed(() => {
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase()
     result = result.filter(o => 
-      o.id.toString().toLowerCase().includes(q) ||
+      String(o.id || '').toLowerCase().includes(q) ||
       (o.listing?.cropName || '').toLowerCase().includes(q) ||
       (o.farmer?.name || '').toLowerCase().includes(q) ||
       (o.escrowReference || '').toLowerCase().includes(q)

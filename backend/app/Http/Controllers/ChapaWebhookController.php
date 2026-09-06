@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentWebhookEvent;
+use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +33,7 @@ class ChapaWebhookController extends Controller
      *
      * Chapa expects a 200 response; any non-2xx will trigger retries.
      */
-    public function handle(Request $request): JsonResponse
+    public function handle(Request $request, PaymentService $paymentService): JsonResponse
     {
         $payload   = $request->all();
         $txRef     = $payload['tx_ref'] ?? $payload['trx_ref'] ?? null;
@@ -114,13 +115,14 @@ class ChapaWebhookController extends Controller
         // 5. Process the event
         // ------------------------------------------------------------------
         try {
-            DB::transaction(function () use ($payment, $payload, $eventType, $webhookEvent) {
+            DB::transaction(function () use ($payment, $payload, $eventType, $webhookEvent, $paymentService) {
                 $status = $payload['status'] ?? null;
+                $safeMetadata = $this->extractSafeMetadata($payload);
 
                 if ($this->isSuccessEvent($eventType, $status)) {
-                    $this->confirmPayment($payment, $payload);
+                    $paymentService->confirmPayment($payment, $safeMetadata);
                 } elseif ($this->isFailureEvent($eventType, $status)) {
-                    $this->failPayment($payment, $payload);
+                    $paymentService->failPayment($payment, $safeMetadata);
                 }
 
                 $webhookEvent->update([
@@ -197,79 +199,6 @@ class ChapaWebhookController extends Controller
             'payload'            => $payload,
             'signature_verified' => $signatureVerified,
             'processing_status'  => $processingStatus,
-        ]);
-    }
-
-    /**
-     * Confirm the payment and advance the order status.
-     *
-     * MANDATORY CORE DATABASE LOGIC RULE:
-     * This is the ONLY place in the entire application where
-     * payments.status may be set to "confirmed".
-     */
-    private function confirmPayment(Payment $payment, array $payload): void
-    {
-        if ($payment->status !== 'pending') {
-            return;
-        }
-
-        $payment->update([
-            'status'           => 'confirmed',
-            'confirmed_at'     => now(),
-            'gateway_metadata' => $this->extractSafeMetadata($payload),
-        ]);
-
-        // If payment is linked to an order fulfillment, mark handoff/settlement completed & log payout
-        if ($payment->order_fulfillment_id) {
-            $fulfillment = \App\Models\OrderFulfillment::find($payment->order_fulfillment_id);
-
-            if ($fulfillment) {
-                $fulfillment->update([
-                    'status'       => 'completed',
-                    'completed_at' => now(),
-                ]);
-
-                // Auto-create read-only settlement payout record for farmer
-                \App\Models\Payout::firstOrCreate(
-                    ['order_fulfillment_id' => $fulfillment->id],
-                    [
-                        'farmer_id'    => $fulfillment->farmer_id,
-                        'amount'       => $payment->amount,
-                        'status'       => 'processed',
-                        'reference'    => $payment->chapa_tx_ref,
-                        'processed_at' => now(),
-                    ]
-                );
-            }
-        }
-
-        // Advance parent order status
-        $order = $payment->order;
-        if ($order) {
-            $incompleteCount = $order->fulfillments()
-                ->whereNotIn('status', ['completed', 'rejected'])
-                ->count();
-
-            if ($incompleteCount === 0) {
-                $order->update(['status' => 'completed']);
-            } else {
-                $order->update(['status' => 'processing']);
-            }
-        }
-    }
-
-    /**
-     * Mark the payment as failed.
-     */
-    private function failPayment(Payment $payment, array $payload): void
-    {
-        if ($payment->status !== 'pending') {
-            return;
-        }
-
-        $payment->update([
-            'status'           => 'failed',
-            'gateway_metadata' => $this->extractSafeMetadata($payload),
         ]);
     }
 
