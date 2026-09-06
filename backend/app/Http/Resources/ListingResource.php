@@ -38,6 +38,9 @@ class ListingResource extends JsonResource
             'updated_at'         => $this->updated_at,
 
             // Conditionally loaded relationships
+            'images'        => $this->whenLoaded('images', function () {
+                return $this->images->map(fn($img) => str_starts_with($img->image_path, 'http') ? $img->image_path : asset('storage/' . $img->image_path));
+            }),
             'farmer'        => new UserResource($this->whenLoaded('farmer')),
             'category'      => new CategoryResource($this->whenLoaded('category')),
             'price_history' => ListingPriceHistoryResource::collection($this->whenLoaded('priceHistory')),

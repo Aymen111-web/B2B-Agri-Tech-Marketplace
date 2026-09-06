@@ -65,11 +65,18 @@
 
       <div class="space-y-3">
         <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">Photos</h3>
-        <div @click="photos.push('uploaded-photo')" class="border-2 border-dashed border-[#E2E4E7] rounded-xl p-6 text-center cursor-pointer hover:border-[#1E9444] transition-colors bg-[#F8F9FA]">
-          <Camera class="w-8 h-8 text-[#9BA1AA] mx-auto mb-2" /><span class="text-[13px] font-bold text-[#1E9444] block">Tap to upload produce photos</span><span class="text-[11px] text-[#5A6270]">PNG, JPG up to 10MB</span>
-        </div>
-        <div v-if="photos.length > 0" class="flex gap-2">
-          <div v-for="(_, i) in photos" :key="i" class="w-16 h-16 rounded-lg bg-[#1E9444]/10 border border-[#1E9444] flex items-center justify-center text-[#1E9444] text-[11px] font-bold">Photo #{{ i + 1 }}</div>
+        <label for="fileUploadBtn" class="border-2 border-dashed border-[#E2E4E7] rounded-xl p-6 text-center cursor-pointer hover:border-[#1E9444] block transition-colors bg-[#F8F9FA]">
+          <input type="file" id="fileUploadBtn" multiple accept="image/*" @change="handleFileSelect" class="hidden" />
+          <Camera class="w-8 h-8 text-[#9BA1AA] mx-auto mb-2" />
+          <span class="text-[13px] font-bold text-[#1E9444] block">Tap to upload produce photos</span>
+          <span class="text-[11px] text-[#5A6270]">PNG, JPG up to 10MB</span>
+        </label>
+        
+        <div v-if="photoPreviews.length > 0" class="flex gap-3 overflow-x-auto pb-2">
+          <div v-for="(src, i) in photoPreviews" :key="i" class="relative shrink-0">
+             <img :src="src" class="w-20 h-20 object-cover rounded-lg border border-[#E2E4E7]" />
+             <button type="button" @click.prevent="removePhoto(i)" class="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full text-xs font-black flex items-center justify-center">×</button>
+          </div>
         </div>
       </div>
 
@@ -108,7 +115,22 @@ const pricePerKg = ref(85)
 const harvestDate = ref('2024-02-15')
 const moistureContent = ref(11.0)
 const description = ref('')
-const photos = ref([])
+const photos = ref([]) // Holds Raw File Objects
+const photoPreviews = ref([]) // Holds URL.createObjectURL
+
+const handleFileSelect = (event) => {
+  const files = Array.from(event.target.files)
+  files.forEach(f => {
+    photos.value.push(f)
+    photoPreviews.value.push(URL.createObjectURL(f))
+  })
+}
+
+const removePhoto = (index) => {
+  photos.value.splice(index, 1)
+  photoPreviews.value.splice(index, 1)
+}
+
 const isSubmitting = ref(false)
 
 const categoryEmojis = { coffee: '☕', grains: '🌾', spices: '🌿', oilseeds: '🥜', pulses: '🫘', roots: '🧅', fruits: '🍋', vegetables: '🥬' }

@@ -89,6 +89,7 @@ class ListingController extends Controller
 
         $validated = $request->validated();
 
+        // Handle single image fallback (legacy clients)
         if ($request->hasFile('image')) {
             $validated['image_path'] = $request->file('image')->store('produce-photos', 'public');
         }
@@ -117,12 +118,20 @@ class ListingController extends Controller
                 'effective_at'   => now(),
             ]);
 
+            // Save multiple images linked to the newly created listing
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+                    $path = $file->store('produce-photos', 'public');
+                    $listing->images()->create(['image_path' => $path]);
+                }
+            }
+
             return $listing;
         });
 
         return response()->json([
             'message' => 'Listing created successfully.',
-            'listing' => new ListingResource($listing->load(['farmer', 'category'])),
+            'listing' => new ListingResource($listing->load(['farmer', 'category', 'images'])),
         ], 201);
     }
 
@@ -159,11 +168,18 @@ class ListingController extends Controller
             }
 
             $listing->update($validated);
+
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+                    $path = $file->store('produce-photos', 'public');
+                    $listing->images()->create(['image_path' => $path]);
+                }
+            }
         });
 
         return response()->json([
             'message' => 'Listing updated successfully.',
-            'listing' => new ListingResource($listing->fresh()->load(['farmer', 'category'])),
+            'listing' => new ListingResource($listing->fresh()->load(['farmer', 'category', 'images'])),
         ]);
     }
 

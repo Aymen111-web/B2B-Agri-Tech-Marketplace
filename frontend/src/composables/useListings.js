@@ -101,13 +101,27 @@ export function useListings() {
 
         if (token) {
             try {
-                const res = await api.createListing({
-                    title: newListingData.cropName,
-                    description: newListingData.description,
-                    unit: 'kg',
-                    price_per_unit: newListingData.pricePerKg,
-                    quantity_available: newListingData.availableQty,
-                })
+                const formData = new FormData()
+                formData.append('title', newListingData.cropName || '')
+                formData.append('category_id', newListingData.category === 'coffee' ? 1 : 2) // Quick fallback mapping
+                if (newListingData.description) formData.append('description', newListingData.description)
+                formData.append('unit', 'kg')
+                formData.append('price_per_unit', newListingData.pricePerKg || 0)
+                formData.append('quantity_available', newListingData.availableQty || 0)
+                if (newListingData.minOrderQty) formData.append('minimum_order_quantity', newListingData.minOrderQty)
+                if (newListingData.harvestDate) formData.append('harvest_date', new Date(newListingData.harvestDate).toISOString().split('T')[0])
+                if (newListingData.grade) formData.append('quality_grade', newListingData.grade)
+
+                // Append all File Blobs array to native FormData
+                if (newListingData.images && newListingData.images.length > 0) {
+                    newListingData.images.forEach((file) => {
+                        if (file instanceof File || file instanceof Blob) {
+                            formData.append('images[]', file)
+                        }
+                    })
+                }
+
+                const res = await api.createListing(formData)
                 if (res?.listing) {
                     const created = mapRawListingToFrontend(res.listing)
                     listings.value = [created, ...listings.value]

@@ -21,6 +21,8 @@ class StoreListingRequest extends FormRequest
             'title'                  => ['required', 'string', 'max:255'],
             'description'            => ['nullable', 'string', 'max:2000'],
             'image'                  => ['nullable'],
+            'images'                 => ['nullable', 'array', 'max:5'],
+            'images.*'               => ['image', 'max:10240'], // 10MB max per image
             'unit'                   => ['required', 'string', 'max:50'],
             'price_per_unit'         => ['required', 'numeric', 'min:0.01'],
             'quantity_available'     => ['required', 'numeric', 'min:0'],

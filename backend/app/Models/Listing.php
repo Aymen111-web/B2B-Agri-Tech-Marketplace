@@ -61,6 +61,11 @@ class Listing extends Model
         return $this->hasMany(CartItem::class);
     }
 
+    public function images()
+    {
+        return $this->hasMany(ListingImage::class);
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
