@@ -322,7 +322,7 @@
             <span>Confirm Rejection</span>
           </button>
         </div>
-      </article>
+      </div>
     </div>
   </div>
 </template>
