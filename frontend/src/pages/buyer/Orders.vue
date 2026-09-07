@@ -315,8 +315,9 @@ const openDeliveryModal = (order) => {
 
 const submitDeliveryPin = () => {
   if (selectedOrderForPIN.value) {
-    confirmDelivery(selectedOrderForPIN.value.id)
+    confirmDelivery(selectedOrderForPIN.value.id, deliveryPin.value)
     selectedOrderForPIN.value = null
+    deliveryPin.value = ''
   }
 }
 </script>

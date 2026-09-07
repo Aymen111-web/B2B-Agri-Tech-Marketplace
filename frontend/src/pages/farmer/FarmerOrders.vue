@@ -36,10 +36,22 @@
 
         <OrderTimeline :status="order.status" />
 
-        <div v-if="order.status === 'placed'" class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+        <div v-if="order.status === 'placed' || order.status === 'pending'" class="flex justify-end gap-2 pt-2 border-t border-gray-100">
           <button @click="dispatchOrder(order.id)" class="px-4 py-2 rounded-xl bg-[#1E9444] text-white text-xs font-bold hover:bg-[#0F5C2A] flex items-center gap-1.5 shadow-2xs">
             <Truck class="w-4 h-4" /><span>Dispatch Shipment</span>
           </button>
+        </div>
+
+        <!-- Escrow PIN Box for Farmer -->
+        <div v-if="order.status === 'in_transit' || order.status === 'dispatched' || order.status === 'accepted'" 
+          class="bg-[#EDFAF2] border border-[#C3EFCF] p-4 rounded-xl mt-3 flex items-center justify-between shadow-2xs">
+          <div>
+            <h4 class="text-xs font-black text-[#0F5C2A] uppercase tracking-wider">Escrow Handoff PIN</h4>
+            <p class="text-[11px] text-[#1E9444] mt-0.5">Provide this {{ order.deliveryPin?.length || 6 }}-digit code to the buyer upon delivery.</p>
+          </div>
+          <div class="px-4 py-1.5 bg-white rounded-lg border border-[#C3EFCF] shadow-sm select-all">
+            <span class="text-lg font-black tracking-widest text-[#1E2328]">{{ order.deliveryPin || 'PENDING' }}</span>
+          </div>
         </div>
       </div>
     </div>
