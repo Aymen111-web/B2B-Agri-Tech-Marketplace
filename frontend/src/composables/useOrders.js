@@ -31,47 +31,6 @@ const INITIAL_ORDERS = [
     },
 ]
 
-function mapRawOrderToFrontend(item) {
-    const isEscrowReleased = item.escrow_status === 'released' || item.escrowStatus === 'released'
-    return {
-        id: String(item.id || item.order_number || 'ORD-8921'),
-        listingId: String(item.listing_id || item.listingId || 'listing-1'),
-        listing: item.listing ? {
-            id: String(item.listing.id || 'listing-1'),
-            farmerId: String(item.listing.farmer_id || 'farmer-1'),
-            farmer: INITIAL_ORDERS[0].farmer,
-            cropName: item.listing.title || 'Produce Batch',
-            cropEmoji: item.listing.crop_emoji || '🌾',
-            category: item.listing.category?.slug || 'grains',
-            grade: item.listing.grade || 'Grade 1',
-            region: item.listing.region || 'Sidama',
-            zone: item.listing.zone || 'Hawassa',
-            pricePerKg: Number(item.listing.price_per_unit || 50),
-            availableQty: Number(item.listing.quantity_available || 1000),
-            minOrderQty: 100, harvestDate: new Date(), description: '', images: [],
-            isActive: true, isVerified: true, createdAt: new Date(), viewCount: 100,
-        } : INITIAL_ORDERS[0].listing,
-        buyerId: String(item.buyer_id || item.buyerId || 'buyer-1'),
-        buyer: item.buyer ? {
-            id: String(item.buyer.id || 'buyer-1'),
-            name: `${item.buyer.first_name || ''} ${item.buyer.second_name || ''}`.trim() || item.buyer.name || 'Addis Exporters',
-            email: item.buyer.email || 'buyer@agri.et',
-            phone: item.buyer.phone || '',
-            role: 'buyer', status: 'verified', region: item.buyer.region || 'Addis Ababa',
-            companyName: item.buyer.company_name || 'Addis Supply Co.', businessType: 'wholesaler', totalOrdered: 340000, createdAt: new Date(),
-        } : INITIAL_ORDERS[0].buyer,
-        farmerId: String(item.farmer_id || item.farmerId || 'farmer-1'),
-        farmer: INITIAL_ORDERS[0].farmer,
-        quantityKg: Number(item.quantity_kg || item.quantityKg || 1000),
-        totalAmountETB: Number(item.total_amount_etb || item.totalAmountETB || 50000),
-        status: item.status || 'placed',
-        escrowStatus: isEscrowReleased ? 'released' : 'held',
-        escrowReference: item.escrow_reference || item.escrowReference || `CHP-TX-${Math.floor(10000000 + Math.random() * 90000000)}`,
-        placedAt: item.created_at ? new Date(item.created_at) : new Date(),
-        deliveryPin: item.order?.delivery_pin || item.delivery_pin || item.deliveryPin || null,
-        trackingNotes: [],
-    }
-}
 
 function mapRawOrderToFrontend(item) {
     const isEscrowReleased = item.escrow_status === 'released' || item.escrowStatus === 'released' || item.payout_status === 'released'
@@ -143,6 +102,7 @@ function mapRawOrderToFrontend(item) {
         escrowStatus: isEscrowReleased ? 'released' : 'held',
         escrowReference: escrowRef,
         placedAt: item.placed_at ? new Date(item.placed_at) : (item.created_at ? new Date(item.created_at) : new Date()),
+        deliveryPin: item.order?.delivery_pin || item.delivery_pin || item.deliveryPin || null,
         trackingNotes: item.trackingNotes || [],
     }
 }
