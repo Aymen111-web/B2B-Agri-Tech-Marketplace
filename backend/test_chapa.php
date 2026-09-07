@@ -1,12 +1,9 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
-$app = require __DIR__ . '/bootstrap/app.php';
-$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+require 'vendor/autoload.php';
+$app = require_once 'bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-use Illuminate\Support\Facades\Http;
-
-$secretKey = config('services.chapa.secret_key');
-
+// Test the exact request ChapaService makes
 $payload = [
     'amount'        => 100,
     'currency'      => 'ETB',
@@ -14,17 +11,22 @@ $payload = [
     'first_name'    => 'Buyer',
     'last_name'     => 'User',
     'phone_number'  => '0912345678',
-    'tx_ref'        => 'TX-TEST-' . time(),
+    'tx_ref'        => 'TX-TEST-' . rand(1000, 9999),
     'callback_url'  => 'http://127.0.0.1:8000/api/payments/callback',
-    'return_url'    => 'http://localhost:5173/payment/success',
     'customization' => [
-        'title'       => 'AgriMarket ET',
-        'description' => 'Order Payment ORD-123456',
-    ],
+        'title'       => 'Test',
+        'description' => 'Test Desc',
+    ]
 ];
 
-$res = Http::withToken($secretKey)->post('https://api.chapa.co/v1/transaction/initialize', $payload);
+$secretKey = config('services.chapa.secret_key');
+if (!$secretKey) {
+    echo "No secret key configured\n";
+    exit;
+}
 
-echo "Status: " . $res->status() . "\n";
-echo "Response:\n";
-print_r($res->json());
+$response = Illuminate\Support\Facades\Http::withToken($secretKey)
+    ->post('https://api.chapa.co/v1/transaction/initialize', $payload);
+
+echo "Status: " . $response->status() . "\n";
+echo "Body: " . $response->body() . "\n";

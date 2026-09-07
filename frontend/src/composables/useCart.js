@@ -92,11 +92,11 @@ export function useCart() {
         const item = cartItems.value.find(i => i.id === cartItemId)
         if (item) {
             const parsed = parseInt(newQty)
-            const max = item.listing?.availableQty || 100000
+            const max = item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? item.listing.availableQty : 100000
             if (isNaN(parsed) || parsed < 1) {
                 item.quantityKg = 1
             } else if (parsed > max) {
-                item.quantityKg = max
+                item.quantityKg = Math.max(max, 1)
             } else {
                 item.quantityKg = parsed
             }

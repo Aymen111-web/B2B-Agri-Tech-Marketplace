@@ -213,7 +213,7 @@ export function mapBackendUserToFrontend(rawUser) {
 
     if (rawUser.is_admin || rawUser.isAdmin) {
         role = 'admin'
-        activeCapabilities.push('admin', 'farmer', 'buyer')
+        activeCapabilities.push('admin')
     } else if (rawUser.capabilities && Array.isArray(rawUser.capabilities)) {
         rawUser.capabilities.forEach((c) => {
             const type = typeof c === 'string' ? c : c.capability_type
@@ -240,7 +240,7 @@ export function mapBackendUserToFrontend(rawUser) {
     }
 
     const savedRole = localStorage.getItem('agri_active_role')
-    const activeRole = savedRole && activeCapabilities.includes(savedRole) ? savedRole : role
+    const activeRole = (role !== 'admin' && savedRole && activeCapabilities.includes(savedRole)) ? savedRole : role
 
     const name = rawUser.name || `${rawUser.first_name || ''} ${rawUser.second_name || ''}`.trim() || 'User'
 

@@ -32,7 +32,7 @@ class BuyerDashboardController extends Controller
 
         $totalProcurementETB = (clone $userOrdersQuery)
             ->whereIn('status', ['placed', 'confirmed', 'dispatched', 'in_transit', 'delivered', 'completed'])
-            ->sum('total_amount_etb');
+            ->sum('total_amount');
 
 
 

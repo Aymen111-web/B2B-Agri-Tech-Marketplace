@@ -84,7 +84,7 @@
                   :value="item.quantityKg || 1"
                   @input="updateQty(item, $event.target.value)"
                   min="1"
-                  :max="item.listing?.availableQty || 100000"
+                  :max="item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? Math.max(item.listing.availableQty, 1) : 100000"
                   step="1"
                   class="w-20 py-2 bg-white border border-[#E2E4E7] focus:border-[#0B57D0] focus:outline-none font-black text-[#1E2328] text-center rounded-xl text-sm shadow-2xs"
                 />
@@ -93,7 +93,7 @@
                 <button 
                   type="button"
                   @click="updateQty(item, (item.quantityKg || 1) + 1)"
-                  :disabled="(item.quantityKg || 1) >= (item.listing?.availableQty || 100000)"
+                  :disabled="(item.quantityKg || 1) >= (item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? item.listing.availableQty : 100000)"
                   class="w-10 h-10 bg-[#0B57D0]/10 text-[#0B57D0] hover:bg-[#0B57D0] hover:text-white border border-[#0B57D0]/30 disabled:opacity-40 rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
                   title="Increase volume by 1"
                 >
@@ -251,11 +251,11 @@ const updateQty = (item, newQty) => {
   if (item.id && !item.id.startsWith('single-') && !item.id.startsWith('default-')) {
     updateQuantity(item.id, parsed)
   } else {
-    const max = item.listing?.availableQty || 100000
+    const max = item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? item.listing.availableQty : 100000
     if (isNaN(parsed) || parsed < 1) {
       item.quantityKg = 1
     } else if (parsed > max) {
-      item.quantityKg = max
+      item.quantityKg = Math.max(max, 1)
     } else {
       item.quantityKg = parsed
     }
@@ -284,14 +284,16 @@ const handleCheckout = async () => {
     const firstListing = checkoutItems.value[0]?.listing
     const rawId = firstListing?.id ? String(firstListing.id).replace(/[^0-9]/g, '') : ''
     const cleanListingId = parseInt(rawId) || 2
-    const targetQty = checkoutItems.value[0]?.quantityKg || 500
+    const targetQty = checkoutItems.value[0]?.quantityKg ?? 500
 
     // 1. Reserve stock & create order on backend
     let orderId = null
     const checkoutRes = await api.checkoutOrder({ 
       listing_id: cleanListingId, 
       quantity_kg: targetQty
-    }).catch(() => null)
+    }).catch((err) => {
+      throw err // Properly throw error up to catch block for alerting
+    })
 
     if (checkoutRes?.order?.id) {
       orderId = checkoutRes.order.id
@@ -306,7 +308,9 @@ const handleCheckout = async () => {
 
     // 3. Call backend Chapa payment initiation API if real order created
     if (orderId) {
-      const payRes = await api.initiateOrderPayment(orderId).catch(() => null)
+      const payRes = await api.initiateOrderPayment(orderId).catch((err) => {
+        throw err // Properly throw error up to catch block for alerting
+      })
 
       // Clear checkout items from cart
       clearCart()
@@ -318,8 +322,8 @@ const handleCheckout = async () => {
       }
     }
 
-    // 5. Fallback redirect if backend is offline or mock order used
-    alert('Payment Initiation Failed: Make sure the local backend API and Chapa keys are active.')
+    // 5. Fallback error if we couldn't proceed
+    throw new Error('Payment Initiation Failed: Order could not be created or payment URL was empty.')
   } catch (err) {
     alert(err.message || 'Payment initiation failed.')
   } finally {
