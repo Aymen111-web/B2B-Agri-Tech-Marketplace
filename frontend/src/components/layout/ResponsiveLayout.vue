@@ -52,6 +52,7 @@
 
       <!-- Right: Profile dropdown -->
       <div class="flex items-center gap-3 relative" ref="dropdownRef">
+        <ThemeToggle />
 
         <!-- Profile Trigger -->
         <button @click="isProfileMenuOpen = !isProfileMenuOpen"
@@ -199,6 +200,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Menu, X, LogOut, User, ArrowLeftRight, ChevronDown, ChevronRight, Settings, ShieldCheck, CheckCircle2 } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import QelemMedaLogo from '@/components/common/QelemMedaLogo.vue'
+import ThemeToggle from '@/components/common/ThemeToggle.vue'
 
 const props = defineProps({
   navItems: { type: Array, required: true },
