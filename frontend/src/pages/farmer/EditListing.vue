@@ -4,32 +4,32 @@
       <button @click="$router.back()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#F0F1F2] transition-colors">
         <ArrowLeft class="w-5 h-5 text-[#1E2328]" />
       </button>
-      <h2 class="text-[17px] font-bold text-[#1E2328]">Edit Listing #{{ listing.id }}</h2>
+      <h2 class="text-[17px] font-bold text-[#1E2328]">{{ $t('farmer.editListingTitle') }} #{{ listing.id }}</h2>
     </div>
 
     <form @submit.prevent="handleSubmit" class="p-5 space-y-6">
       <div class="space-y-4">
-        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">Crop Details</h3>
-        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Crop Name</label><input type="text" required v-model="cropName" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
+        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">{{ $t('Crop Details') }}</h3>
+        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.cropName') }}</label><input type="text" required v-model="cropName" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Available Qty (kg)</label><input type="number" required v-model.number="availableQty" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Price per kg (ETB)</label><input type="number" required v-model.number="pricePerKg" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] font-bold text-[#1E9444] focus:outline-none focus:border-[#1E9444]" /></div>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.availableQuantityKg') }}</label><input type="number" required v-model.number="availableQty" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.pricePerKgETB') }}</label><input type="number" required v-model.number="pricePerKg" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] font-bold text-[#1E9444] focus:outline-none focus:border-[#1E9444]" /></div>
         </div>
-        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Description</label><textarea rows="4" v-model="description" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]" /></div>
+        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.cropDescription') }}</label><textarea rows="4" v-model="description" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]" /></div>
       </div>
 
       <div class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E2E4E7] p-4 max-w-[480px] md:max-w-4xl mx-auto shadow-md flex gap-3">
-        <button type="button" @click="handleDelete" class="w-1/3 py-3.5 rounded-full border border-red-200 text-red-600 font-bold text-[14px] hover:bg-red-50">Delete</button>
-        <button type="submit" :disabled="isSaving" class="w-2/3 py-3.5 rounded-full bg-[#1E9444] text-white font-bold text-[15px] shadow-md hover:bg-[#0F5C2A] flex items-center justify-center gap-2">
+        <button type="button" @click="handleDelete" class="w-1/3 py-3.5 rounded-full border border-red-200 text-red-600 font-bold text-[14px] hover:bg-red-50 cursor-pointer">{{ $t('Delete') }}</button>
+        <button type="submit" :disabled="isSaving" class="w-2/3 py-3.5 rounded-full bg-[#1E9444] text-white font-bold text-[15px] shadow-md hover:bg-[#0F5C2A] flex items-center justify-center gap-2 cursor-pointer">
           <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" />
-          <span>{{ isSaving ? 'Saving...' : 'Save Changes' }}</span>
+          <span>{{ isSaving ? $t('Saving...') : $t('Save Changes') }}</span>
         </button>
       </div>
     </form>
   </div>
   <div v-else class="text-center py-12 text-[#5A6270]">
-    <p>Listing not found.</p>
-    <router-link to="/farmer/listings" class="text-[#1E9444] font-bold">Back to My Listings</router-link>
+    <p>{{ $t('marketplace.listingNotFound') }}</p>
+    <router-link to="/farmer/listings" class="text-[#1E9444] font-bold">{{ $t('farmer.myListingsTitle') }}</router-link>
   </div>
 </template>
 

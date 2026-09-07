@@ -18,9 +18,9 @@
             </button>
             <div>
               <h1 class="text-[18px] font-black text-[#1E2328] tracking-tight">
-                {{ hasRejected ? 'Application Status' : (isComplete || hasPending ? 'Capability Application Status' : 'Apply for New Capability') }}
+                {{ hasRejected ? $t('Application Status') : (isComplete || hasPending ? $t('Capability Application Status') : $t('auth.capabilityApplicationTitle')) }}
               </h1>
-              <p class="text-[12px] text-[#5A6270]">Upgrade your account capabilities on QMT AgriGate</p>
+              <p class="text-[12px] text-[#5A6270]">{{ $t('auth.capabilityApplicationSub') }}</p>
             </div>
           </div>
         </div>
@@ -29,8 +29,8 @@
         <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3 text-xs text-red-700">
           <AlertCircle class="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
           <div>
-            <span class="font-black block">Application Alert</span>
-            <span>{{ submitError }}</span>
+            <span class="font-black block">{{ $t('auth.regAlert') }}</span>
+            <span>{{ $t(submitError) }}</span>
           </div>
         </div>
 
@@ -43,12 +43,12 @@
           <div class="space-y-2">
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-red-100 text-red-700 border border-red-200">
               <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-              <span>Application Rejected by Admin</span>
+              <span>{{ $t('Application Rejected by Admin') }}</span>
             </span>
 
-            <h3 class="text-[19px] font-black text-[#1E2328]">Action Required for Capability Upgrade</h3>
+            <h3 class="text-[19px] font-black text-[#1E2328]">{{ $t('Action Required for Capability Upgrade') }}</h3>
             <p class="text-[13px] text-[#5A6270] max-w-md mx-auto leading-relaxed">
-              Your application for <strong>{{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }}</strong> capability was reviewed and rejected by the administration team.
+              {{ $t('Your application was reviewed and rejected by the administration team.') }}
             </p>
           </div>
 
@@ -56,13 +56,10 @@
           <div class="p-4 bg-red-50/80 border border-red-200 rounded-2xl text-left space-y-2 text-xs shadow-2xs">
             <div class="flex items-center gap-2 text-red-900 font-black">
               <AlertCircle class="w-4.5 h-4.5 text-red-600 shrink-0" />
-              <span>Admin Rejection Reason:</span>
+              <span>{{ $t('Admin Rejection Reason:') }}</span>
             </div>
             <p class="text-red-950 font-bold text-[13px] bg-white p-3 rounded-xl border border-red-200 leading-relaxed italic">
               "{{ rejectionReason }}"
-            </p>
-            <p class="text-[11px] text-red-700 font-semibold pt-1">
-              💡 Please update your information or attach the requested extra documents (PDF, Word, or Excel) to submit a fresh application.
             </p>
           </div>
 
@@ -72,13 +69,13 @@
               class="flex-1 py-3.5 rounded-2xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-extrabold text-[14px] shadow-md transition-colors cursor-pointer flex items-center justify-center gap-2"
             >
               <RotateCcw class="w-4 h-4" />
-              <span>Re-Apply with Corrected Info</span>
+              <span>{{ $t('Re-Apply with Corrected Info') }}</span>
             </button>
             <button 
               @click="goToDashboard" 
               class="py-3.5 px-5 rounded-2xl border border-gray-200 text-gray-700 font-extrabold text-[14px] hover:bg-gray-50 transition-colors cursor-pointer"
             >
-              Dashboard
+              {{ $t('Dashboard') }}
             </button>
           </div>
         </div>
@@ -87,7 +84,7 @@
         <form v-else-if="!isComplete && !hasPending" @submit.prevent="handleSubmit" class="space-y-5">
           <!-- Step 1: Select Capability Type -->
           <div>
-            <label class="text-[12px] font-bold text-[#1E2328] block mb-2">Select Capability to Apply For</label>
+            <label class="text-[12px] font-bold text-[#1E2328] block mb-2">{{ $t('Select Capability to Apply For') }}</label>
             <div class="grid grid-cols-2 gap-3 text-xs">
               <!-- Farmer Button -->
               <div 
@@ -100,7 +97,7 @@
                 <div :class="['w-9 h-9 rounded-xl flex items-center justify-center', capRole === 'farmer' ? 'bg-[#1E9444] text-white' : 'bg-gray-100 text-gray-600']">
                   <Tractor class="w-5 h-5" />
                 </div>
-                <span>Farmer Producer</span>
+                <span>{{ $t('auth.applyFarmer') }}</span>
               </div>
 
               <!-- Buyer Button -->
@@ -114,7 +111,7 @@
                 <div :class="['w-9 h-9 rounded-xl flex items-center justify-center', capRole === 'buyer' ? 'bg-[#0B57D0] text-white' : 'bg-gray-100 text-gray-600']">
                   <ShoppingBag class="w-5 h-5" />
                 </div>
-                <span>Commercial Buyer</span>
+                <span>{{ $t('auth.applyBuyer') }}</span>
               </div>
             </div>
           </div>
@@ -124,7 +121,7 @@
             <!-- FARMER FORM FIELDS -->
             <template v-if="capRole === 'farmer'">
               <div>
-                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">Farm Size (in Hectares)</label>
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">{{ $t('auth.farmSizeHectares') }}</label>
                 <input 
                   type="number" 
                   required 
@@ -137,7 +134,7 @@
               </div>
 
               <div>
-                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">Primary Crops Produced</label>
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">{{ $t('auth.primaryCrops') }}</label>
                 <input 
                   type="text" 
                   required 
@@ -148,22 +145,22 @@
               </div>
 
               <div>
-                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">Farming Region / Union Location</label>
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">{{ $t('auth.selectRegion') }}</label>
                 <select v-model="region" class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-bold text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#1E9444] transition-all">
-                  <option value="SNNPR">Sidama / SNNPR</option>
-                  <option value="Oromia">Oromia</option>
-                  <option value="Amhara">Amhara</option>
-                  <option value="Tigray">Tigray</option>
-                  <option value="Somali">Somali</option>
-                  <option value="Afar">Afar</option>
-                  <option value="Benishangul">Benishangul-Gumuz</option>
-                  <option value="Gambela">Gambela</option>
-                  <option value="Addis Ababa">Addis Ababa</option>
+                  <option value="SNNPR">{{ $t('SNNPR') }}</option>
+                  <option value="Oromia">{{ $t('Oromia') }}</option>
+                  <option value="Amhara">{{ $t('Amhara') }}</option>
+                  <option value="Tigray">{{ $t('Tigray') }}</option>
+                  <option value="Somali">{{ $t('Somali') }}</option>
+                  <option value="Afar">{{ $t('Afar') }}</option>
+                  <option value="Benishangul">{{ $t('Benishangul') }}</option>
+                  <option value="Gambela">{{ $t('Gambela') }}</option>
+                  <option value="Addis Ababa">{{ $t('Addis Ababa') }}</option>
                 </select>
               </div>
 
               <div>
-                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">Co-op Union / Farm Name (Optional)</label>
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">{{ $t('farmer.primaryUnionCoops') }}</label>
                 <input 
                   type="text" 
                   v-model="unionName" 
@@ -175,8 +172,8 @@
               <!-- EXTRA DOCUMENT UPLOAD FIELD FOR FARMER -->
               <div class="pt-2 border-t border-gray-100">
                 <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1 flex items-center justify-between">
-                  <span>Attach Supporting Document (Optional)</span>
-                  <span class="text-[11px] font-bold text-[#1E9444]">PDF, Word, or Excel</span>
+                  <span>{{ $t('auth.supportingDocuments') }}</span>
+                  <span class="text-[11px] font-bold text-[#1E9444]">PDF, Word, Excel</span>
                 </label>
                 
                 <input 
@@ -192,8 +189,8 @@
                   class="border-2 border-dashed border-gray-200 hover:border-[#1E9444] rounded-2xl p-4 text-center cursor-pointer transition-colors bg-[#F8F9FA] hover:bg-[#EDFAF2]"
                 >
                   <Upload class="w-6 h-6 text-[#1E9444] mx-auto mb-1.5" />
-                  <span class="text-[12px] font-extrabold text-[#1E9444] block">Click to attach Land Certificate, Kebele ID, or Registry file</span>
-                  <span class="text-[10px] text-gray-500 font-medium">Supports PDF, Word (.doc/.docx), Excel (.xls/.xlsx) — Max 15MB</span>
+                  <span class="text-[12px] font-extrabold text-[#1E9444] block">{{ $t('Click to attach Land Certificate, Kebele ID, or Registry file') }}</span>
+                  <span class="text-[10px] text-gray-500 font-medium">PDF, Word (.doc/.docx), Excel (.xls/.xlsx) — Max 15MB</span>
                 </div>
 
                 <div v-else class="p-3 bg-[#EDFAF2] border border-[#C3EFCF] rounded-2xl flex items-center justify-between text-xs">
@@ -211,7 +208,7 @@
             <!-- BUYER FORM FIELDS -->
             <template v-else>
               <div>
-                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">Company / Business Name</label>
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">{{ $t('auth.companyName') }}</label>
                 <input 
                   type="text" 
                   required 
@@ -222,19 +219,19 @@
               </div>
 
               <div>
-                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">Business Type</label>
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">{{ $t('auth.businessType') }}</label>
                 <select v-model="businessType" class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-bold text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0] transition-all">
-                  <option value="exporter">Agricultural Exporter</option>
-                  <option value="processor">Food Processor / Mill</option>
-                  <option value="wholesaler">Bulk Wholesaler</option>
-                  <option value="supermarket">Supermarket Chain</option>
-                  <option value="hotel">Hotel / Restaurant Group</option>
-                  <option value="distributor">Regional Distributor</option>
+                  <option value="exporter">{{ $t('Agricultural Exporter') }}</option>
+                  <option value="processor">{{ $t('Food Processor / Mill') }}</option>
+                  <option value="wholesaler">{{ $t('Bulk Wholesaler') }}</option>
+                  <option value="supermarket">{{ $t('Supermarket Chain') }}</option>
+                  <option value="hotel">{{ $t('Hotel / Restaurant Group') }}</option>
+                  <option value="distributor">{{ $t('Regional Distributor') }}</option>
                 </select>
               </div>
 
               <div>
-                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">Tax Identification Number (TIN)</label>
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">{{ $t('buyer.tinNumber') }}</label>
                 <input 
                   type="text" 
                   v-model="tinNumber" 
@@ -244,22 +241,22 @@
               </div>
 
               <div>
-                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">Operating Region / City</label>
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1">{{ $t('auth.selectRegion') }}</label>
                 <select v-model="region" class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-bold text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0] transition-all">
-                  <option value="Addis Ababa">Addis Ababa</option>
-                  <option value="Oromia">Oromia</option>
-                  <option value="Amhara">Amhara</option>
-                  <option value="SNNPR">Sidama / SNNPR</option>
-                  <option value="Dire Dawa">Dire Dawa</option>
-                  <option value="Tigray">Tigray</option>
+                  <option value="Addis Ababa">{{ $t('Addis Ababa') }}</option>
+                  <option value="Oromia">{{ $t('Oromia') }}</option>
+                  <option value="Amhara">{{ $t('Amhara') }}</option>
+                  <option value="SNNPR">{{ $t('SNNPR') }}</option>
+                  <option value="Dire Dawa">{{ $t('Dire Dawa') }}</option>
+                  <option value="Tigray">{{ $t('Tigray') }}</option>
                 </select>
               </div>
 
               <!-- EXTRA DOCUMENT UPLOAD FIELD FOR BUYER -->
               <div class="pt-2 border-t border-gray-100">
                 <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1 flex items-center justify-between">
-                  <span>Attach Business License / Document (Optional)</span>
-                  <span class="text-[11px] font-bold text-[#0B57D0]">PDF, Word, or Excel</span>
+                  <span>{{ $t('auth.supportingDocuments') }}</span>
+                  <span class="text-[11px] font-bold text-[#0B57D0]">PDF, Word, Excel</span>
                 </label>
                 
                 <input 
@@ -275,8 +272,8 @@
                   class="border-2 border-dashed border-gray-200 hover:border-[#0B57D0] rounded-2xl p-4 text-center cursor-pointer transition-colors bg-[#F8F9FA] hover:bg-[#EEF2F6]"
                 >
                   <Upload class="w-6 h-6 text-[#0B57D0] mx-auto mb-1.5" />
-                  <span class="text-[12px] font-extrabold text-[#0B57D0] block">Click to attach Trade License or Registration file</span>
-                  <span class="text-[10px] text-gray-500 font-medium">Supports PDF, Word (.doc/.docx), Excel (.xls/.xlsx) — Max 15MB</span>
+                  <span class="text-[12px] font-extrabold text-[#0B57D0] block">{{ $t('Click to attach Trade License or Registration file') }}</span>
+                  <span class="text-[10px] text-gray-500 font-medium">PDF, Word (.doc/.docx), Excel (.xls/.xlsx) — Max 15MB</span>
                 </div>
 
                 <div v-else class="p-3 bg-[#EEF2F6] border border-blue-200 rounded-2xl flex items-center justify-between text-xs">
@@ -302,7 +299,7 @@
             ]"
           >
             <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
-            <span>Submit {{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }} Application</span>
+            <span>{{ $t('auth.submitApplication') }}</span>
           </button>
         </form>
 
@@ -315,12 +312,12 @@
             <div class="space-y-2">
               <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-emerald-100 text-[#0F5C2A] border border-[#C3EFCF]">
                 <CheckCircle2 class="w-3.5 h-3.5 text-[#1E9444]" />
-                <span>Capability Verified & Approved</span>
+                <span>{{ $t('Capability Verified & Approved') }}</span>
               </span>
 
-              <h3 class="text-[22px] font-black text-[#1E2328]">Access Granted!</h3>
+              <h3 class="text-[22px] font-black text-[#1E2328]">{{ $t('Access Granted!') }}</h3>
               <p class="text-[13px] text-[#5A6270] max-w-md mx-auto leading-relaxed">
-                Your application for <strong>{{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }}</strong> capability has been approved by administration.
+                {{ $t('Your capability application has been approved by administration.') }}
               </p>
             </div>
 
@@ -328,7 +325,7 @@
               @click="router.push(capRole === 'farmer' ? '/farmer' : '/buyer')" 
               class="w-full py-4 rounded-2xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-black text-[15px] shadow-lg transition-colors cursor-pointer flex items-center justify-center gap-2"
             >
-              <span>Access {{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }} Dashboard</span>
+              <span>{{ $t('Access Dashboard') }}</span>
               <ArrowRight class="w-5 h-5" />
             </button>
           </div>
@@ -345,24 +342,24 @@
             <div class="space-y-2">
               <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-[#E69500] border border-amber-200">
                 <span class="w-2 h-2 rounded-full bg-[#E69500] animate-pulse" />
-                <span>Application Pending Admin Approval</span>
+                <span>{{ $t('Application Pending Admin Approval') }}</span>
               </span>
 
-              <h3 class="text-[19px] font-black text-[#1E2328]">Wait for Administrator Review</h3>
+              <h3 class="text-[19px] font-black text-[#1E2328]">{{ $t('Wait for Administrator Review') }}</h3>
               <p class="text-[13px] text-[#5A6270] max-w-md mx-auto leading-relaxed">
-                Your application for <strong>{{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }}</strong> capability has been submitted and is currently awaiting admin verification.
+                {{ $t('Your capability application has been submitted and is currently awaiting admin verification.') }}
               </p>
             </div>
 
             <div class="p-4 bg-[#FFFBEB] border border-amber-200 rounded-2xl text-left space-y-2 text-xs">
               <div class="flex items-center gap-2 text-amber-900 font-extrabold">
                 <ShieldCheck class="w-4 h-4 text-[#E69500]" />
-                <span>What happens next?</span>
+                <span>{{ $t('What happens next?') }}</span>
               </div>
               <ul class="space-y-1 text-amber-950 font-medium text-[11px] list-disc list-inside leading-normal">
-                <li>Our platform administration team reviews your capability details.</li>
-                <li>Please wait for administrator approval before accessing role-specific pages.</li>
-                <li>Once approved, full access to the capability dashboard and features will automatically be granted.</li>
+                <li>{{ $t('Our platform administration team reviews your capability details.') }}</li>
+                <li>{{ $t('Please wait for administrator approval before accessing role-specific pages.') }}</li>
+                <li>{{ $t('Once approved, full access to the capability dashboard and features will automatically be granted.') }}</li>
               </ul>
             </div>
 
@@ -370,7 +367,7 @@
               @click="goToDashboard" 
               class="w-full py-3.5 rounded-2xl bg-[#0B57D0] hover:bg-[#0842A0] text-white font-extrabold text-[14px] shadow-md transition-colors cursor-pointer"
             >
-              Return to Dashboard
+              {{ $t('Return to Dashboard') }}
             </button>
           </div>
         </div>

@@ -4,10 +4,10 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E4E7] pb-4">
       <div>
         <h1 class="text-2xl font-black text-[#1E2328] tracking-tight">
-          Buyer <span class="text-[#0B57D0]">Profile & Account</span> 👤
+          {{ $t('buyer.profileTitle') }} 👤
         </h1>
         <p class="text-xs text-[#5A6270] mt-0.5">
-          Commercial procurement credentials, capital investment overview, and delivery settings.
+          {{ $t('buyer.profileSub') }}
         </p>
       </div>
 
@@ -15,12 +15,12 @@
         <button @click="openEditModal" 
           class="px-4 py-2 bg-white border border-[#E2E4E7] hover:border-[#0B57D0] text-[#1E2328] hover:text-[#0B57D0] rounded-xl text-xs font-extrabold transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
           <Edit3 class="w-3.5 h-3.5 text-[#0B57D0]" />
-          <span>Edit Profile</span>
+          <span>{{ $t('Edit Profile') }}</span>
         </button>
         <button @click="logout" 
           class="px-4 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 rounded-xl text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer">
           <LogOut class="w-3.5 h-3.5" />
-          <span>Sign Out</span>
+          <span>{{ $t('Sign Out') }}</span>
         </button>
       </div>
     </div>
@@ -29,7 +29,7 @@
     <div v-if="successMsg" class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center justify-between">
       <div class="flex items-center gap-2">
         <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
-        <span>{{ successMsg }}</span>
+        <span>{{ $t(successMsg) }}</span>
       </div>
       <button @click="successMsg = ''" class="text-emerald-700 hover:text-emerald-900 font-extrabold text-sm">&times;</button>
     </div>
@@ -62,21 +62,21 @@
 
         <div class="space-y-1.5 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
-            <h2 class="text-xl font-black text-[#1E2328] tracking-tight">{{ user?.name || 'Buyer Account' }}</h2>
+            <h2 class="text-xl font-black text-[#1E2328] tracking-tight">{{ user?.name || $t('buyer.portalBadge') }}</h2>
             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
               <ShieldCheck class="w-3.5 h-3.5 text-[#1E9444]" />
-              <span>Verified Buyer</span>
+              <span>{{ $t('badges.verifiedBuyer') }}</span>
             </span>
           </div>
 
           <p class="text-xs text-[#5A6270] flex items-center gap-2 font-semibold flex-wrap">
             <Phone class="w-3.5 h-3.5 text-[#0B57D0]" />
-            <span>{{ user?.phone || 'No phone set' }}</span>
+            <span>{{ user?.phone || $t('No phone set') }}</span>
             <span>•</span>
-            <span class="text-[#1E2328]">{{ user?.region || 'Addis Ababa' }}</span>
+            <span class="text-[#1E2328]">{{ $t(user?.region) || 'Addis Ababa' }}</span>
             <span>•</span>
             <button @click="triggerPhotoUpload" class="text-[11px] font-extrabold text-[#0B57D0] hover:underline">
-              Change Photo
+              {{ $t('Change Photo') }}
             </button>
           </p>
 
@@ -84,12 +84,12 @@
           <div class="pt-1 flex items-center gap-2 flex-wrap">
             <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-blue-50 text-[#0B57D0] border border-blue-200 flex items-center gap-1">
               <Wallet class="w-3 h-3 text-[#0B57D0]" />
-              <span>Escrow Protected</span>
+              <span>{{ $t('badges.escrowProtected') }}</span>
             </span>
 
             <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-amber-50 text-[#E69500] border border-amber-200 flex items-center gap-1">
               <Clock class="w-3 h-3 text-[#E69500]" />
-              <span>Verified Account</span>
+              <span>{{ $t('Verified Account') }}</span>
             </span>
           </div>
         </div>
@@ -102,31 +102,31 @@
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
           <div class="flex items-center gap-2">
             <Building2 class="w-4 h-4 text-[#0B57D0]" />
-            <h3 class="text-sm font-bold text-[#1E2328]">Commercial Sourcing Identity</h3>
+            <h3 class="text-sm font-bold text-[#1E2328]">{{ $t('Commercial Sourcing Identity') }}</h3>
           </div>
-          <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Verified</span>
+          <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">{{ $t('Verified') }}</span>
         </div>
 
         <div class="space-y-3 text-xs">
           <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">Registered Full Name:</span>
-            <span class="font-bold text-[#1E2328]">{{ user?.name || 'Not set' }}</span>
+            <span class="text-[#5A6270] font-semibold">{{ $t('Registered Full Name') }}:</span>
+            <span class="font-bold text-[#1E2328]">{{ user?.name || $t('Not set') }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">Phone Number:</span>
-            <span class="font-bold text-[#1E2328]">{{ user?.phone || 'Not set' }}</span>
+            <span class="text-[#5A6270] font-semibold">{{ $t('auth.mobilePhone') }}:</span>
+            <span class="font-bold text-[#1E2328]">{{ user?.phone || $t('Not set') }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">Business / Company Name:</span>
-            <span class="font-bold text-[#1E2328]">{{ user?.businessName || 'Not specified' }}</span>
+            <span class="text-[#5A6270] font-semibold">{{ $t('buyer.companyName') }}:</span>
+            <span class="font-bold text-[#1E2328]">{{ user?.businessName || $t('Not specified') }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">Tax Identification (TIN):</span>
-            <span class="font-mono font-bold text-[#1E2328]">{{ user?.tinNumber || 'Not specified' }}</span>
+            <span class="text-[#5A6270] font-semibold">{{ $t('buyer.tinNumber') }}:</span>
+            <span class="font-mono font-bold text-[#1E2328]">{{ user?.tinNumber || $t('Not specified') }}</span>
           </div>
           <div class="flex justify-between py-1.5">
-            <span class="text-[#5A6270] font-semibold">Primary Commercial Region:</span>
-            <span class="font-bold text-[#0B57D0]">{{ user?.region || 'Addis Ababa' }}</span>
+            <span class="text-[#5A6270] font-semibold">{{ $t('Primary Commercial Region') }}:</span>
+            <span class="font-bold text-[#0B57D0]">{{ $t(user?.region) || 'Addis Ababa' }}</span>
           </div>
         </div>
       </div>
@@ -135,27 +135,27 @@
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
           <div class="flex items-center gap-2">
             <CreditCard class="w-4 h-4 text-[#E69500]" />
-            <h3 class="text-sm font-bold text-[#1E2328]">Logistics & Security</h3>
+            <h3 class="text-sm font-bold text-[#1E2328]">{{ $t('Logistics & Security') }}</h3>
           </div>
-          <span class="text-[10px] font-extrabold text-[#E69500] bg-amber-50 px-2 py-0.5 rounded-md">Active</span>
+          <span class="text-[10px] font-extrabold text-[#E69500] bg-amber-50 px-2 py-0.5 rounded-md">{{ $t('Active') }}</span>
         </div>
 
         <div class="space-y-3 text-xs">
           <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">Default Delivery Hub:</span>
+            <span class="text-[#5A6270] font-semibold">{{ $t('buyer.warehouseAddress') }}:</span>
             <span class="font-bold text-[#1E2328]">{{ user?.deliveryHub || 'Kality Central Hub' }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">Escrow Security:</span>
-            <span class="font-bold text-[#1E9444]">Chapa Escrow Protected</span>
+            <span class="text-[#5A6270] font-semibold">{{ $t('Escrow Security') }}:</span>
+            <span class="font-bold text-[#1E9444]">{{ $t('Chapa Escrow Protected') }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">Settlement Currency:</span>
-            <span class="font-bold text-[#1E2328]">ETB (Ethiopian Birr)</span>
+            <span class="text-[#5A6270] font-semibold">{{ $t('Settlement Currency') }}:</span>
+            <span class="font-bold text-[#1E2328]">{{ $t('ETB (Ethiopian Birr)') }}</span>
           </div>
           <div class="flex justify-between py-1.5">
-            <span class="text-[#5A6270] font-semibold">Handover Auth:</span>
-            <span class="font-bold text-[#0B57D0]">4-Digit Dynamic PIN</span>
+            <span class="text-[#5A6270] font-semibold">{{ $t('Handover Auth') }}:</span>
+            <span class="font-bold text-[#0B57D0]">{{ $t('4-Digit Dynamic PIN') }}</span>
           </div>
         </div>
       </div>
@@ -171,8 +171,8 @@
               <UserCheck class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="text-base font-black text-[#1E2328]">Edit Buyer Profile</h3>
-              <p class="text-[11px] text-[#5A6270]">Manage credentials, security, & commercial info</p>
+              <h3 class="text-base font-black text-[#1E2328]">{{ $t('Edit Buyer Profile') }}</h3>
+              <p class="text-[11px] text-[#5A6270]">{{ $t('Manage credentials, security, & commercial info') }}</p>
             </div>
           </div>
           <button @click="showEditModal = false" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
@@ -190,7 +190,7 @@
             ]"
           >
             <User class="w-3.5 h-3.5" />
-            <span>Credentials & Password</span>
+            <span>{{ $t('Credentials & Password') }}</span>
           </button>
           <button 
             @click="activeTab = 'commercial'" 
@@ -200,33 +200,33 @@
             ]"
           >
             <Building2 class="w-3.5 h-3.5" />
-            <span>Commercial & Logistics</span>
+            <span>{{ $t('Commercial & Logistics') }}</span>
           </button>
         </div>
 
         <!-- Error Alert -->
         <div v-if="modalError" class="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl flex items-center gap-2">
           <AlertCircle class="w-4 h-4 text-red-600 shrink-0" />
-          <span>{{ modalError }}</span>
+          <span>{{ $t(modalError) }}</span>
         </div>
 
         <!-- Tab 1: Credentials & Security -->
         <div v-if="activeTab === 'credentials'" class="space-y-4 text-xs">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">First Name</label>
-              <input type="text" v-model="form.first_name" placeholder="First Name"
+              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.firstName') }}</label>
+              <input type="text" v-model="form.first_name" :placeholder="$t('auth.firstName')"
                 class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
             </div>
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">Second Name / Family</label>
-              <input type="text" v-model="form.second_name" placeholder="Second Name"
+              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.secondName') }}</label>
+              <input type="text" v-model="form.second_name" :placeholder="$t('auth.secondName')"
                 class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
             </div>
           </div>
 
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">Mobile Phone Number</label>
+            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.mobilePhone') }}</label>
             <div class="relative">
               <Phone class="w-4 h-4 text-gray-400 absolute left-3 top-3" />
               <input type="text" v-model="form.phone" placeholder="+251 911 000 000"
@@ -237,22 +237,22 @@
           <div class="pt-2 border-t border-gray-100">
             <h4 class="font-black text-[#1E2328] mb-2 flex items-center gap-1.5">
               <Key class="w-3.5 h-3.5 text-[#0B57D0]" />
-              <span>Change Password (Optional)</span>
+              <span>{{ $t('Change Password (Optional)') }}</span>
             </h4>
             <div class="space-y-2.5">
               <div>
-                <label class="block text-[11px] font-bold text-gray-600 mb-1">Current Password</label>
-                <input type="password" v-model="form.current_password" placeholder="Enter current password if changing"
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('Current Password') }}</label>
+                <input type="password" v-model="form.current_password" :placeholder="$t('Enter current password if changing')"
                   class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                  <label class="block text-[11px] font-bold text-gray-600 mb-1">New Password</label>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('New Password') }}</label>
                   <input type="password" v-model="form.new_password" placeholder="At least 6 chars"
                     class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Confirm New Password</label>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('auth.confirmPassword') }}</label>
                   <input type="password" v-model="form.confirm_password" placeholder="Re-type new password"
                     class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
                 </div>
@@ -264,33 +264,33 @@
         <!-- Tab 2: Commercial & Logistics -->
         <div v-if="activeTab === 'commercial'" class="space-y-3.5 text-xs">
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">Company / Business Name</label>
+            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('buyer.companyName') }}</label>
             <input type="text" v-model="form.businessName" placeholder="e.g. Addis Supermarket PLC"
               class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
           </div>
 
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">Tax Identification Number (TIN)</label>
+            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('buyer.tinNumber') }}</label>
             <input type="text" v-model="form.tinNumber" placeholder="e.g. 0098765432"
               class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
           </div>
 
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">Commercial Region</label>
+            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.selectRegion') }}</label>
             <select v-model="form.region" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all">
-              <option value="Addis Ababa">Addis Ababa</option>
-              <option value="Oromia">Oromia</option>
-              <option value="Amhara">Amhara</option>
-              <option value="Sidama">Sidama</option>
-              <option value="SNNPR">SNNPR</option>
-              <option value="Dire Dawa">Dire Dawa</option>
-              <option value="Somali">Somali</option>
-              <option value="Tigray">Tigray</option>
+              <option value="Addis Ababa">{{ $t('Addis Ababa') }}</option>
+              <option value="Oromia">{{ $t('Oromia') }}</option>
+              <option value="Amhara">{{ $t('Amhara') }}</option>
+              <option value="Sidama">{{ $t('Sidama') }}</option>
+              <option value="SNNPR">{{ $t('SNNPR') }}</option>
+              <option value="Dire Dawa">{{ $t('Dire Dawa') }}</option>
+              <option value="Somali">{{ $t('Somali') }}</option>
+              <option value="Tigray">{{ $t('Tigray') }}</option>
             </select>
           </div>
 
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">Default Delivery Destination Hub</label>
+            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('buyer.warehouseAddress') }}</label>
             <input type="text" v-model="form.deliveryHub" placeholder="e.g. Kality Central Logistics Depot"
               class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
           </div>
@@ -299,12 +299,12 @@
         <!-- Modal Actions -->
         <div class="flex gap-2.5 pt-3 border-t border-gray-100">
           <button @click="showEditModal = false" class="flex-1 py-2.5 border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 transition-colors">
-            Cancel
+            {{ $t('Cancel') }}
           </button>
           <button @click="saveProfile" :disabled="isSaving"
             class="flex-1 py-2.5 bg-[#0B57D0] hover:bg-[#09429E] text-white rounded-xl font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer">
             <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" />
-            <span>Save Profile</span>
+            <span>{{ $t('Save Profile') }}</span>
           </button>
         </div>
       </div>

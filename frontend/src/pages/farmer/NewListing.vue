@@ -4,76 +4,76 @@
       <button @click="$router.back()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#F0F1F2] transition-colors">
         <ArrowLeft class="w-5 h-5 text-[#1E2328]" />
       </button>
-      <h2 class="text-[17px] font-bold text-[#1E2328]">Post a new listing</h2>
+      <h2 class="text-[17px] font-bold text-[#1E2328]">{{ $t('farmer.newListingTitle') }}</h2>
     </div>
 
     <form @submit.prevent="handleSubmit" class="p-5 space-y-6">
       <div v-if="submitError" class="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-2.5 text-xs text-red-700 font-bold">
         <AlertCircle class="w-4 h-4 text-red-600 shrink-0" />
-        <span>{{ submitError }}</span>
+        <span>{{ $t(submitError) }}</span>
       </div>
 
       <div class="space-y-4">
-        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">Crop details</h3>
-        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Crop Name</label><input type="text" required v-model="cropName" placeholder="e.g. Sidama Washed Coffee G1" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
-        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Category</label>
+        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">{{ $t('Crop Details') }}</h3>
+        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.cropName') }}</label><input type="text" required v-model="cropName" placeholder="e.g. Sidama Washed Coffee G1" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
+        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.category') }}</label>
           <select v-model="category" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]">
-            <option value="coffee">☕ Coffee</option><option value="grains">🌾 Grains</option><option value="spices">🌿 Spices</option><option value="oilseeds">🥜 Oilseeds</option><option value="pulses">🫘 Pulses</option><option value="roots">🧅 Roots</option><option value="fruits">🍋 Fruits</option><option value="vegetables">🥬 Vegetables</option>
+            <option value="coffee">☕ {{ $t('Coffee') }}</option><option value="grains">🌾 {{ $t('Grains') }}</option><option value="spices">🌿 {{ $t('Spices') }}</option><option value="oilseeds">🥜 {{ $t('Oilseeds') }}</option><option value="pulses">🫘 {{ $t('Pulses') }}</option><option value="roots">🧅 {{ $t('Roots') }}</option><option value="fruits">🍋 {{ $t('Fruits') }}</option><option value="vegetables">🥬 {{ $t('Vegetables') }}</option>
           </select>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Grade</label>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.cropGrade') }}</label>
             <select v-model="grade" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]">
               <option value="Grade 1">Grade 1</option><option value="Grade 2">Grade 2</option><option value="Export Quality">Export Quality</option><option value="Premium">Premium</option><option value="Standard">Standard</option>
             </select>
           </div>
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Process Method</label>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('Process Method') }}</label>
             <select v-model="processMethod" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]">
-              <option value="Washed">Washed</option><option value="Natural">Natural</option><option value="Honey">Honey</option><option value="N/A">N/A</option>
+              <option value="Washed">{{ $t('Washed') }}</option><option value="Natural">{{ $t('Natural') }}</option><option value="Honey">{{ $t('Honey') }}</option><option value="N/A">N/A</option>
             </select>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Region</label>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('Region') }}</label>
             <select v-model="region" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]">
-              <option value="SNNPR">SNNPR</option><option value="Oromia">Oromia</option><option value="Amhara">Amhara</option><option value="Tigray">Tigray</option><option value="Harari">Harari</option><option value="Sidama">Sidama</option>
+              <option value="SNNPR">{{ $t('SNNPR') }}</option><option value="Oromia">{{ $t('Oromia') }}</option><option value="Amhara">{{ $t('Amhara') }}</option><option value="Tigray">{{ $t('Tigray') }}</option><option value="Harari">{{ $t('Harari') }}</option><option value="Sidama">{{ $t('Sidama') }}</option>
             </select>
           </div>
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Zone</label><input type="text" v-model="zone" placeholder="e.g. Sidama / Bale" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]" /></div>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('Zone') }}</label><input type="text" v-model="zone" placeholder="e.g. Sidama / Bale" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]" /></div>
         </div>
       </div>
 
       <div class="space-y-4">
-        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">Quantity & pricing</h3>
+        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">{{ $t('Quantity & pricing') }}</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Available Qty (kg)</label><input type="number" required v-model.number="availableQty" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Min Order (kg)</label><input type="number" required v-model.number="minOrderQty" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.availableQuantityKg') }}</label><input type="number" required v-model.number="availableQty" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.minimumOrderQuantity') }}</label><input type="number" required v-model.number="minOrderQty" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
         </div>
         <div>
-          <label class="text-[12px] font-bold text-[#1E2328] block mb-1">Price per kg (ETB)</label>
+          <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.pricePerKgETB') }}</label>
           <input type="number" required v-model.number="pricePerKg" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] font-bold text-[#1E9444] focus:outline-none focus:border-[#1E9444]" />
           <div class="mt-2 p-2.5 bg-[#EDFAF2] border border-[#C3EFCF] rounded-lg flex items-center justify-between text-[12px]">
-            <span class="text-[#0F5C2A] font-semibold flex items-center gap-1"><Sparkles class="w-3.5 h-3.5 text-[#1E9444]" /> Potential revenue preview:</span>
+            <span class="text-[#0F5C2A] font-semibold flex items-center gap-1"><Sparkles class="w-3.5 h-3.5 text-[#1E9444]" /> {{ $t('Potential revenue preview:') }}</span>
             <strong class="text-[#1E9444] text-[14px] font-extrabold">{{ formatETB((availableQty || 0) * (pricePerKg || 0)) }}</strong>
           </div>
         </div>
       </div>
 
       <div class="space-y-4">
-        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">Quality details</h3>
+        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">{{ $t('Quality details') }}</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Harvest Date</label><input type="date" v-model="harvestDate" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]" /></div>
-          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Moisture % (optional)</label><input type="number" step="0.1" v-model.number="moistureContent" placeholder="11.0" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]" /></div>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.harvestDate') }}</label><input type="date" v-model="harvestDate" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]" /></div>
+          <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('Moisture % (optional)') }}</label><input type="number" step="0.1" v-model.number="moistureContent" placeholder="11.0" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] focus:outline-none focus:border-[#1E9444]" /></div>
         </div>
-        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Produce Description</label><textarea rows="4" v-model="description" placeholder="Describe crop origin, cupping notes..." class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] min-h-[120px] focus:outline-none focus:border-[#1E9444]" /></div>
+        <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('farmer.cropDescription') }}</label><textarea rows="4" v-model="description" placeholder="Describe crop origin, cupping notes..." class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[13px] min-h-[120px] focus:outline-none focus:border-[#1E9444]" /></div>
       </div>
 
       <div class="space-y-3">
-        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">Photos</h3>
+        <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">{{ $t('farmer.uploadImages') }}</h3>
         <label for="fileUploadBtn" class="border-2 border-dashed border-[#E2E4E7] rounded-xl p-6 text-center cursor-pointer hover:border-[#1E9444] block transition-colors bg-[#F8F9FA]">
           <input type="file" id="fileUploadBtn" multiple accept="image/*" @change="handleFileSelect" class="hidden" />
           <Camera class="w-8 h-8 text-[#9BA1AA] mx-auto mb-2" />
-          <span class="text-[13px] font-bold text-[#1E9444] block">Tap to upload produce photos</span>
+          <span class="text-[13px] font-bold text-[#1E9444] block">{{ $t('Tap to upload produce photos') }}</span>
           <span class="text-[11px] text-[#5A6270]">PNG, JPG up to 10MB</span>
         </label>
         
@@ -88,9 +88,9 @@
       <div class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E2E4E7] p-4 max-w-[480px] md:max-w-4xl mx-auto shadow-md">
         <button type="submit" :disabled="isSubmitting" class="w-full py-3.5 rounded-full bg-[#1E9444] text-white font-bold text-[15px] shadow-md hover:bg-[#0F5C2A] transition-all flex items-center justify-center gap-2">
           <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
-          <span>{{ isSubmitting ? 'Submitting...' : 'Submit for review' }}</span>
+          <span>{{ isSubmitting ? $t('Submitting...') : $t('Submit for review') }}</span>
         </button>
-        <p class="text-[11px] text-[#5A6270] text-center mt-1.5 font-medium">An admin will verify and publish within 24h</p>
+        <p class="text-[11px] text-[#5A6270] text-center mt-1.5 font-medium">{{ $t('An admin will verify and publish within 24h') }}</p>
       </div>
     </form>
   </div>

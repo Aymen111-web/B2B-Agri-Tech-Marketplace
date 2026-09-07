@@ -5,22 +5,22 @@
       <div>
         <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0B57D0]/10 text-[#0B57D0] text-[11px] font-extrabold mb-1">
           <span class="w-2 h-2 rounded-full bg-[#E69500]" />
-          <span>Commercial Buyer Portal</span>
+          <span>{{ $t('buyer.portalBadge') }}</span>
         </div>
         <h1 class="text-2xl font-black text-[#1E2328] tracking-tight">
-          Welcome back, <span class="text-[#0B57D0]">{{ firstName }}</span> 👋
+          {{ $t('buyer.welcomeBack') }}, <span class="text-[#0B57D0]">{{ firstName }}</span> 👋
         </h1>
         <p class="text-xs text-[#5A6270] mt-0.5">
-          Source verified Ethiopian agricultural produce directly from co-op unions and farmers.
+          {{ $t('buyer.welcomeSub') }}
         </p>
       </div>
 
       <!-- Quick Category Sourcing Chips -->
       <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-        <button v-for="cat in quickCategories" :key="cat.name" @click="navigateToCategory(cat.slug)"
+        <button v-for="cat in quickCategories" :key="cat.slug" @click="navigateToCategory(cat.slug)"
           class="px-3.5 py-2 rounded-xl bg-white border border-[#E2E4E7] text-[#1E2328] hover:border-[#E69500] hover:text-[#0B57D0] text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 shadow-2xs">
           <span>{{ cat.emoji }}</span>
-          <span>{{ cat.name }}</span>
+          <span>{{ $t(cat.key, cat.name) }}</span>
         </button>
       </div>
     </div>
@@ -29,7 +29,7 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">Active Orders</span>
+          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">{{ $t('buyer.activeOrders') }}</span>
           <div class="w-9 h-9 rounded-xl bg-[#0B57D0]/10 text-[#0B57D0] flex items-center justify-center font-bold">
             <ShoppingCart class="w-4 h-4" />
           </div>
@@ -37,24 +37,24 @@
         <p class="text-2xl sm:text-3xl font-black text-[#1E2328] mt-2">{{ dashboardStats.active_orders }}</p>
         <div class="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-[#0B57D0]">
           <span class="w-2 h-2 rounded-full bg-[#0B57D0] animate-pulse" />
-          <span>{{ dashboardStats.pending_handoffs_count }} awaiting delivery handoff</span>
+          <span>{{ dashboardStats.pending_handoffs_count }} {{ $t('buyer.awaitingHandoff') }}</span>
         </div>
       </div>
 
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">Total Spent</span>
+          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">{{ $t('buyer.totalSpent') }}</span>
           <div class="w-9 h-9 rounded-xl bg-amber-50 text-[#E69500] flex items-center justify-center font-bold">
             <Wallet class="w-4 h-4" />
           </div>
         </div>
         <p class="text-2xl sm:text-3xl font-black text-[#1E2328] mt-2">{{ formatETB(dashboardStats.total_procurement_etb) }}</p>
-        <p class="mt-2 text-[11px] font-semibold text-[#5A6270]">Secured via Chapa Escrow</p>
+        <p class="mt-2 text-[11px] font-semibold text-[#5A6270]">{{ $t('buyer.securedViaChapa') }}</p>
       </div>
 
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">Co-op Farmers</span>
+          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">{{ $t('buyer.coopFarmers') }}</span>
           <div class="w-9 h-9 rounded-xl bg-emerald-50 text-[#1E9444] flex items-center justify-center font-bold">
             <Users class="w-4 h-4" />
           </div>
@@ -62,19 +62,19 @@
         <p class="text-2xl sm:text-3xl font-black text-[#1E2328] mt-2">{{ dashboardStats.verified_farmers_count.toLocaleString() }}+</p>
         <p class="mt-2 text-[11px] font-semibold text-[#1E9444] flex items-center gap-1">
           <Building2 class="w-3 h-3 text-[#1E9444]" />
-          <span>{{ dashboardStats.primary_unions_count }} Primary Unions</span>
+          <span>{{ dashboardStats.primary_unions_count }} {{ $t('farmer.primaryUnionCoops') }}</span>
         </p>
       </div>
 
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">Saved / Cart</span>
+          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">{{ $t('common.Carts') }}</span>
           <div class="w-9 h-9 rounded-xl bg-amber-50 text-[#E69500] flex items-center justify-center font-bold">
             <Bookmark class="w-4 h-4" />
           </div>
         </div>
         <p class="text-2xl sm:text-3xl font-black text-[#1E2328] mt-2">{{ dashboardStats.cart_items_count }}</p>
-        <p class="mt-2 text-[11px] font-semibold text-amber-700">Ready for instant checkout</p>
+        <p class="mt-2 text-[11px] font-semibold text-amber-700">{{ $t('cart.title') }}</p>
       </div>
     </div>
 
@@ -82,11 +82,11 @@
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-bold text-[#1E2328]">Featured Direct-From-Farm Produce</h2>
-          <p class="text-xs text-[#5A6270]">Grade 1 export and commercial batches from top regional cooperatives</p>
+          <h2 class="text-lg font-bold text-[#1E2328]">{{ $t('buyer.recentProcurement') }}</h2>
+          <p class="text-xs text-[#5A6270]">{{ $t('marketplace.subtitle') }}</p>
         </div>
         <router-link to="/buyer/marketplace" class="text-xs font-extrabold text-[#0B57D0] hover:underline flex items-center gap-1">
-          <span>View All Marketplace →</span>
+          <span>{{ $t('marketplace.browseMarketplace') }} →</span>
         </router-link>
       </div>
 
@@ -116,11 +116,11 @@ const firstName = computed(() => {
 })
 
 const quickCategories = [
-  { name: 'Coffee', emoji: '☕', slug: 'coffee' },
-  { name: 'Grains', emoji: '🌾', slug: 'grains' },
-  { name: 'Spices', emoji: '🌶️', slug: 'spices' },
-  { name: 'Oilseeds', emoji: '🌱', slug: 'oilseeds' },
-  { name: 'Pulses', emoji: '🫘', slug: 'pulses' },
+  { name: 'Coffee', key: 'common.coffee', emoji: '☕', slug: 'coffee' },
+  { name: 'Grains', key: 'common.grains', emoji: '🌾', slug: 'grains' },
+  { name: 'Spices', key: 'common.spices', emoji: '🌶️', slug: 'spices' },
+  { name: 'Oilseeds', key: 'common.oilseeds', emoji: '🌱', slug: 'oilseeds' },
+  { name: 'Pulses', key: 'common.pulses', emoji: '🫘', slug: 'pulses' },
 ]
 
 const dashboardStats = ref({
