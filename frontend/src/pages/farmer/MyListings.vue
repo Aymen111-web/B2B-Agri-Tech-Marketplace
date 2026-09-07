@@ -32,7 +32,22 @@
       <div class="text-xs text-[#5A6270] font-bold self-end sm:self-auto">Showing <span class="text-[#1E2328] font-black">{{ filteredListings.length }}</span> active items</div>
     </div>
 
-    <div class="space-y-3">
+    <!-- EMPTY STATE FOR FARMER WITH NO LISTINGS -->
+    <div v-if="filteredListings.length === 0" class="text-center py-16 bg-white border border-[#E2E4E7] rounded-3xl p-8 shadow-2xs">
+      <div class="w-16 h-16 mx-auto bg-[#EDFAF2] rounded-2xl flex items-center justify-center mb-3 border border-[#C3EFCF]">
+        <Sprout class="w-8 h-8 text-[#1E9444]" />
+      </div>
+      <h3 class="text-base font-extrabold text-[#1E2328]">No Produce Listings Found</h3>
+      <p class="text-xs text-[#5A6270] mt-1 max-w-sm mx-auto font-medium">
+        You haven't posted any crop produce listings yet. Click below to add your first crop inventory to QMT Marketplace.
+      </p>
+      <router-link to="/farmer/listings/new" class="inline-flex items-center gap-2 mt-4 px-4.5 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer">
+        <Plus class="w-4 h-4 stroke-[2.5]" />
+        <span>Post Your First Listing</span>
+      </router-link>
+    </div>
+
+    <div v-else class="space-y-3">
       <div v-for="item in filteredListings" :key="item.id" class="bg-gradient-to-br from-[#FFFBF7] via-white to-[#FFFBF7] border border-[#FBE3D0] rounded-3xl p-5 shadow-xs hover:border-[#E69500] transition-all space-y-4">
         <div class="flex items-start justify-between">
           <div class="flex items-center gap-3.5">
@@ -67,7 +82,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Plus, Edit2, Package, CheckCircle2, Sparkles } from 'lucide-vue-next'
+import { Plus, Edit2, Package, CheckCircle2, Sparkles, Sprout } from 'lucide-vue-next'
 import { useListings } from '@/composables/useListings'
 import { useAuth } from '@/composables/useAuth'
 import { formatETB } from '@/utils/helpers'
@@ -77,8 +92,16 @@ const { user } = useAuth()
 const farmer = computed(() => user.value)
 const statusFilter = ref('all')
 
-const farmerListings = computed(() => listings.value.filter(l => l.farmerId === farmer.value?.id || l.farmer?.name === farmer.value?.name))
-const displayListings = computed(() => farmerListings.value.length > 0 ? farmerListings.value : listings.value.slice(0, 4))
+const farmerListings = computed(() => {
+  if (!farmer.value) return []
+  return listings.value.filter(l => 
+    String(l.farmerId) === String(farmer.value.id) || 
+    String(l.farmer?.id) === String(farmer.value.id) || 
+    (farmer.value.phone && l.farmer?.phone === farmer.value.phone)
+  )
+})
+
+const displayListings = computed(() => farmerListings.value)
 const filteredListings = computed(() => displayListings.value.filter(l => {
   if (statusFilter.value === 'live') return l.isActive
   if (statusFilter.value === 'pending') return !l.isActive

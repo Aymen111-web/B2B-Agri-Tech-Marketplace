@@ -112,20 +112,36 @@ const router = createRouter({
 // Navigation guard
 router.beforeEach((to, from, next) => {
     const token = getAuthToken()
-    const userData = localStorage.getItem('agri_user_data')
+    const userDataStr = localStorage.getItem('agri_user_data')
 
     if (to.meta.requiresAuth) {
-        if (!token && !userData) {
+        if (!token && !userDataStr) {
             return next('/login')
         }
 
-        const userRole = getUserRole()
-        const allowed = to.meta.allowedRoles
+        let userRole = 'buyer'
+        let capabilities = ['buyer']
+        if (userDataStr) {
+            try {
+                const user = JSON.parse(userDataStr)
+                userRole = user.activeRole || user.role || 'buyer'
+                if (Array.isArray(user.capabilities)) {
+                    capabilities = user.capabilities
+                }
+            } catch { /* ignore */ }
+        }
 
-        if (allowed && !allowed.includes(userRole)) {
-            if (userRole === 'farmer') return next('/farmer')
-            if (userRole === 'admin') return next('/admin')
-            return next('/buyer')
+        const allowed = to.meta.allowedRoles
+        if (allowed) {
+            const isAllowed = allowed.includes(userRole) || 
+                              (userRole === 'admin') || 
+                              allowed.some(r => capabilities.includes(r))
+
+            if (!isAllowed) {
+                if (capabilities.includes('farmer') || userRole === 'farmer') return next('/farmer')
+                if (userRole === 'admin') return next('/admin')
+                return next('/buyer')
+            }
         }
     }
 

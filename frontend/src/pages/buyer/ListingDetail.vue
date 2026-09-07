@@ -93,6 +93,61 @@
             </div>
           </div>
 
+          <!-- Producer & Payout Information Card -->
+          <div class="bg-[#F4FBF7] border border-[#C3EFCF] rounded-2xl p-5 space-y-4 text-xs">
+            <div class="flex items-center justify-between border-b border-[#C3EFCF]/60 pb-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-full bg-[#1E9444] text-white font-black flex items-center justify-center text-sm shadow-xs shrink-0">
+                  {{ listing.farmer?.name?.[0] || 'F' }}
+                </div>
+                <div>
+                  <h3 class="text-sm font-black text-[#0F5C2A] flex items-center gap-1.5">
+                    <span>{{ listing.farmer?.name || 'Verified Farmer' }}</span>
+                    <ShieldCheck class="w-4 h-4 text-[#1E9444]" />
+                  </h3>
+                  <p class="text-[11px] text-[#5A6270] font-medium">Verified Agricultural Producer • {{ listing.region }}</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#1E9444] text-white shadow-2xs">
+                Verified Seller
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <!-- Farmer Phone -->
+              <div class="bg-white p-3.5 rounded-xl border border-[#E2E4E7] flex items-center gap-3 shadow-2xs">
+                <div class="p-2.5 bg-emerald-50 text-[#1E9444] rounded-xl shrink-0">
+                  <Phone class="w-4 h-4" />
+                </div>
+                <div class="overflow-hidden">
+                  <span class="text-[#5A6270] font-bold block text-[10px] uppercase tracking-wider">Farmer Direct Phone</span>
+                  <a :href="'tel:' + (listing.farmer?.phone || '')" class="font-black text-[#1E2328] hover:text-[#1E9444] text-xs transition-colors block truncate">
+                    {{ listing.farmer?.phone || '+251 912 345 678' }}
+                  </a>
+                </div>
+              </div>
+
+              <!-- Payout Account / CBE / Telebirr -->
+              <div class="bg-white p-3.5 rounded-xl border border-[#E2E4E7] flex items-center gap-3 shadow-2xs">
+                <div class="p-2.5 bg-blue-50 text-[#0B57D0] rounded-xl shrink-0">
+                  <CreditCard class="w-4 h-4" />
+                </div>
+                <div class="overflow-hidden">
+                  <span class="text-[#5A6270] font-bold block text-[10px] uppercase tracking-wider">Payout Account (CBE / Bank)</span>
+                  <div class="font-black text-[#1E2328] text-xs flex items-center gap-1.5 truncate mt-0.5">
+                    <span class="uppercase text-[9px] px-1.5 py-0.2 bg-blue-50 text-[#0B57D0] border border-blue-200 rounded font-black shrink-0">
+                      {{ listing.farmer?.bank_code || listing.farmer?.bank_name || 'CBE' }}
+                    </span>
+                    <span class="font-mono text-xs">{{ listing.farmer?.account_number || listing.farmer?.account_number_masked || '1000123456789' }}</span>
+                  </div>
+                  <span v-if="listing.farmer?.account_name" class="text-[10px] text-gray-500 font-bold block truncate mt-0.5">
+                    Holder: {{ listing.farmer.account_name }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <EscrowBanner />
 
           <!-- Purchase / Checkout Action Button -->
@@ -131,7 +186,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { User, UserPlus } from 'lucide-vue-next'
+import { User, UserPlus, Phone, CreditCard, ShieldCheck, Building2 } from 'lucide-vue-next'
 import { useListings } from '@/composables/useListings'
 import { useAuth } from '@/composables/useAuth'
 import { formatETB } from '@/utils/helpers'

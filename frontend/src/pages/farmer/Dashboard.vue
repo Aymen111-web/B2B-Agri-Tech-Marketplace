@@ -161,9 +161,26 @@ const farmer = computed(() => user.value)
 const { listings } = useListings()
 const { orders } = useOrders()
 
-const farmerListings = computed(() => listings.value.filter(l => l.farmerId === farmer.value?.id || l.farmer?.name === farmer.value?.name))
-const displayListings = computed(() => farmerListings.value.length > 0 ? farmerListings.value.slice(0, 3) : [])
+const farmerListings = computed(() => {
+  if (!farmer.value) return []
+  return listings.value.filter(l => 
+    String(l.farmerId) === String(farmer.value.id) || 
+    String(l.farmer?.id) === String(farmer.value.id) || 
+    (farmer.value.phone && l.farmer?.phone === farmer.value.phone)
+  )
+})
+const displayListings = computed(() => farmerListings.value.slice(0, 3))
 const activeCount = computed(() => farmerListings.value.filter(l => l.isActive).length || 0)
-const pendingPayoutETB = computed(() => orders.value.filter(o => o.escrowStatus === 'held' && (o.farmerId === farmer.value?.id || o.farmer?.name === farmer.value?.name)).reduce((sum, o) => sum + o.totalAmountETB, 0) || 0)
-const receivedOrdersCount = computed(() => orders.value.filter(o => o.farmerId === farmer.value?.id || o.farmer?.name === farmer.value?.name).length || 0)
+
+const farmerOrders = computed(() => {
+  if (!farmer.value) return []
+  return orders.value.filter(o => 
+    String(o.farmerId) === String(farmer.value.id) || 
+    String(o.farmer?.id) === String(farmer.value.id) || 
+    (farmer.value.phone && o.farmer?.phone === farmer.value.phone)
+  )
+})
+
+const pendingPayoutETB = computed(() => farmerOrders.value.filter(o => o.escrowStatus === 'held').reduce((sum, o) => sum + (o.totalAmountETB || 0), 0) || 0)
+const receivedOrdersCount = computed(() => farmerOrders.value.length || 0)
 </script>

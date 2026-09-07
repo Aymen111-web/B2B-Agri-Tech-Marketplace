@@ -5,7 +5,7 @@ const DEFAULT_PRODUCE = [
     {
         id: 'listing-1',
         farmerId: 'farmer-1',
-        farmer: { id: 'farmer-1', name: 'Dawit Bekele', phone: '+251 912 345 678', role: 'farmer', region: 'SNNPR' },
+        farmer: { id: 'farmer-1', name: 'Dawit Bekele', phone: '+251 912 345 678', role: 'farmer', region: 'Sidama', bank_code: 'CBE', bank_name: 'Commercial Bank of Ethiopia', account_number: '1000123456789', account_name: 'Dawit Bekele' },
         cropName: 'Sidama Washed Coffee G1',
         cropEmoji: '☕',
         category: 'coffee',
@@ -27,7 +27,7 @@ const DEFAULT_PRODUCE = [
     {
         id: 'listing-2',
         farmerId: 'farmer-2',
-        farmer: { id: 'farmer-2', name: 'Tadesse Tolossa', phone: '+251 911 456 789', role: 'farmer', region: 'Gojjam' },
+        farmer: { id: 'farmer-2', name: 'Tadesse Tolossa', phone: '+251 911 456 789', role: 'farmer', region: 'Gojjam', bank_code: 'CBE', bank_name: 'Commercial Bank of Ethiopia', account_number: '1000987654321', account_name: 'Tadesse Tolossa' },
         cropName: 'Gojjam Magna White Teff',
         cropEmoji: '🌾',
         category: 'grains',
@@ -49,7 +49,7 @@ const DEFAULT_PRODUCE = [
     {
         id: 'listing-3',
         farmerId: 'farmer-3',
-        farmer: { id: 'farmer-3', name: 'Abebe Girma', phone: '+251 911 876 543', role: 'farmer', region: 'Oromia' },
+        farmer: { id: 'farmer-3', name: 'Abebe Girma', phone: '+251 911 876 543', role: 'farmer', region: 'Oromia', bank_code: 'TELEBIRR', bank_name: 'Telebirr Mobile Money', account_number: '0911876543', account_name: 'Abebe Girma' },
         cropName: 'Bale Durum Wheat',
         cropEmoji: '🌾',
         category: 'grains',
@@ -71,7 +71,7 @@ const DEFAULT_PRODUCE = [
     {
         id: 'listing-4',
         farmerId: 'farmer-4',
-        farmer: { id: 'farmer-4', name: 'Kassahun Worku', phone: '+251 913 789 012', role: 'farmer', region: 'Tigray' },
+        farmer: { id: 'farmer-4', name: 'Kassahun Worku', phone: '+251 913 789 012', role: 'farmer', region: 'Tigray', bank_code: 'DASHEN', bank_name: 'Dashen Bank', account_number: '5098123456011', account_name: 'Kassahun Worku' },
         cropName: 'Humera White Sesame Seed',
         cropEmoji: '🌱',
         category: 'oilseeds',
@@ -93,7 +93,7 @@ const DEFAULT_PRODUCE = [
     {
         id: 'listing-5',
         farmerId: 'farmer-5',
-        farmer: { id: 'farmer-5', name: 'Almaz Belay', phone: '+251 914 567 890', role: 'farmer', region: 'SNNPR' },
+        farmer: { id: 'farmer-5', name: 'Almaz Belay', phone: '+251 914 567 890', role: 'farmer', region: 'SNNPR', bank_code: 'AWASH', bank_name: 'Awash Bank', account_number: '0132098765400', account_name: 'Almaz Belay' },
         cropName: 'Jimma Black Pepper & Korarima Spices',
         cropEmoji: '🌶️',
         category: 'spices',
@@ -115,7 +115,7 @@ const DEFAULT_PRODUCE = [
     {
         id: 'listing-6',
         farmerId: 'farmer-6',
-        farmer: { id: 'farmer-6', name: 'Girma Wolde', phone: '+251 915 678 901', role: 'farmer', region: 'Oromia' },
+        farmer: { id: 'farmer-6', name: 'Girma Wolde', phone: '+251 915 678 901', role: 'farmer', region: 'Oromia', bank_code: 'CBE', bank_name: 'Commercial Bank of Ethiopia', account_number: '1000345678901', account_name: 'Girma Wolde' },
         cropName: 'Harar Sun-Dried Red Haricot Beans',
         cropEmoji: '🫘',
         category: 'pulses',
@@ -137,17 +137,33 @@ const DEFAULT_PRODUCE = [
 ]
 
 function mapRawListingToFrontend(item) {
+    const farmerObj = item.farmer || {}
+    const farmerFirstName = farmerObj.first_name || ''
+    const farmerSecondName = farmerObj.second_name || ''
+    const farmerFullName = `${farmerFirstName} ${farmerSecondName}`.trim() || farmerObj.name || 'Dawit Bekele'
+
     return {
         id: String(item.id),
         farmerId: String(item.farmer_id || item.farmerId || 'farmer-1'),
-        farmer: item.farmer ? {
-            id: String(item.farmer.id || 'farmer-1'),
-            name: `${item.farmer.first_name || ''} ${item.farmer.second_name || ''}`.trim() || item.farmer.name || 'Dawit Bekele',
-            email: item.farmer.email || 'farmer@agri.et',
-            phone: item.farmer.phone || '+251 912 345 678',
-            role: 'farmer', status: 'verified', region: item.farmer.region || 'SNNPR',
-            farmSize: item.farmer.farmSize || 0, totalEarned: 0, rating: 0, reviewCount: 0, crops: [], createdAt: new Date(),
-        } : DEFAULT_PRODUCE[0].farmer,
+        farmer: {
+            id: String(farmerObj.id || item.farmer_id || 'farmer-1'),
+            name: farmerFullName,
+            email: farmerObj.email || 'farmer@agri.et',
+            phone: farmerObj.phone || item.farmer_phone || '+251 912 345 678',
+            role: 'farmer',
+            status: 'verified',
+            region: farmerObj.region || item.region || 'Sidama',
+            bank_code: farmerObj.bank_code || farmerObj.bank_name || 'CBE',
+            bank_name: farmerObj.bank_name || 'Commercial Bank of Ethiopia',
+            account_number: farmerObj.account_number || farmerObj.account_number_masked || '1000123456789',
+            account_name: farmerObj.account_name || farmerFullName,
+            farmSize: farmerObj.farmSize || 14.5,
+            totalEarned: 0,
+            rating: 4.9,
+            reviewCount: 24,
+            crops: [],
+            createdAt: new Date(),
+        },
         cropName: item.title || item.cropName || 'Produce',
         cropEmoji: item.crop_emoji || item.cropEmoji || '🌾',
         category: item.category?.slug || item.category || 'grains',
@@ -211,9 +227,7 @@ export function useListings() {
                 : await api.fetchPublicListings()
 
             const rawItems = Array.isArray(res) ? res : (res?.data || [])
-            if (rawItems.length > 0) {
-                listings.value = rawItems.map(mapRawListingToFrontend)
-            }
+            listings.value = rawItems.map(mapRawListingToFrontend)
         } catch {
             // Keep current listings if API fails
         } finally {
