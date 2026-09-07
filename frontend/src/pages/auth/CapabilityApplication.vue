@@ -306,49 +306,76 @@
           </button>
         </form>
 
-        <!-- PENDING ADMIN APPROVAL SCREEN -->
-        <div v-else class="text-center py-4 space-y-5">
-          <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
-            <div class="absolute inset-0 bg-amber-100 rounded-full animate-ping opacity-25" />
-            <div class="w-20 h-20 rounded-full bg-amber-50 border-2 border-[#E69500] text-[#E69500] flex items-center justify-center shadow-md relative z-10">
-              <Clock class="w-10 h-10 stroke-[2.5]" />
+          <!-- APPROVED CAPABILITY SCREEN -->
+          <div v-else-if="hasApproved" class="text-center py-4 space-y-5 animate-in fade-in duration-300">
+            <div class="w-20 h-20 mx-auto rounded-full bg-emerald-50 border-2 border-[#1E9444] text-[#1E9444] flex items-center justify-center shadow-lg">
+              <CheckCircle2 class="w-10 h-10 stroke-[2.5]" />
             </div>
-          </div>
 
-          <div class="space-y-2">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-[#E69500] border border-amber-200">
-              <span class="w-2 h-2 rounded-full bg-[#E69500] animate-pulse" />
-              <span>Application Pending Admin Approval</span>
-            </span>
+            <div class="space-y-2">
+              <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black bg-emerald-100 text-[#0F5C2A] border border-[#C3EFCF]">
+                <CheckCircle2 class="w-3.5 h-3.5 text-[#1E9444]" />
+                <span>Capability Verified & Approved</span>
+              </span>
 
-            <h3 class="text-[19px] font-black text-[#1E2328]">Wait for Administrator Review</h3>
-            <p class="text-[13px] text-[#5A6270] max-w-md mx-auto leading-relaxed">
-              Your application for <strong>{{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }}</strong> capability has been submitted and is currently awaiting admin verification.
-            </p>
-          </div>
-
-          <div class="p-4 bg-[#FFFBEB] border border-amber-200 rounded-2xl text-left space-y-2 text-xs">
-            <div class="flex items-center gap-2 text-amber-900 font-extrabold">
-              <ShieldCheck class="w-4 h-4 text-[#E69500]" />
-              <span>What happens next?</span>
+              <h3 class="text-[22px] font-black text-[#1E2328]">Access Granted!</h3>
+              <p class="text-[13px] text-[#5A6270] max-w-md mx-auto leading-relaxed">
+                Your application for <strong>{{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }}</strong> capability has been approved by administration.
+              </p>
             </div>
-            <ul class="space-y-1 text-amber-950 font-medium text-[11px] list-disc list-inside leading-normal">
-              <li>Our platform administration team reviews your capability details.</li>
-              <li>Please wait for administrator approval before accessing role-specific pages.</li>
-              <li>Once approved, full access to the capability dashboard and features will automatically be granted.</li>
-            </ul>
+
+            <button 
+              @click="router.push(capRole === 'farmer' ? '/farmer' : '/buyer')" 
+              class="w-full py-4 rounded-2xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-black text-[15px] shadow-lg transition-colors cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span>Access {{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }} Dashboard</span>
+              <ArrowRight class="w-5 h-5" />
+            </button>
           </div>
 
-          <button 
-            @click="goToDashboard" 
-            class="w-full py-3.5 rounded-2xl bg-[#0B57D0] hover:bg-[#0842A0] text-white font-extrabold text-[14px] shadow-md transition-colors cursor-pointer"
-          >
-            Return to Dashboard
-          </button>
+          <!-- PENDING ADMIN APPROVAL SCREEN -->
+          <div v-else class="text-center py-4 space-y-5">
+            <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+              <div class="absolute inset-0 bg-amber-100 rounded-full animate-ping opacity-25" />
+              <div class="w-20 h-20 rounded-full bg-amber-50 border-2 border-[#E69500] text-[#E69500] flex items-center justify-center shadow-md relative z-10">
+                <Clock class="w-10 h-10 stroke-[2.5]" />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-[#E69500] border border-amber-200">
+                <span class="w-2 h-2 rounded-full bg-[#E69500] animate-pulse" />
+                <span>Application Pending Admin Approval</span>
+              </span>
+
+              <h3 class="text-[19px] font-black text-[#1E2328]">Wait for Administrator Review</h3>
+              <p class="text-[13px] text-[#5A6270] max-w-md mx-auto leading-relaxed">
+                Your application for <strong>{{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }}</strong> capability has been submitted and is currently awaiting admin verification.
+              </p>
+            </div>
+
+            <div class="p-4 bg-[#FFFBEB] border border-amber-200 rounded-2xl text-left space-y-2 text-xs">
+              <div class="flex items-center gap-2 text-amber-900 font-extrabold">
+                <ShieldCheck class="w-4 h-4 text-[#E69500]" />
+                <span>What happens next?</span>
+              </div>
+              <ul class="space-y-1 text-amber-950 font-medium text-[11px] list-disc list-inside leading-normal">
+                <li>Our platform administration team reviews your capability details.</li>
+                <li>Please wait for administrator approval before accessing role-specific pages.</li>
+                <li>Once approved, full access to the capability dashboard and features will automatically be granted.</li>
+              </ul>
+            </div>
+
+            <button 
+              @click="goToDashboard" 
+              class="w-full py-3.5 rounded-2xl bg-[#0B57D0] hover:bg-[#0842A0] text-white font-extrabold text-[14px] shadow-md transition-colors cursor-pointer"
+            >
+              Return to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -356,9 +383,9 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   ArrowLeft, ShieldCheck, AlertCircle, Loader2, Tractor, 
-  ShoppingBag, Clock, XCircle, RotateCcw, Upload, FileText, X 
+  ShoppingBag, Clock, XCircle, RotateCcw, Upload, FileText, X, CheckCircle2, ArrowRight 
 } from 'lucide-vue-next'
-import { api } from '@/services/api'
+import { api, mapBackendUserToFrontend } from '@/services/api'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
@@ -382,6 +409,7 @@ const isSubmitting = ref(false)
 const isComplete = ref(false)
 const hasPending = ref(false)
 const hasRejected = ref(false)
+const hasApproved = ref(false)
 const isReapplying = ref(false)
 const rejectionReason = ref('')
 const submitError = ref(null)
@@ -420,6 +448,19 @@ onMounted(async () => {
           hasRejected.value = true
           rejectionReason.value = latestApp.rejection_reason || latestApp.rejectionReason || 'The application details provided could not be verified by administration.'
           isComplete.value = true
+        } else if (latestApp.status === 'approved') {
+          hasApproved.value = true
+          isComplete.value = true
+
+          try {
+            const userRes = await api.fetchCurrentUser()
+            if (userRes && userRes.user) {
+              const mapped = mapBackendUserToFrontend(userRes.user)
+              const savedUser = localStorage.getItem('agri_user_data')
+              localStorage.setItem('agri_user_data', JSON.stringify(mapped))
+              localStorage.setItem('agri_role', mapped.role)
+            }
+          } catch { /* ignore */ }
         }
       }
     } catch {
@@ -446,7 +487,24 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
-    const docs = attachedDocName.value ? [attachedDocName.value] : []
+    let docObj = attachedDocName.value
+    if (attachedDoc.value) {
+      try {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result)
+          reader.onerror = reject
+          reader.readAsDataURL(attachedDoc.value)
+        })
+        docObj = {
+          name: attachedDocName.value,
+          url: dataUrl
+        }
+      } catch {
+        docObj = attachedDocName.value
+      }
+    }
+    const docs = docObj ? [docObj] : []
     
     const payload = {
       capability_type: capRole.value,

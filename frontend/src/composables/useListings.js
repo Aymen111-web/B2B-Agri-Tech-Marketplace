@@ -227,9 +227,7 @@ export function useListings() {
                 : await api.fetchPublicListings()
 
             const rawItems = Array.isArray(res) ? res : (res?.data || [])
-            if (rawItems.length > 0) {
-                listings.value = rawItems.map(mapRawListingToFrontend)
-            }
+            listings.value = rawItems.map(mapRawListingToFrontend)
         } catch {
             // Keep current listings if API fails
         } finally {
