@@ -28,7 +28,7 @@ class ListingController extends Controller
             'per_page'    => ['sometimes', 'integer', 'min:1', 'max:50'],
         ]);
 
-        $query = Listing::with(['farmer:id,first_name,second_name,phone,bank_name,bank_code,account_name,account_number', 'category:id,name,slug'])
+        $query = Listing::with(['farmer:id,first_name,second_name,phone,bank_name,bank_code,account_name,account_number', 'category:id,name,slug', 'images'])
             ->active();
 
         if ($request->filled('category_id')) {
@@ -66,6 +66,7 @@ class ListingController extends Controller
         $listing = Listing::with([
             'farmer:id,first_name,second_name,phone,bank_name,bank_code,account_name,account_number',
             'category:id,name,slug',
+            'images',
             'priceHistory' => fn ($q) => $q->orderByDesc('effective_at')->limit(10),
         ])->findOrFail($id);
 
@@ -94,10 +95,27 @@ class ListingController extends Controller
             $validated['image_path'] = $request->file('image')->store('produce-photos', 'public');
         }
 
-        $listing = DB::transaction(function () use ($validated, $user) {
+        // Ensure valid category_id
+        $categoryId = $validated['category_id'] ?? null;
+        if ($categoryId && !DB::table('categories')->where('id', $categoryId)->exists()) {
+            $fallbackCat = DB::table('categories')->first();
+            if ($fallbackCat) {
+                $categoryId = $fallbackCat->id;
+            } else {
+                $categoryId = DB::table('categories')->insertGetId([
+                    'name' => 'General Produce',
+                    'slug' => 'general-produce',
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        $listing = DB::transaction(function () use ($validated, $user, $request, $categoryId) {
             $listing = Listing::create([
                 'farmer_id'              => $user->id,
-                'category_id'            => $validated['category_id'] ?? null,
+                'category_id'            => $categoryId,
                 'title'                  => $validated['title'],
                 'description'            => $validated['description'] ?? null,
                 'image_path'             => $validated['image_path'] ?? null,
@@ -120,9 +138,16 @@ class ListingController extends Controller
 
             // Save multiple images linked to the newly created listing
             if ($request->hasFile('images')) {
+                $firstPath = null;
                 foreach ($request->file('images') as $file) {
                     $path = $file->store('produce-photos', 'public');
                     $listing->images()->create(['image_path' => $path]);
+                    if (!$firstPath) {
+                        $firstPath = $path;
+                    }
+                }
+                if ($firstPath) {
+                    $listing->update(['image_path' => $firstPath]);
                 }
             }
 
@@ -156,7 +181,7 @@ class ListingController extends Controller
             $validated['image_path'] = $request->file('image')->store('produce-photos', 'public');
         }
 
-        DB::transaction(function () use ($listing, $validated, $user) {
+        DB::transaction(function () use ($listing, $validated, $user, $request) {
             // Track price change in history when price_per_unit is updated.
             if (isset($validated['price_per_unit']) && (float) $validated['price_per_unit'] !== (float) $listing->price_per_unit) {
                 ListingPriceHistory::create([
@@ -170,9 +195,16 @@ class ListingController extends Controller
             $listing->update($validated);
 
             if ($request->hasFile('images')) {
+                $firstPath = null;
                 foreach ($request->file('images') as $file) {
                     $path = $file->store('produce-photos', 'public');
                     $listing->images()->create(['image_path' => $path]);
+                    if (!$firstPath) {
+                        $firstPath = $path;
+                    }
+                }
+                if ($firstPath) {
+                    $listing->update(['image_path' => $firstPath]);
                 }
             }
         });
@@ -220,7 +252,7 @@ class ListingController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $query = $user->listings()->with('category:id,name,slug');
+        $query = $user->listings()->with(['category:id,name,slug', 'images']);
 
         if ($request->filled('status')) {
             $request->validate(['status' => ['in:active,inactive,sold_out']]);

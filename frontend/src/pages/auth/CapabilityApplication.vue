@@ -387,6 +387,7 @@ import {
 } from 'lucide-vue-next'
 import { api, mapBackendUserToFrontend } from '@/services/api'
 import { useAuth } from '@/composables/useAuth'
+import { compressImageFile } from '@/utils/imageCompressor'
 
 const router = useRouter()
 const { user, isAuthenticated } = useAuth()
@@ -418,9 +419,26 @@ const triggerFileSelect = () => {
   if (fileInput.value) fileInput.value.click()
 }
 
-const handleFileSelect = (e) => {
+const handleFileSelect = async (e) => {
+  submitError.value = null
   const file = e.target.files?.[0]
-  if (file) {
+  if (!file) return
+
+  if (file.type && file.type.startsWith('image/')) {
+    try {
+      const compressed = await compressImageFile(file, 1400, 1400, 0.8)
+      attachedDoc.value = compressed
+      attachedDocName.value = compressed.name
+    } catch {
+      attachedDoc.value = file
+      attachedDocName.value = file.name
+    }
+  } else if (file.size > 5 * 1024 * 1024) {
+    submitError.value = 'Attached document is too large (exceeds 5MB). Please attach a smaller file or image.'
+    if (fileInput.value) fileInput.value.value = ''
+    attachedDoc.value = null
+    attachedDocName.value = ''
+  } else {
     attachedDoc.value = file
     attachedDocName.value = file.name
   }

@@ -48,13 +48,13 @@
       <div v-if="listing" class="bg-white border border-[#E2E4E7] rounded-2xl overflow-hidden shadow-sm">
         
         <!-- Native Images Gallery or Emoji Fallback -->
-        <div v-if="listing.images && listing.images.length > 0" class="flex flex-col">
+        <div v-if="displayImages.length > 0" class="flex flex-col">
           <div class="h-64 md:h-80 w-full overflow-hidden bg-black flex items-center justify-center">
-            <img :src="listing.images[activeImageIndex]" class="max-h-full max-w-full object-contain object-center" />
+            <img :src="displayImages[activeImageIndex]" class="max-h-full max-w-full object-contain object-center" />
           </div>
-          <div v-if="listing.images.length > 1" class="flex gap-2 p-3 overflow-x-auto bg-[#F8F9FA] border-b border-[#E2E4E7]">
+          <div v-if="displayImages.length > 1" class="flex gap-2 p-3 overflow-x-auto bg-[#F8F9FA] border-b border-[#E2E4E7]">
             <img 
-              v-for="(img, idx) in listing.images" :key="idx" 
+              v-for="(img, idx) in displayImages" :key="idx" 
               :src="img" 
               @click="activeImageIndex = idx"
               class="w-16 h-16 object-cover rounded-lg cursor-pointer border-2 transition-all"
@@ -203,6 +203,35 @@ const { isAuthenticated, user } = useAuth()
 const listing = computed(() => getListingById(route.params.id))
 const activeImageIndex = ref(0)
 const showAuthModal = ref(false)
+
+const displayImages = computed(() => {
+  if (!listing.value) return []
+  const imgs = []
+  if (listing.value.primaryImage) {
+    imgs.push(listing.value.primaryImage)
+  }
+  if (Array.isArray(listing.value.images)) {
+    listing.value.images.forEach(img => {
+      const url = typeof img === 'string' ? img : (img?.image_path || img?.url)
+      if (url) {
+        const fullUrl = (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:'))
+          ? url 
+          : `http://127.0.0.1:8000/storage/${url.replace(/^\/?storage\//, '')}`
+        if (!imgs.includes(fullUrl)) imgs.push(fullUrl)
+      }
+    })
+  }
+  if (imgs.length === 0 && (listing.value.image_url || listing.value.image_path)) {
+    const url = listing.value.image_url || listing.value.image_path
+    if (url) {
+      const fullUrl = (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:'))
+        ? url 
+        : `http://127.0.0.1:8000/storage/${url.replace(/^\/?storage\//, '')}`
+      if (!imgs.includes(fullUrl)) imgs.push(fullUrl)
+    }
+  }
+  return imgs
+})
 
 const isStandalone = computed(() => !route.path.startsWith('/buyer'))
 

@@ -311,6 +311,7 @@ import {
 } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import { api } from '@/services/api'
+import { compressImageFile } from '@/utils/imageCompressor'
 
 const { user, logout, updateUserProfile } = useAuth()
 const farmer = computed(() => user.value)
@@ -350,9 +351,9 @@ const openEditModal = () => {
   form.new_password = ''
   form.confirm_password = ''
   form.region = user.value?.region || 'Sidama'
-  form.farmSize = user.value?.farmSize || ''
-  form.crops = Array.isArray(user.value?.crops) ? user.value.crops.join(', ') : (user.value?.crops || '')
-  form.union = user.value?.union || ''
+  form.farmSize = user.value?.farmSize || 14.5
+  form.crops = user.value?.crops?.join(', ') || 'Coffee, Teff, Sesame'
+  form.union = user.value?.union || 'Sidama Union'
   form.bank_code = user.value?.bank_code || 'CBE'
   form.bank_name = user.value?.bank_name || 'Commercial Bank of Ethiopia'
   form.account_number = user.value?.account_number || ''
@@ -368,8 +369,12 @@ const triggerPhotoUpload = () => {
 }
 
 const handlePhotoChange = async (e) => {
-  const file = e.target.files?.[0]
+  let file = e.target.files?.[0]
   if (file) {
+    try {
+      file = await compressImageFile(file, 800, 800, 0.8)
+    } catch { /* fallback */ }
+
     customPhotoUrl.value = URL.createObjectURL(file)
     try {
       const formData = new FormData()

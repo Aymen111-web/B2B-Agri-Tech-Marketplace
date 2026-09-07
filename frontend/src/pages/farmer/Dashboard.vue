@@ -129,7 +129,10 @@
         <div v-for="item in displayListings" :key="item.id" @click="$router.push(`/farmer/listings/edit/${item.id}`)"
           class="bg-[#F8F9FA] border border-[#E2E4E7] rounded-xl p-3.5 flex items-center justify-between hover:border-[#1E9444] hover:bg-white transition-all cursor-pointer shadow-2xs">
           <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-2xl shrink-0 shadow-2xs">{{ item.cropEmoji }}</div>
+            <div class="w-11 h-11 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-2xl shrink-0 shadow-2xs overflow-hidden">
+              <img v-if="item.primaryImage || (item.images && item.images.length > 0)" :src="item.primaryImage || item.images[0]" class="w-full h-full object-cover" />
+              <span v-else>{{ item.cropEmoji }}</span>
+            </div>
             <div>
               <h4 class="text-xs font-black text-[#1E2328]">{{ item.cropName }}</h4>
               <p class="text-[11px] text-[#5A6270] mt-0.5">{{ farmer?.region || 'Not set' }} Region · Verified Harvest</p>

@@ -12,14 +12,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('payments', function (Blueprint $table) {
-            // Safely drop the unique index if it exists
-            try {
+        try {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->dropForeign(['order_id']);
+            });
+        } catch (\Throwable) {}
+
+        try {
+            Schema::table('payments', function (Blueprint $table) {
                 $table->dropUnique('payments_order_id_unique');
-            } catch (\Throwable) {
-                // Already dropped or never existed — safe to ignore
-            }
-        });
+            });
+        } catch (\Throwable) {}
+
+        try {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
+            });
+        } catch (\Throwable) {}
     }
 
     public function down(): void
