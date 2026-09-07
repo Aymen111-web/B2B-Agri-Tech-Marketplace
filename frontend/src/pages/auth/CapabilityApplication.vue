@@ -2,7 +2,12 @@
   <div class="min-h-screen bg-[#EEF2F6] flex items-center justify-center p-4">
     <div class="w-full max-w-[520px] bg-white border border-[#E2E8F0] rounded-[24px] shadow-xl overflow-hidden relative">
       <!-- Top Color Accent Bar -->
-      <div class="h-[5px] w-full bg-gradient-to-r from-[#0B57D0] via-[#E69500] to-[#1E9444]" />
+      <div 
+        :class="[
+          'h-[5px] w-full bg-gradient-to-r',
+          hasRejected ? 'from-red-500 via-rose-600 to-amber-500' : 'from-[#0B57D0] via-[#E69500] to-[#1E9444]'
+        ]"
+      />
 
       <div class="p-6 md:p-8 space-y-6">
         <!-- Header with Back Button -->
@@ -13,7 +18,7 @@
             </button>
             <div>
               <h1 class="text-[18px] font-black text-[#1E2328] tracking-tight">
-                {{ isComplete || hasPending ? 'Capability Application Status' : 'Apply for New Capability' }}
+                {{ hasRejected ? 'Application Status' : (isComplete || hasPending ? 'Capability Application Status' : 'Apply for New Capability') }}
               </h1>
               <p class="text-[12px] text-[#5A6270]">Upgrade your account capabilities on QMT AgriGate</p>
             </div>
@@ -29,8 +34,57 @@
           </div>
         </div>
 
+        <!-- REJECTED SCREEN (If Admin Rejected the Application) -->
+        <div v-if="hasRejected && !isReapplying" class="text-center py-4 space-y-5">
+          <div class="w-20 h-20 rounded-full bg-red-50 border-2 border-red-500 text-red-600 flex items-center justify-center shadow-md mx-auto">
+            <XCircle class="w-10 h-10 stroke-[2.5]" />
+          </div>
+
+          <div class="space-y-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-red-100 text-red-700 border border-red-200">
+              <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+              <span>Application Rejected by Admin</span>
+            </span>
+
+            <h3 class="text-[19px] font-black text-[#1E2328]">Action Required for Capability Upgrade</h3>
+            <p class="text-[13px] text-[#5A6270] max-w-md mx-auto leading-relaxed">
+              Your application for <strong>{{ capRole === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }}</strong> capability was reviewed and rejected by the administration team.
+            </p>
+          </div>
+
+          <!-- REJECTION REASON CARD -->
+          <div class="p-4 bg-red-50/80 border border-red-200 rounded-2xl text-left space-y-2 text-xs shadow-2xs">
+            <div class="flex items-center gap-2 text-red-900 font-black">
+              <AlertCircle class="w-4.5 h-4.5 text-red-600 shrink-0" />
+              <span>Admin Rejection Reason:</span>
+            </div>
+            <p class="text-red-950 font-bold text-[13px] bg-white p-3 rounded-xl border border-red-200 leading-relaxed italic">
+              "{{ rejectionReason }}"
+            </p>
+            <p class="text-[11px] text-red-700 font-semibold pt-1">
+              💡 Please update your information or attach the requested extra documents (PDF, Word, or Excel) to submit a fresh application.
+            </p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
+            <button 
+              @click="startReapplication" 
+              class="flex-1 py-3.5 rounded-2xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-extrabold text-[14px] shadow-md transition-colors cursor-pointer flex items-center justify-center gap-2"
+            >
+              <RotateCcw class="w-4 h-4" />
+              <span>Re-Apply with Corrected Info</span>
+            </button>
+            <button 
+              @click="goToDashboard" 
+              class="py-3.5 px-5 rounded-2xl border border-gray-200 text-gray-700 font-extrabold text-[14px] hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              Dashboard
+            </button>
+          </div>
+        </div>
+
         <!-- APPLICATION FORM (If no pending application & not complete) -->
-        <form v-if="!isComplete && !hasPending" @submit.prevent="handleSubmit" class="space-y-5">
+        <form v-else-if="!isComplete && !hasPending" @submit.prevent="handleSubmit" class="space-y-5">
           <!-- Step 1: Select Capability Type -->
           <div>
             <label class="text-[12px] font-bold text-[#1E2328] block mb-2">Select Capability to Apply For</label>
@@ -117,6 +171,41 @@
                   class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-bold text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#1E9444] transition-all" 
                 />
               </div>
+
+              <!-- EXTRA DOCUMENT UPLOAD FIELD FOR FARMER -->
+              <div class="pt-2 border-t border-gray-100">
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1 flex items-center justify-between">
+                  <span>Attach Supporting Document (Optional)</span>
+                  <span class="text-[11px] font-bold text-[#1E9444]">PDF, Word, or Excel</span>
+                </label>
+                
+                <input 
+                  type="file" 
+                  ref="fileInput" 
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" 
+                  class="hidden" 
+                  @change="handleFileSelect" 
+                />
+
+                <div v-if="!attachedDocName" 
+                  @click="triggerFileSelect"
+                  class="border-2 border-dashed border-gray-200 hover:border-[#1E9444] rounded-2xl p-4 text-center cursor-pointer transition-colors bg-[#F8F9FA] hover:bg-[#EDFAF2]"
+                >
+                  <Upload class="w-6 h-6 text-[#1E9444] mx-auto mb-1.5" />
+                  <span class="text-[12px] font-extrabold text-[#1E9444] block">Click to attach Land Certificate, Kebele ID, or Registry file</span>
+                  <span class="text-[10px] text-gray-500 font-medium">Supports PDF, Word (.doc/.docx), Excel (.xls/.xlsx) — Max 15MB</span>
+                </div>
+
+                <div v-else class="p-3 bg-[#EDFAF2] border border-[#C3EFCF] rounded-2xl flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2.5 text-[#0F5C2A] font-bold truncate">
+                    <FileText class="w-4 h-4 text-[#1E9444] shrink-0" />
+                    <span class="truncate">{{ attachedDocName }}</span>
+                  </div>
+                  <button type="button" @click="removeAttachedDoc" class="p-1 text-red-500 hover:text-red-700 font-bold text-sm">
+                    <X class="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </template>
 
             <!-- BUYER FORM FIELDS -->
@@ -164,6 +253,41 @@
                   <option value="Dire Dawa">Dire Dawa</option>
                   <option value="Tigray">Tigray</option>
                 </select>
+              </div>
+
+              <!-- EXTRA DOCUMENT UPLOAD FIELD FOR BUYER -->
+              <div class="pt-2 border-t border-gray-100">
+                <label class="text-[12px] font-extrabold text-[#1E2328] block mb-1 flex items-center justify-between">
+                  <span>Attach Business License / Document (Optional)</span>
+                  <span class="text-[11px] font-bold text-[#0B57D0]">PDF, Word, or Excel</span>
+                </label>
+                
+                <input 
+                  type="file" 
+                  ref="fileInput" 
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" 
+                  class="hidden" 
+                  @change="handleFileSelect" 
+                />
+
+                <div v-if="!attachedDocName" 
+                  @click="triggerFileSelect"
+                  class="border-2 border-dashed border-gray-200 hover:border-[#0B57D0] rounded-2xl p-4 text-center cursor-pointer transition-colors bg-[#F8F9FA] hover:bg-[#EEF2F6]"
+                >
+                  <Upload class="w-6 h-6 text-[#0B57D0] mx-auto mb-1.5" />
+                  <span class="text-[12px] font-extrabold text-[#0B57D0] block">Click to attach Trade License or Registration file</span>
+                  <span class="text-[10px] text-gray-500 font-medium">Supports PDF, Word (.doc/.docx), Excel (.xls/.xlsx) — Max 15MB</span>
+                </div>
+
+                <div v-else class="p-3 bg-[#EEF2F6] border border-blue-200 rounded-2xl flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2.5 text-[#0B57D0] font-bold truncate">
+                    <FileText class="w-4 h-4 text-[#0B57D0] shrink-0" />
+                    <span class="truncate">{{ attachedDocName }}</span>
+                  </div>
+                  <button type="button" @click="removeAttachedDoc" class="p-1 text-red-500 hover:text-red-700 font-bold text-sm">
+                    <X class="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </template>
           </div>
@@ -230,7 +354,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, ShieldCheck, AlertCircle, Loader2, Tractor, ShoppingBag, Clock } from 'lucide-vue-next'
+import { 
+  ArrowLeft, ShieldCheck, AlertCircle, Loader2, Tractor, 
+  ShoppingBag, Clock, XCircle, RotateCcw, Upload, FileText, X 
+} from 'lucide-vue-next'
 import { api } from '@/services/api'
 import { useAuth } from '@/composables/useAuth'
 
@@ -247,27 +374,66 @@ const businessType = ref('wholesaler')
 const tinNumber = ref('')
 const region = ref('Addis Ababa')
 
+const fileInput = ref(null)
+const attachedDoc = ref(null)
+const attachedDocName = ref('')
+
 const isSubmitting = ref(false)
 const isComplete = ref(false)
 const hasPending = ref(false)
+const hasRejected = ref(false)
+const isReapplying = ref(false)
+const rejectionReason = ref('')
 const submitError = ref(null)
+
+const triggerFileSelect = () => {
+  if (fileInput.value) fileInput.value.click()
+}
+
+const handleFileSelect = (e) => {
+  const file = e.target.files?.[0]
+  if (file) {
+    attachedDoc.value = file
+    attachedDocName.value = file.name
+  }
+}
+
+const removeAttachedDoc = () => {
+  attachedDoc.value = null
+  attachedDocName.value = ''
+  if (fileInput.value) fileInput.value.value = ''
+}
 
 onMounted(async () => {
   if (isAuthenticated.value) {
     try {
       const res = await api.fetchMyCapabilityApplications()
       const apps = Array.isArray(res) ? res : (res?.applications || [])
-      const pendingApp = apps.find(a => a.status === 'pending')
-      if (pendingApp) {
-        capRole.value = pendingApp.capability_type || pendingApp.capabilityType || 'farmer'
-        hasPending.value = true
-        isComplete.value = true
+      if (apps.length > 0) {
+        const latestApp = apps[0]
+        capRole.value = latestApp.capability_type || latestApp.capabilityType || 'farmer'
+        
+        if (latestApp.status === 'pending') {
+          hasPending.value = true
+          isComplete.value = true
+        } else if (latestApp.status === 'rejected') {
+          hasRejected.value = true
+          rejectionReason.value = latestApp.rejection_reason || latestApp.rejectionReason || 'The application details provided could not be verified by administration.'
+          isComplete.value = true
+        }
       }
     } catch {
       // offline fallback
     }
   }
 })
+
+const startReapplication = () => {
+  isReapplying.value = true
+  hasRejected.value = false
+  hasPending.value = false
+  isComplete.value = false
+}
 
 const handleSubmit = async () => {
   submitError.value = null
@@ -280,8 +446,11 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
+    const docs = attachedDocName.value ? [attachedDocName.value] : []
+    
     const payload = {
       capability_type: capRole.value,
+      supporting_documents: docs,
       application_data: capRole.value === 'farmer' ? {
         farm_size: farmSize.value,
         primary_crops: primaryCrops.value,
@@ -299,6 +468,8 @@ const handleSubmit = async () => {
     isSubmitting.value = false
     isComplete.value = true
     hasPending.value = true
+    hasRejected.value = false
+    isReapplying.value = false
   } catch (err) {
     isSubmitting.value = false
     submitError.value = err.message || 'Failed to submit capability application. Please try again.'
