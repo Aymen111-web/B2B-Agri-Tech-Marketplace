@@ -51,10 +51,25 @@ class CapabilityApplicationController extends Controller
             ], 409);
         }
 
+        $rawDocs = $request->input('supporting_documents');
+        $appData = $request->input('application_data');
+
+        $mergedPayload = [];
+        if (is_array($rawDocs)) {
+            $mergedPayload = $rawDocs;
+        } elseif (!empty($rawDocs)) {
+            $mergedPayload['files'] = [$rawDocs];
+        }
+
+        if (is_array($appData)) {
+            $mergedPayload = array_merge($mergedPayload, $appData);
+            $mergedPayload['application_data'] = $appData;
+        }
+
         $application = CapabilityApplication::create([
             'user_id'              => $user->id,
             'capability_type'      => $request->validated('capability_type'),
-            'supporting_documents' => $request->validated('supporting_documents'),
+            'supporting_documents' => $mergedPayload,
         ]);
 
         return response()->json([

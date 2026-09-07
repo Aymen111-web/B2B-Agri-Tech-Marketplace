@@ -17,9 +17,9 @@ class StoreCapabilityApplicationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'capability_type'        => ['required', 'string', 'in:farmer,buyer'],
-            'supporting_documents'   => ['nullable', 'array'],
-            'supporting_documents.*' => ['nullable'],
+            'capability_type'      => ['required', 'string', 'in:farmer,buyer'],
+            'supporting_documents' => ['nullable'],
+            'application_data'     => ['nullable'],
         ];
     }
 
