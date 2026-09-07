@@ -7,8 +7,8 @@
           <ArrowLeft class="w-5 h-5" />
         </router-link>
         <div>
-          <h1 class="text-xl font-black text-[#1E2328] tracking-tight">Procurement Cart</h1>
-          <p class="text-xs text-[#5A6270]">Select produce batches for bulk Chapa Escrow procurement</p>
+          <h1 class="text-xl font-black text-[#1E2328] tracking-tight">{{ $t('cart.title') }}</h1>
+          <p class="text-xs text-[#5A6270]">{{ $t('cart.subtitle') }}</p>
         </div>
       </div>
 
@@ -18,7 +18,7 @@
           @click="selectAll(!allSelected)" 
           class="text-xs font-bold text-[#0B57D0] hover:underline px-2 py-1"
         >
-          {{ allSelected ? 'Deselect All' : 'Select All' }}
+          {{ allSelected ? $t('cart.deselectAll') : $t('cart.selectAll') }}
         </button>
       </div>
     </div>
@@ -53,7 +53,7 @@
             <!-- Item Details -->
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2">
-                <h3 class="text-sm font-bold text-[#1E2328] truncate">{{ item.listing?.cropName || 'Produce Batch' }}</h3>
+                <h3 class="text-sm font-bold text-[#1E2328] truncate">{{ item.listing?.cropName || $t('orders.crop') }}</h3>
                 <button @click="removeFromCart(item.id)" class="text-gray-400 hover:text-red-500 p-1">
                   <Trash2 class="w-4 h-4" />
                 </button>
@@ -114,12 +114,12 @@
                   </div>
 
                   <span class="text-[10px] text-gray-400 block">
-                    Available: {{ (item.listing?.availableQty || 10000).toLocaleString() }} kg stock
+                    {{ $t('marketplace.availableStock') }}: {{ (item.listing?.availableQty || 10000).toLocaleString() }} {{ $t('common.kg') }}
                   </span>
                 </div>
 
                 <div class="text-right shrink-0">
-                  <span class="text-[10px] text-gray-400 block">{{ formatETB(item.listing?.pricePerKg) }}/kg</span>
+                  <span class="text-[10px] text-gray-400 block">{{ formatETB(item.listing?.pricePerKg) }}{{ $t('common.perKg') }}</span>
                   <span class="font-black text-[#1E9444] text-base">
                     {{ formatETB(getItemSubtotal(item)) }}
                   </span>
@@ -135,26 +135,26 @@
         <div class="bg-white border border-[#E2E4E7] rounded-2xl p-6 shadow-md space-y-5 sticky top-6">
           <h3 class="text-base font-bold text-[#1E2328] border-b border-gray-100 pb-3 flex items-center gap-2">
             <ShoppingCart class="w-4 h-4 text-[#0B57D0]" />
-            <span>Procurement Batch Summary</span>
+            <span>{{ $t('cart.orderSummary') }}</span>
           </h3>
 
           <div class="space-y-3 text-xs">
             <div class="flex justify-between items-center text-[#5A6270]">
-              <span>Selected Items</span>
-              <span class="font-bold text-[#1E2328]">{{ selectedCount }} of {{ cartItems.length }} Batches</span>
+              <span>{{ $t('cart.selectedItems') }}</span>
+              <span class="font-bold text-[#1E2328]">{{ selectedCount }} / {{ cartItems.length }}</span>
             </div>
 
             <div class="flex justify-between items-center text-[#5A6270]">
-              <span>Chapa Escrow Fee & Quality Check</span>
-              <span class="font-bold text-emerald-600">Included (Free)</span>
+              <span>{{ $t('cart.escrowFee') }}</span>
+              <span class="font-bold text-emerald-600">0%</span>
             </div>
 
             <div class="border-t border-dashed border-gray-200 pt-3 flex justify-between items-end">
               <div>
-                <span class="text-xs font-bold text-[#5A6270] block">Selected Subtotal</span>
-                <span class="text-[10px] text-gray-400">Locked in Chapa Escrow</span>
+                <span class="text-xs font-bold text-[#5A6270] block">{{ $t('cart.subtotal') }}</span>
+                <span class="text-[10px] text-gray-400">{{ $t('cart.escrowSecuredOrder') }}</span>
               </div>
-              <span class="text-2xl font-black text-[#1E9444] tracking-tight">
+              <span class="text-2xl font-black text-[#1E2328] tracking-tight">
                 {{ formatETB(selectedSubtotal) }}
               </span>
             </div>
@@ -162,15 +162,15 @@
 
           <div class="bg-[#EDFAF2] border border-[#C3EFCF] rounded-xl p-3.5 flex items-center gap-2.5 text-xs text-[#0F5C2A]">
             <ShieldCheck class="w-4 h-4 text-[#1E9444] shrink-0" />
-            <span>Payments held securely in Chapa Escrow until physical delivery PIN verification.</span>
+            <span>{{ $t('checkout.deliveryPinNotice') }}</span>
           </div>
 
           <button 
             @click="proceedToCheckout" 
             :disabled="selectedCount === 0"
-            class="w-full py-4 rounded-xl bg-[#1E9444] text-white font-bold text-sm shadow-md hover:bg-[#0F5C2A] disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
+            class="w-full py-4 rounded-xl bg-[#1E9444] text-white font-bold text-sm shadow-md hover:bg-[#0F5C2A] disabled:opacity-50 flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
-            <span>Proceed to Checkout Selected ({{ selectedCount }})</span>
+            <span>{{ $t('cart.proceedToCheckout') }} ({{ selectedCount }})</span>
             <ArrowRight class="w-4 h-4" />
           </button>
         </div>
@@ -182,10 +182,10 @@
       <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-gray-400">
         <ShoppingCart class="w-8 h-8" />
       </div>
-      <h3 class="font-bold text-lg text-[#1E2328]">Your Cart is Empty</h3>
-      <p class="text-xs text-[#5A6270]">Explore verified produce on the marketplace to create your procurement batch.</p>
+      <h3 class="font-bold text-lg text-[#1E2328]">{{ $t('cart.emptyCartTitle') }}</h3>
+      <p class="text-xs text-[#5A6270]">{{ $t('cart.emptyCartSub') }}</p>
       <router-link to="/buyer/marketplace" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0B57D0] text-white font-bold text-xs rounded-xl hover:bg-[#09429E] transition-colors shadow-2xs">
-        Browse Produce Marketplace
+        {{ $t('cart.sourceProduce') }}
       </router-link>
     </div>
   </div>

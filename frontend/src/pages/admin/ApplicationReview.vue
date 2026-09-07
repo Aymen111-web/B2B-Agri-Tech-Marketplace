@@ -7,21 +7,21 @@
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1E9444] to-[#0F5C2A] flex items-center justify-center shadow-lg shadow-emerald-500/20">
             <FileText class="w-5 h-5 text-white" />
           </div>
-          <h1 class="text-[28px] font-black text-[#1E2328] tracking-tight">Capabilities Verification Queue</h1>
+          <h1 class="text-[28px] font-black text-[#1E2328] tracking-tight">{{ $t('admin.capabilitiesVerificationQueue') }}</h1>
         </div>
         <p class="text-[14px] font-medium text-[#5A6270] max-w-xl">
-          Review, approve, or reject producer and commercial buyer identity and legal documentation requests.
+          {{ $t('admin.capabilitiesVerificationSub') }}
         </p>
       </div>
       <div class="flex items-center gap-3 z-10">
         <div class="flex items-center bg-white border border-[#E2E4E7] rounded-xl p-1 shadow-xs">
-          <span class="px-3 py-1.5 text-[11px] font-black uppercase text-[#1E2328]">Pending Queue:</span>
+          <span class="px-3 py-1.5 text-[11px] font-black uppercase text-[#1E2328]">{{ $t('admin.pendingQueue') }}</span>
           <span class="px-2.5 py-1 bg-[#F0F1F2] text-[#1E2328] rounded-lg text-xs font-bold">{{ applications.length }}</span>
         </div>
         <button @click="loadApplications" :disabled="isLoading" 
           class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] bg-white text-[13px] font-bold text-[#1E2328] hover:bg-[#F8F9FA] hover:shadow-md transition-all active:scale-95 flex items-center gap-2 group cursor-pointer">
           <RefreshCcw :class="['w-4 h-4 text-[#5A6270] group-hover:text-[#1E9444] transition-colors', isLoading && 'animate-spin']" /> 
-          Refresh
+          {{ $t('admin.refresh') }}
         </button>
       </div>
     </div>
@@ -31,8 +31,8 @@
       <div class="w-16 h-16 rounded-2xl bg-white shadow-xl flex items-center justify-center mb-4 relative overflow-hidden border border-[#E2E4E7]/50">
         <Loader2 class="w-8 h-8 text-[#1E9444] animate-spin relative z-10" />
       </div>
-      <p class="text-xs font-black text-[#1E2328] uppercase tracking-wider mt-2">Syncing Verification Queue</p>
-      <p class="text-[11px] text-[#9BA1AA] font-bold mt-1">Fetching submitted capability applications...</p>
+      <p class="text-xs font-black text-[#1E2328] uppercase tracking-wider mt-2">{{ $t('admin.syncingVerificationQueue') }}</p>
+      <p class="text-[11px] text-[#9BA1AA] font-bold mt-1">{{ $t('admin.fetchingApplications') }}</p>
     </div>
 
     <!-- Empty State -->
@@ -40,9 +40,9 @@
       <div class="w-20 h-20 mx-auto bg-[#F8F9FA] rounded-full flex items-center justify-center shadow-inner mb-4 border border-[#E2E4E7]">
         <CheckCircle class="w-10 h-10 text-[#5A6270] opacity-40" />
       </div>
-      <h3 class="text-[18px] font-extrabold text-[#1E2328] tracking-tight">Queue is Empty</h3>
+      <h3 class="text-[18px] font-extrabold text-[#1E2328] tracking-tight">{{ $t('admin.queueIsEmpty') }}</h3>
       <p class="text-[13px] font-medium text-[#5A6270] mt-1.5 max-w-sm mx-auto">
-        All submitted producer and buyer capability applications have been reviewed.
+        {{ $t('admin.queueIsEmptySub') }}
       </p>
     </div>
 
@@ -69,21 +69,21 @@
               'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0', 
               app.capability_type === 'farmer' ? 'bg-[#EDFAF2] text-[#0F5C2A] border border-[#C3EFCF]' : 'bg-blue-50 text-blue-700 border border-blue-200'
             ]">
-              {{ app.capability_type === 'farmer' ? '🌾 Farmer Producer Request' : '🏢 Commercial Buyer Request' }}
+              {{ app.capability_type === 'farmer' ? $t('admin.farmerProducerRequest') : $t('admin.commercialBuyerRequest') }}
             </span>
 
             <span class="text-gray-300 hidden md:inline">•</span>
 
             <span class="text-xs text-[#5A6270] font-semibold flex items-center gap-1 shrink-0">
               <Phone class="w-3.5 h-3.5 text-[#1E9444]" />
-              <span>{{ app.user?.phone || 'No phone' }}</span>
+              <span>{{ app.user?.phone || $t('common.notProvided') }}</span>
             </span>
 
             <span class="text-gray-300 hidden md:inline">•</span>
 
             <span class="text-xs text-[#5A6270] font-semibold flex items-center gap-1 shrink-0">
               <Calendar class="w-3.5 h-3.5 text-gray-400" />
-              <span>Submitted: {{ formatDate(app.created_at) }}</span>
+              <span>{{ $t('admin.submitted') }} {{ formatDate(app.created_at) }}</span>
             </span>
 
             <template v-if="getDocsList(app).length > 0">
@@ -109,23 +109,23 @@
             <button @click="openDetailModal(app)" 
               class="px-3.5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#1E2328] text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer border border-gray-200">
               <Eye class="w-3.5 h-3.5 text-[#0B57D0]" />
-              <span>Audit Specifications</span>
+              <span>{{ $t('admin.auditSpecifications') }}</span>
             </button>
             <button @click="openRejectModal(app)" 
               class="px-3.5 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-extrabold transition-colors cursor-pointer">
-              Reject
+              {{ $t('admin.reject') }}
             </button>
             <button @click="handleApprove(app.id)" 
               class="px-4 py-2 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-black transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer">
               <Check class="w-4 h-4" />
-              <span>Approve</span>
+              <span>{{ $t('admin.approve') }}</span>
             </button>
           </template>
           <template v-else>
             <button @click="openDetailModal(app)" 
               class="px-3.5 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-[#1E2328] text-xs font-bold transition-colors flex items-center gap-1 border border-gray-200 cursor-pointer">
               <Eye class="w-3.5 h-3.5 text-gray-500" />
-              <span>View Audit</span>
+              <span>{{ $t('admin.viewAudit') }}</span>
             </button>
             <span :class="[
               'px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5',
@@ -133,7 +133,7 @@
             ]">
               <CheckCircle2 v-if="app.status === 'approved'" class="w-3.5 h-3.5" />
               <XCircle v-else class="w-3.5 h-3.5" />
-              <span>{{ app.status }}</span>
+              <span>{{ $t(app.status) }}</span>
             </span>
           </template>
         </div>
@@ -155,12 +155,12 @@
             </div>
             <div>
               <h3 class="text-base font-black text-[#1E2328]">
-                Audit {{ selectedApp.capability_type === 'farmer' ? 'Farmer Producer' : 'Commercial Buyer' }} Application
+                {{ selectedApp.capability_type === 'farmer' ? $t('admin.auditFarmerModal') : $t('admin.auditBuyerModal') }}
               </h3>
-              <p class="text-[11px] text-[#5A6270]">Applicant: <strong>{{ getApplicantName(selectedApp) }}</strong> ({{ selectedApp.user?.phone || 'No phone' }})</p>
+              <p class="text-[11px] text-[#5A6270]">{{ $t('admin.applicant') }} <strong>{{ getApplicantName(selectedApp) }}</strong> ({{ selectedApp.user?.phone || $t('common.notProvided') }})</p>
             </div>
           </div>
-          <button @click="selectedApp = null" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
+          <button @click="selectedApp = null" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
             <X class="w-5 h-5" />
           </button>
         </div>
@@ -168,44 +168,44 @@
         <!-- Specifications Breakdown -->
         <div class="space-y-3 text-xs bg-gray-50 p-4 rounded-2xl border border-gray-200">
           <h4 class="font-black text-[#1E2328] uppercase text-[11px] tracking-wider border-b pb-2 border-gray-200 flex items-center justify-between">
-            <span>Submitted Capability Specifications</span>
-            <span class="text-[#0B57D0] capitalize">{{ selectedApp.capability_type }}</span>
+            <span>{{ $t('admin.submittedCapabilitySpecs') }}</span>
+            <span class="text-[#0B57D0] capitalize">{{ selectedApp.capability_type === 'farmer' ? $t('farmer.roleFarmer') : $t('buyer.roleBuyer') }}</span>
           </h4>
 
           <template v-if="selectedApp.capability_type === 'farmer'">
             <div class="flex justify-between py-2 border-b border-gray-200/60">
-              <span class="text-gray-600 font-bold">Farm Size (in Hectares):</span>
-              <span class="font-black text-[#1E2328] text-sm">{{ getAppValue(selectedApp, 'farm_size', 'farmSize') ? getAppValue(selectedApp, 'farm_size', 'farmSize') + ' Hectares' : '10 Hectares' }}</span>
+              <span class="text-gray-600 font-bold">{{ $t('admin.farmSizeHectares') }}</span>
+              <span class="font-black text-[#1E2328] text-sm">{{ getAppValue(selectedApp, 'farm_size', 'farmSize') ? getAppValue(selectedApp, 'farm_size', 'farmSize') + ' ' + $t('farmer.newListing.hectares') : '10 ' + $t('farmer.newListing.hectares') }}</span>
             </div>
             <div class="flex justify-between py-2 border-b border-gray-200/60">
-              <span class="text-gray-600 font-bold">Primary Crops Produced:</span>
+              <span class="text-gray-600 font-bold">{{ $t('admin.primaryCropsProduced') }}</span>
               <span class="font-black text-[#1E9444]">{{ getAppValue(selectedApp, 'primary_crops', 'primaryCrops') || 'Coffee, Teff, Sesame' }}</span>
             </div>
             <div class="flex justify-between py-2 border-b border-gray-200/60">
-              <span class="text-gray-600 font-bold">Farming Region / Location:</span>
+              <span class="text-gray-600 font-bold">{{ $t('admin.farmingRegionLocation') }}</span>
               <span class="font-bold text-[#1E2328]">{{ getAppValue(selectedApp, 'region') || selectedApp.user?.region || 'Addis Ababa' }}</span>
             </div>
             <div class="flex justify-between py-2">
-              <span class="text-gray-600 font-bold">Co-op Union / Farm Name:</span>
-              <span class="font-bold text-[#0B57D0]">{{ getAppValue(selectedApp, 'union_name', 'unionName') || 'Independent Producer' }}</span>
+              <span class="text-gray-600 font-bold">{{ $t('admin.coopUnionFarmName') }}</span>
+              <span class="font-bold text-[#0B57D0]">{{ getAppValue(selectedApp, 'union_name', 'unionName') || $t('admin.independentProducer') }}</span>
             </div>
           </template>
 
           <template v-else>
             <div class="flex justify-between py-2 border-b border-gray-200/60">
-              <span class="text-gray-600 font-bold">Company / Business Name:</span>
-              <span class="font-black text-[#1E2328]">{{ getAppValue(selectedApp, 'company_name', 'companyName') || 'Not specified' }}</span>
+              <span class="text-gray-600 font-bold">{{ $t('admin.companyBusinessName') }}</span>
+              <span class="font-black text-[#1E2328]">{{ getAppValue(selectedApp, 'company_name', 'companyName') || $t('common.notSpecified') }}</span>
             </div>
             <div class="flex justify-between py-2 border-b border-gray-200/60">
-              <span class="text-gray-600 font-bold">Business Type:</span>
+              <span class="text-gray-600 font-bold">{{ $t('admin.businessType') }}</span>
               <span class="font-bold text-[#0B57D0] capitalize">{{ getAppValue(selectedApp, 'business_type', 'businessType') || 'Wholesaler' }}</span>
             </div>
             <div class="flex justify-between py-2 border-b border-gray-200/60">
-              <span class="text-gray-600 font-bold">Tax Identification (TIN):</span>
-              <span class="font-mono font-bold text-[#1E2328]">{{ getAppValue(selectedApp, 'tin_number', 'tinNumber') || 'Not specified' }}</span>
+              <span class="text-gray-600 font-bold">{{ $t('admin.tinNumber') }}</span>
+              <span class="font-mono font-bold text-[#1E2328]">{{ getAppValue(selectedApp, 'tin_number', 'tinNumber') || $t('common.notSpecified') }}</span>
             </div>
             <div class="flex justify-between py-2">
-              <span class="text-gray-600 font-bold">Operating Region / City:</span>
+              <span class="text-gray-600 font-bold">{{ $t('admin.operatingRegionCity') }}</span>
               <span class="font-bold text-[#1E2328]">{{ getAppValue(selectedApp, 'region') || 'Addis Ababa' }}</span>
             </div>
           </template>
@@ -214,8 +214,8 @@
         <!-- Attached Verification Documents Section -->
         <div class="space-y-2 text-xs">
           <div class="flex items-center justify-between">
-            <span class="font-extrabold text-[#1E2328]">Attached Legal / Verification Documents:</span>
-            <span v-if="getDocsList(selectedApp).length > 0" class="text-[10px] text-gray-500 font-bold">Click file to view</span>
+            <span class="font-extrabold text-[#1E2328]">{{ $t('admin.attachedLegalDocs') }}</span>
+            <span v-if="getDocsList(selectedApp).length > 0" class="text-[10px] text-gray-500 font-bold">{{ $t('admin.clickFileToView') }}</span>
           </div>
           <div v-if="getDocsList(selectedApp).length > 0" class="space-y-2">
             <div 
@@ -230,12 +230,12 @@
               </div>
               <span class="px-2.5 py-1 bg-[#1E9444] group-hover:bg-[#0F5C2A] text-white rounded-lg text-[10px] font-black flex items-center gap-1 shadow-2xs transition-colors shrink-0">
                 <ExternalLink class="w-3 h-3" />
-                <span>Open Attached File</span>
+                <span>{{ $t('admin.openAttachedFile') }}</span>
               </span>
             </div>
           </div>
           <div v-else class="p-3 bg-gray-100 rounded-xl text-gray-500 font-bold italic text-center">
-            No document attached with this application.
+            {{ $t('admin.noDocAttached') }}
           </div>
         </div>
 
@@ -243,12 +243,12 @@
         <div class="flex gap-2.5 pt-3 border-t border-gray-100">
           <button @click="openRejectModal(selectedApp); selectedApp = null" 
             class="flex-1 py-2.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-bold text-xs transition-colors cursor-pointer">
-            Reject Application
+            {{ $t('admin.rejectApplication') }}
           </button>
           <button @click="handleApprove(selectedApp.id); selectedApp = null" 
             class="flex-1 py-2.5 bg-[#1E9444] hover:bg-[#0F5C2A] text-white rounded-xl font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
             <Check class="w-4 h-4" />
-            <span>Approve Capability</span>
+            <span>{{ $t('admin.approveCapability') }}</span>
           </button>
         </div>
       </div>
@@ -264,37 +264,37 @@
               <AlertCircle class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="text-base font-black text-[#1E2328]">Reject Capability Application</h3>
-              <p class="text-[11px] text-[#5A6270]">Applicant: {{ getApplicantName(rejectingApp) }}</p>
+              <h3 class="text-base font-black text-[#1E2328]">{{ $t('admin.rejectCapabilityApplication') }}</h3>
+              <p class="text-[11px] text-[#5A6270]">{{ $t('admin.applicant') }} {{ getApplicantName(rejectingApp) }}</p>
             </div>
           </div>
-          <button @click="rejectingApp = null" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
+          <button @click="rejectingApp = null" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
             <X class="w-5 h-5" />
           </button>
         </div>
 
         <div class="space-y-3 text-xs">
           <label class="block font-extrabold text-[#1E2328]">
-            Reason for Rejection <span class="text-red-600">*</span>
+            {{ $t('admin.reasonForRejection') }} <span class="text-red-600">*</span>
           </label>
           <p class="text-[11px] text-gray-500">
-            This exact explanation will be displayed to the applicant on their capability status card.
+            {{ $t('admin.rejectionReasonExplanation') }}
           </p>
 
           <textarea 
             v-model="rejectionReasonInput" 
             rows="3" 
-            placeholder="Enter clear rejection reason (e.g. Land certificate is missing or farm size details require verification)..." 
+            :placeholder="$t('admin.rejectionPlaceholder')" 
             class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-xs focus:outline-none focus:border-red-500 focus:bg-white transition-all"
           />
 
           <!-- Quick Suggestion Badges -->
           <div class="space-y-1.5">
-            <span class="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Quick Reasons:</span>
+            <span class="text-[10px] font-black text-gray-400 uppercase tracking-wider block">{{ $t('admin.quickReasons') }}</span>
             <div class="flex flex-wrap gap-1.5">
               <button 
                 type="button"
-                v-for="preset in presetReasons" 
+                v-for="preset in localizedPresetReasons" 
                 :key="preset" 
                 @click="rejectionReasonInput = preset"
                 class="px-2.5 py-1 bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 rounded-lg text-[10px] font-extrabold transition-colors cursor-pointer text-left"
@@ -308,18 +308,18 @@
             <AlertCircle class="w-3.5 h-3.5 text-red-600 shrink-0" />
             <span>{{ rejectError }}</span>
           </div>
-          <div v-else class="text-[11px] font-bold text-[#9BA1AA] italic">No documents attached</div>
+          <div v-else class="text-[11px] font-bold text-[#9BA1AA] italic">{{ $t('admin.noDocAttached') }}</div>
         </div>
 
         <!-- Modal Actions -->
         <div class="flex gap-2.5 pt-2 border-t border-gray-100">
-          <button @click="rejectingApp = null" class="flex-1 py-2.5 border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 transition-colors">
-            Cancel
+          <button @click="rejectingApp = null" class="flex-1 py-2.5 border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">
+            {{ $t('common.cancel') }}
           </button>
           <button @click="confirmReject" :disabled="isSubmittingReject"
             class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer">
             <Loader2 v-if="isSubmittingReject" class="w-4 h-4 animate-spin" />
-            <span>Confirm Rejection</span>
+            <span>{{ $t('admin.confirmRejection') }}</span>
           </button>
         </div>
       </div>
@@ -328,7 +328,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { 
   FileText, Check, Loader2, Phone, Calendar, CheckCircle, 
   RefreshCcw, CheckCircle2, XCircle, Eye, Building2, Sprout, X, AlertCircle,
@@ -336,6 +336,9 @@ import {
 } from 'lucide-vue-next'
 import { adminApi } from '@/services/adminService'
 import { formatDate } from '@/utils/helpers'
+import { useLanguage } from '@/composables/useLanguage'
+
+const { t, currentLanguage } = useLanguage()
 
 const applications = ref([])
 const isLoading = ref(true)
@@ -346,12 +349,22 @@ const rejectionReasonInput = ref('')
 const rejectError = ref('')
 const isSubmittingReject = ref(false)
 
-const presetReasons = [
-  'Attached verification document is missing or unreadable.',
-  'Farm size and primary crop details require further clarification.',
-  'Tax identification (TIN) or business registration could not be verified.',
-  'Duplicate or incomplete capability application request.'
-]
+const localizedPresetReasons = computed(() => {
+  if (currentLanguage.value === 'am') {
+    return [
+      'የተያያዘው የማረጋገጫ ሰነድ አልተገኘም ወይም አይነበብም።',
+      'የእርሻ መጠን እና ዋና ዋና የሰብል ዝርዝሮች ተጨማሪ ማብራሪያ ያስፈልጋቸዋል።',
+      'የግብር ከፋይ መለያ (TIN) ወይም የንግድ ምዝገባ ሊረጋገጥ አልቻለም።',
+      'የተደገመ ወይም ያልተሟላ የብቃት ማመልከቻ ጥያቄ።'
+    ]
+  }
+  return [
+    'Attached verification document is missing or unreadable.',
+    'Farm size and primary crop details require further clarification.',
+    'Tax identification (TIN) or business registration could not be verified.',
+    'Duplicate or incomplete capability application request.'
+  ]
+})
 
 const loadApplications = async () => {
   isLoading.value = true
@@ -541,7 +554,7 @@ const openRejectModal = (app) => {
 
 const confirmReject = async () => {
   if (!rejectionReasonInput.value.trim()) {
-    rejectError.value = 'Please enter a clear reason for rejection.'
+    rejectError.value = t('admin.specifyRejectionReason')
     return
   }
   

@@ -5,8 +5,8 @@
       <!-- 1. Verification Loading State -->
       <div v-if="isVerifying" class="py-12 space-y-4">
         <Loader2 class="w-12 h-12 text-[#1E9444] animate-spin mx-auto" />
-        <h2 class="text-xl font-bold text-[#1E2328]">Verifying Escrow Payment...</h2>
-        <p class="text-xs text-[#5A6270]">Confirming transaction hash with Chapa payment gateway</p>
+        <h2 class="text-xl font-bold text-[#1E2328]">{{ $t('Verifying Escrow Payment...') }}</h2>
+        <p class="text-xs text-[#5A6270]">{{ $t('Confirming transaction hash with Chapa payment gateway') }}</p>
       </div>
 
       <!-- 2. Verified Payment Success & Official B2B Escrow Receipt -->
@@ -18,10 +18,10 @@
           </div>
           <div>
             <span class="px-3 py-1 rounded-full bg-emerald-50 text-[#1E9444] border border-emerald-200 text-[10px] font-black uppercase tracking-wider">
-              Payment Secured in Chapa Escrow
+              {{ $t('Payment Secured in Chapa Escrow') }}
             </span>
-            <h2 class="text-2xl font-black text-[#1E2328] mt-2">Payment Successful!</h2>
-            <p class="text-xs text-[#5A6270]">Your funds are safely locked in escrow until driver delivery PIN verification.</p>
+            <h2 class="text-2xl font-black text-[#1E2328] mt-2">{{ $t('buyer.paymentSuccessTitle') }}</h2>
+            <p class="text-xs text-[#5A6270]">{{ $t('buyer.paymentSuccessSub') }}</p>
           </div>
         </div>
 
@@ -35,10 +35,10 @@
                 <ShieldCheck class="w-4 h-4" />
                 <span>QMT-AGRIGATE B2B ESCROW</span>
               </div>
-              <span class="text-[10px] text-gray-400 block mt-0.5">Commercial Procurement Receipt</span>
+              <span class="text-[10px] text-gray-400 block mt-0.5">{{ $t('Commercial Procurement Receipt') }}</span>
             </div>
             <div class="text-right">
-              <span class="text-[10px] text-gray-500 block">Date</span>
+              <span class="text-[10px] text-gray-500 block">{{ $t('Date') }}</span>
               <span class="text-xs font-bold text-[#1E2328]">{{ formattedDate }}</span>
             </div>
           </div>
@@ -46,11 +46,11 @@
           <!-- Transaction References Grid -->
           <div class="grid grid-cols-2 gap-3 text-xs">
             <div class="bg-white p-2.5 rounded-xl border border-gray-200">
-              <span class="text-[10px] text-gray-400 block font-semibold">Chapa Tx Reference</span>
+              <span class="text-[10px] text-gray-400 block font-semibold">{{ $t('Chapa Tx Reference') }}</span>
               <span class="font-mono font-bold text-[#1E2328] text-[11px] truncate block">{{ txRef }}</span>
             </div>
             <div class="bg-white p-2.5 rounded-xl border border-gray-200">
-              <span class="text-[10px] text-gray-400 block font-semibold">Gateway Receipt ID</span>
+              <span class="text-[10px] text-gray-400 block font-semibold">{{ $t('Gateway Receipt ID') }}</span>
               <span class="font-mono font-bold text-[#0B57D0] text-[11px] truncate block">{{ chapaRef || 'CHP-PAY-88290' }}</span>
             </div>
           </div>
@@ -58,16 +58,16 @@
           <!-- Produce Order Breakdown -->
           <div class="space-y-2 border-t border-b border-gray-200 py-3 text-xs">
             <div class="flex justify-between text-[#5A6270]">
-              <span>Order Reference ID:</span>
+              <span>{{ $t('Order Reference ID:') }}</span>
               <span class="font-bold text-[#1E9444]">#{{ orderId || 'ORD-8921' }}</span>
             </div>
             <div class="flex justify-between text-[#5A6270]">
-              <span>Escrow Security Status:</span>
-              <span class="font-bold text-[#1E9444]">Funds Locked in Escrow</span>
+              <span>{{ $t('Escrow Security Status:') }}</span>
+              <span class="font-bold text-[#1E9444]">{{ $t('Funds Locked in Escrow') }}</span>
             </div>
             <div class="flex justify-between text-[#5A6270]">
-              <span>Payout Release Condition:</span>
-              <span class="font-bold text-[#1E2328]">Driver Delivery PIN Handoff</span>
+              <span>{{ $t('Payout Release Condition:') }}</span>
+              <span class="font-bold text-[#1E2328]">{{ $t('Driver Delivery PIN Handoff') }}</span>
             </div>
           </div>
 
@@ -75,11 +75,11 @@
           <div class="flex items-center justify-between pt-1">
             <div class="flex items-center gap-2 text-[11px] text-gray-500">
               <Lock class="w-3.5 h-3.5 text-[#1E9444]" />
-              <span>Verified by Chapa Escrow Engine</span>
+              <span>{{ $t('Verified by Chapa Escrow Engine') }}</span>
             </div>
             <button @click="printReceipt" class="flex items-center gap-1 text-xs font-bold text-[#0B57D0] hover:underline">
               <Printer class="w-3.5 h-3.5" />
-              <span>Print Invoice</span>
+              <span>{{ $t('Print Invoice') }}</span>
             </button>
           </div>
         </div>
@@ -90,13 +90,13 @@
             to="/buyer/orders" 
             class="w-full py-4 rounded-xl bg-[#1E9444] text-white font-bold text-sm hover:bg-[#0F5C2A] block transition-colors shadow-md text-center"
           >
-            View Order & Track Shipment Lifecycle
+            {{ $t('buyer.trackOrder') }}
           </router-link>
           <router-link 
             to="/buyer/marketplace" 
             class="w-full py-3 rounded-xl border border-[#E2E4E7] text-[#1E2328] font-bold text-xs hover:bg-[#F8F9FA] block transition-colors text-center"
           >
-            Return to Marketplace
+            {{ $t('marketplace.backToMarketplace') }}
           </router-link>
         </div>
       </template>
@@ -107,11 +107,11 @@
           <AlertCircle class="w-10 h-10" />
         </div>
         <div class="space-y-2">
-          <h2 class="text-xl font-black text-[#1E2328]">Payment Verification</h2>
-          <p class="text-xs text-[#5A6270]">{{ errorMessage || 'Your payment status is being processed by the Chapa gateway.' }}</p>
+          <h2 class="text-xl font-black text-[#1E2328]">{{ $t('Payment Verification') }}</h2>
+          <p class="text-xs text-[#5A6270]">{{ errorMessage || $t('Your payment status is being processed by the Chapa gateway.') }}</p>
         </div>
         <router-link to="/buyer/orders" class="w-full py-3.5 rounded-xl bg-[#1E9444] text-white font-bold text-sm block">
-          Go to My Orders Hub
+          {{ $t('buyer.viewAllOrders') }}
         </router-link>
       </template>
 

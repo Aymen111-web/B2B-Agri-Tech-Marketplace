@@ -7,13 +7,13 @@
           <ArrowLeft class="w-5 h-5" />
         </router-link>
         <div>
-          <h1 class="text-lg font-black text-[#1E2328]">Procurement Batch Checkout</h1>
-          <p class="text-xs text-[#5A6270]">Review selected produce batches & total Chapa Escrow payable</p>
+          <h1 class="text-lg font-black text-[#1E2328]">{{ $t('checkout.title') }}</h1>
+          <p class="text-xs text-[#5A6270]">{{ $t('checkout.subtitle') }}</p>
         </div>
       </div>
 
       <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-[#1E9444] border border-emerald-200 text-[11px] font-bold flex items-center gap-1">
-        <ShieldCheck class="w-3.5 h-3.5" /> Chapa Protected
+        <ShieldCheck class="w-3.5 h-3.5" /> {{ $t('badges.escrowProtected') }}
       </span>
     </div>
 
@@ -24,10 +24,10 @@
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-5 shadow-2xs space-y-4">
         <div class="flex justify-between items-center border-b border-gray-100 pb-3">
           <span class="text-xs font-black text-[#1E2328] uppercase tracking-wider">
-            Selected Produce Batches ({{ checkoutItems.length }})
+            {{ $t('cart.selectedItems') }} ({{ checkoutItems.length }})
           </span>
           <router-link to="/buyer/cart" class="text-xs font-bold text-[#0B57D0] hover:underline">
-            Edit Cart Items
+            {{ $t('cart.title') }}
           </router-link>
         </div>
 
@@ -58,14 +58,14 @@
                   {{ formatETB((item.listing?.pricePerKg || 0) * (item.quantityKg || 100)) }}
                 </span>
                 <span class="text-[10px] text-gray-400 block">
-                  {{ formatETB(item.listing?.pricePerKg) }}/kg
+                  {{ formatETB(item.listing?.pricePerKg) }}{{ $t('common.perKg') }}
                 </span>
               </div>
             </div>
 
             <!-- Quantity Controls per Item -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-[#F8F9FA] p-3 rounded-xl border border-gray-100 text-xs gap-3">
-              <span class="text-gray-500 font-medium">Sourcing Volume:</span>
+              <span class="text-gray-500 font-medium">{{ $t('common.quantity') }}:</span>
               <div class="flex items-center gap-2">
                 <!-- Minus Button -->
                 <button 
@@ -118,19 +118,19 @@
 
       <!-- Target Delivery Logistics Hub Selector -->
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-5 shadow-2xs space-y-2">
-        <label class="text-xs font-bold text-[#1E2328]">Target Delivery Hub</label>
+        <label class="text-xs font-bold text-[#1E2328]">{{ $t('checkout.deliveryInformation') }}</label>
         <select 
           v-model="selectedHub" 
-          class="w-full px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E2E4E7] rounded-xl text-xs font-semibold text-[#1E2328] focus:border-[#0B57D0] focus:outline-none"
+          class="w-full px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E2E4E7] rounded-xl text-xs font-semibold text-[#1E2328] focus:border-[#0B57D0] focus:outline-none cursor-pointer"
         >
-          <option value="" disabled>Select Delivery Destination (Loading...)</option>
+          <option value="" disabled>{{ $t('checkout.deliveryAddress') }}</option>
           <option v-for="hub in availableHubs" :key="hub.id" :value="hub.id">{{ hub.name }}</option>
         </select>
       </div>
 
       <!-- Financial Breakdown Box -->
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-5 shadow-2xs space-y-3">
-        <h4 class="text-xs font-bold text-[#1E2328] uppercase border-b border-gray-100 pb-2">Financial Breakdown</h4>
+        <h4 class="text-xs font-bold text-[#1E2328] uppercase border-b border-gray-100 pb-2">{{ $t('cart.orderSummary') }}</h4>
 
         <div class="space-y-2 text-xs">
           <div 
@@ -145,12 +145,12 @@
           </div>
 
           <div class="flex justify-between text-[#5A6270]">
-            <span>Chapa Escrow Fee & Inspection</span>
-            <span class="font-bold text-emerald-600">Included</span>
+            <span>{{ $t('cart.escrowFee') }}</span>
+            <span class="font-bold text-emerald-600">0%</span>
           </div>
 
           <div class="border-t border-dashed border-gray-200 pt-3 flex justify-between items-center text-sm font-black">
-            <span class="text-[#1E2328]">Total Payable ETB</span>
+            <span class="text-[#1E2328]">{{ $t('cart.totalPayable') }}</span>
             <span class="text-[#1E9444] text-xl">{{ formatETB(totalPayableETB) }}</span>
           </div>
         </div>
@@ -159,7 +159,7 @@
       <!-- Chapa Escrow Protection Banner -->
       <p class="text-[11px] text-[#5A6270] flex items-center gap-2 bg-[#EDFAF2] p-3.5 rounded-xl border border-[#C3EFCF]">
         <Lock class="w-4 h-4 text-[#1E9444] shrink-0" />
-        <span>Funds locked in Chapa Escrow. Payment released to farmers ONLY after driver delivery PIN handoff.</span>
+        <span>{{ $t('checkout.termsAcceptance') }}</span>
       </p>
 
       <!-- Pay Action Button -->
@@ -171,7 +171,7 @@
         <Loader2 v-if="isProcessing" class="w-4 h-4 animate-spin" />
         <span v-else class="flex items-center gap-2">
           <Lock class="w-4 h-4" />
-          <span>Proceed to Chapa Escrow Payment ({{ formatETB(totalPayableETB) }})</span>
+          <span>{{ $t('checkout.confirmAndPay') }} ({{ formatETB(totalPayableETB) }})</span>
         </span>
       </button>
 
@@ -179,9 +179,9 @@
 
     <!-- Empty State -->
     <div v-else class="text-center py-12 bg-white border border-[#E2E4E7] rounded-2xl p-6 text-[#5A6270] space-y-3">
-      <p>No produce batches selected for checkout.</p>
+      <p>{{ $t('cart.emptyCartTitle') }}</p>
       <router-link to="/buyer/marketplace" class="text-[#0B57D0] font-bold text-xs hover:underline">
-        Browse Produce Marketplace
+        {{ $t('marketplace.browseMarketplace') }}
       </router-link>
     </div>
   </div>

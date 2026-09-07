@@ -8,24 +8,25 @@
         </router-link>
 
         <nav class="hidden md:flex items-center gap-8 text-xs font-bold text-[#5A6270]">
-          <router-link to="/" class="hover:text-[#1E9444] transition-colors">Home</router-link>
-          <router-link to="/#how-it-works" class="hover:text-[#1E9444] transition-colors">How It Works</router-link>
+          <router-link to="/" class="hover:text-[#1E9444] transition-colors">{{ t('home') }}</router-link>
+          <router-link to="/#how-it-works" class="hover:text-[#1E9444] transition-colors">{{ t('howItWorks') }}</router-link>
         </nav>
 
         <div class="flex items-center gap-3">
+          <LanguageToggle />
           <ThemeToggle />
           <router-link 
             to="/login" 
             class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] hover:border-[#1E9444] text-[#1E2328] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white"
           >
-            Login
+            {{ t('login') }}
           </router-link>
           <router-link 
             to="/register?role=buyer" 
             class="px-4 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-black transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
             <UserPlus class="w-4 h-4" />
-            <span>Sign Up</span>
+            <span>{{ t('signUp') }}</span>
           </router-link>
           <button 
             v-if="isAuthenticated"
@@ -33,14 +34,14 @@
             class="px-4 py-2.5 rounded-xl bg-[#EDFAF2] text-[#0F5C2A] border border-[#C3EFCF] hover:bg-[#D8F6E0] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <User class="w-4 h-4 text-[#1E9444]" />
-            <span>Dashboard</span>
+            <span>{{ t('dashboard') }}</span>
           </button>
         </div>
       </div>
     </header>
 
     <div :class="[isStandalone ? 'max-w-3xl mx-auto px-4 py-8 flex-1 w-full space-y-6' : 'space-y-6 max-w-3xl']">
-      <button @click="$router.back()" class="text-[13px] text-[#1E9444] font-bold hover:underline cursor-pointer">← Back to Marketplace</button>
+      <button @click="$router.back()" class="text-[13px] text-[#1E9444] font-bold hover:underline cursor-pointer">{{ t('backToMarketplace') }}</button>
 
       <div v-if="listing" class="bg-white border border-[#E2E4E7] rounded-2xl overflow-hidden shadow-sm">
         
@@ -73,19 +74,19 @@
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px]">
             <div class="bg-[#F8F9FA] p-3 rounded-xl">
-              <span class="font-bold text-[#5A6270] block text-[11px]">Price</span>
-              <span class="font-black text-[#1E9444]">{{ formatETB(listing.pricePerKg) }}/kg</span>
+              <span class="font-bold text-[#5A6270] block text-[11px]">{{ t('price') }}</span>
+              <span class="font-black text-[#1E9444]">{{ formatETB(listing.pricePerKg) }}{{ t('perKg') }}</span>
             </div>
             <div class="bg-[#F8F9FA] p-3 rounded-xl">
-              <span class="font-bold text-[#5A6270] block text-[11px]">Available</span>
+              <span class="font-bold text-[#5A6270] block text-[11px]">{{ t('availableStock') }}</span>
               <span class="font-black text-[#1E2328]">{{ listing.availableQty?.toLocaleString() }} kg</span>
             </div>
             <div class="bg-[#F8F9FA] p-3 rounded-xl">
-              <span class="font-bold text-[#5A6270] block text-[11px]">Grade</span>
+              <span class="font-bold text-[#5A6270] block text-[11px]">{{ t('grade') }}</span>
               <span class="font-bold text-[#1E2328]">{{ listing.grade }}</span>
             </div>
             <div class="bg-[#F8F9FA] p-3 rounded-xl">
-              <span class="font-bold text-[#5A6270] block text-[11px]">Region</span>
+              <span class="font-bold text-[#5A6270] block text-[11px]">{{ t('region') }}</span>
               <span class="font-bold text-[#1E2328]">{{ listing.region }}</span>
             </div>
           </div>
@@ -152,14 +153,14 @@
             @click="handleCheckoutClick" 
             class="block w-full py-3.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-extrabold text-[15px] text-center shadow-md transition-all cursor-pointer"
           >
-            Proceed to Checkout
+            {{ t('buyNow') }}
           </button>
         </div>
       </div>
 
       <div v-else class="text-center py-12 bg-white rounded-2xl border border-gray-200 p-6 space-y-2">
-        <p class="text-[#5A6270] font-bold">Listing not found.</p>
-        <router-link to="/marketplace" class="text-[#1E9444] font-bold hover:underline inline-block">Browse Marketplace</router-link>
+        <p class="text-[#5A6270] font-bold">{{ t('noListingsFound') }}</p>
+        <router-link to="/marketplace" class="text-[#1E9444] font-bold hover:underline inline-block">{{ t('agriMarketplace') }}</router-link>
       </div>
     </div>
 
@@ -168,9 +169,9 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs text-[#C3EFCF] flex flex-col sm:flex-row items-center justify-between gap-4">
         <p>© 2026 Qelem Meda Technologies (QMT). Ethiopian B2B Agri-Tech Marketplace.</p>
         <div class="flex items-center gap-4">
-          <router-link to="/" class="hover:text-white">Home</router-link>
-          <router-link to="/login" class="hover:text-white">Login</router-link>
-          <router-link to="/register?role=buyer" class="hover:text-white">Register as Buyer</router-link>
+          <router-link to="/" class="hover:text-white">{{ t('home') }}</router-link>
+          <router-link to="/login" class="hover:text-white">{{ t('login') }}</router-link>
+          <router-link to="/register?role=buyer" class="hover:text-white">{{ t('registerCommercialBuyer') }}</router-link>
         </div>
       </div>
     </footer>
@@ -186,9 +187,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { User, UserPlus, Phone, CreditCard, ShieldCheck, Building2 } from 'lucide-vue-next'
 import { useListings } from '@/composables/useListings'
 import { useAuth } from '@/composables/useAuth'
+import { useLanguage } from '@/composables/useLanguage'
 import { formatETB } from '@/utils/helpers'
 import QelemMedaLogo from '@/components/common/QelemMedaLogo.vue'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import LanguageToggle from '@/components/common/LanguageToggle.vue'
 import VerifiedBadge from '@/components/shared/VerifiedBadge.vue'
 import EscrowBanner from '@/components/shared/EscrowBanner.vue'
 import BuyerAuthModal from '@/components/shared/BuyerAuthModal.vue'
@@ -197,6 +200,7 @@ const route = useRoute()
 const router = useRouter()
 const { getListingById } = useListings()
 const { isAuthenticated, user } = useAuth()
+const { t } = useLanguage()
 
 const listing = computed(() => getListingById(route.params.id))
 const activeImageIndex = ref(0)

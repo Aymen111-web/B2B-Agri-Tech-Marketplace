@@ -24,13 +24,13 @@
             <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">{{ farmer?.name || 'Dawit Bekele' }}</h1>
             <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-amber-950 flex items-center gap-1 shadow-2xs">
               <ShieldCheck class="w-3 h-3" />
-              <span>Verified Producer</span>
+              <span>{{ $t('badges.verifiedProducer') }}</span>
             </span>
           </div>
           <p class="text-xs text-[#C3EFCF] mt-0.5 font-medium flex items-center gap-1.5 flex-wrap">
-            <span>{{ farmer?.region || 'Sidama' }} Region Agricultural Member</span>
+            <span>{{ $t(farmer?.region) || 'Sidama' }} {{ $t('farmer.regionMember') }}</span>
             <span>•</span>
-            <span>{{ farmer?.phone || 'No phone set' }}</span>
+            <span>{{ farmer?.phone || $t('No phone set') }}</span>
           </p>
         </div>
       </div>
@@ -40,12 +40,12 @@
         <button @click="openEditModal" 
           class="px-4 py-2.5 bg-white/15 hover:bg-white/25 border border-white/30 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer backdrop-blur-xs">
           <Edit3 class="w-4 h-4 text-amber-300" />
-          <span>Edit Profile</span>
+          <span>{{ $t('Edit Profile') }}</span>
         </button>
         <button @click="logout" 
           class="px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 border border-red-300/40 text-red-100 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer">
           <LogOut class="w-4 h-4" />
-          <span>Sign Out</span>
+          <span>{{ $t('Sign Out') }}</span>
         </button>
       </div>
     </div>
@@ -54,7 +54,7 @@
     <div v-if="successMsg" class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center justify-between">
       <div class="flex items-center gap-2">
         <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
-        <span>{{ successMsg }}</span>
+        <span>{{ $t(successMsg) }}</span>
       </div>
       <button @click="successMsg = ''" class="text-emerald-700 hover:text-emerald-900 font-extrabold text-sm">&times;</button>
     </div>
@@ -62,58 +62,58 @@
     <!-- Producer Identity & Verification Grid -->
     <div class="bg-white border border-[#E2E4E7] rounded-2xl p-6 shadow-xs space-y-6">
       <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-        <h3 class="text-base font-black text-[#1E2328]">Producer Identity & Verification</h3>
+        <h3 class="text-base font-black text-[#1E2328]">{{ $t('farmer.farmerProfileTitle') }}</h3>
         <span class="text-xs font-bold text-[#1E9444] bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-          Chapa Escrow Settlement Ready
+          {{ $t('Chapa Escrow Settlement Ready') }}
         </span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
         <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E2E4E7]">
-          <span class="text-[#5A6270] font-bold block mb-1">Full Registered Name</span>
-          <span class="text-sm font-black text-[#1E2328]">{{ farmer?.name || 'Not set' }}</span>
+          <span class="text-[#5A6270] font-bold block mb-1">{{ $t('Registered Full Name') }}</span>
+          <span class="text-sm font-black text-[#1E2328]">{{ farmer?.name || $t('Not set') }}</span>
         </div>
 
         <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E2E4E7]">
-          <span class="text-[#5A6270] font-bold block mb-1">Mobile Phone (SMS & Alerts)</span>
-          <span class="text-sm font-black text-[#1E2328]">{{ farmer?.phone || 'Not set' }}</span>
+          <span class="text-[#5A6270] font-bold block mb-1">{{ $t('auth.mobilePhone') }}</span>
+          <span class="text-sm font-black text-[#1E2328]">{{ farmer?.phone || $t('Not set') }}</span>
         </div>
 
         <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E2E4E7]">
-          <span class="text-[#5A6270] font-bold block mb-1">Agricultural Region</span>
-          <span class="text-sm font-black text-[#1E9444]">{{ farmer?.region || 'Sidama Region' }}</span>
+          <span class="text-[#5A6270] font-bold block mb-1">{{ $t('Region') }}</span>
+          <span class="text-sm font-black text-[#1E9444]">{{ $t(farmer?.region) || 'Sidama' }}</span>
         </div>
 
         <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E2E4E7]">
-          <span class="text-[#5A6270] font-bold block mb-1">Farm Size (Hectares)</span>
-          <span class="text-sm font-black text-[#1E2328]">{{ farmer?.farmSize ? farmer.farmSize + ' Hectares' : 'Not specified' }}</span>
+          <span class="text-[#5A6270] font-bold block mb-1">{{ $t('auth.farmSizeHectares') }}</span>
+          <span class="text-sm font-black text-[#1E2328]">{{ farmer?.farmSize ? farmer.farmSize + ' ' + $t('Hectares') : $t('Not specified') }}</span>
         </div>
 
         <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E2E4E7]">
-          <span class="text-[#5A6270] font-bold block mb-1">Primary Crops</span>
+          <span class="text-[#5A6270] font-bold block mb-1">{{ $t('auth.primaryCrops') }}</span>
           <span class="text-sm font-black text-[#1E2328]">
-            {{ Array.isArray(farmer?.crops) ? farmer.crops.join(', ') : (farmer?.crops || 'Not specified') }}
+            {{ Array.isArray(farmer?.crops) ? farmer.crops.join(', ') : (farmer?.crops || $t('Not specified')) }}
           </span>
         </div>
 
         <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E2E4E7]">
-          <span class="text-[#5A6270] font-bold block mb-1">Co-op Union Membership</span>
-          <span class="text-sm font-black text-[#0B57D0]">{{ farmer?.union || 'Independent Producer' }}</span>
+          <span class="text-[#5A6270] font-bold block mb-1">{{ $t('farmer.primaryUnionCoops') }}</span>
+          <span class="text-sm font-black text-[#0B57D0]">{{ $t(farmer?.union) || $t('Independent Producer') }}</span>
         </div>
 
         <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E2E4E7] sm:col-span-2 md:col-span-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <span class="text-[#5A6270] font-bold block text-xs">Payout Account (Chapa / Bank / Telebirr)</span>
+            <span class="text-[#5A6270] font-bold block text-xs">{{ $t('farmer.payoutMethod') }}</span>
             <span class="text-sm font-black text-[#1E2328] flex items-center gap-2 mt-0.5">
               <span class="text-[#0B57D0] uppercase font-mono font-bold px-2 py-0.5 bg-blue-50 border border-blue-200 rounded-md text-xs">
                 {{ farmer?.bank_code || farmer?.bank_name || 'CBE' }}
               </span>
-              <span>{{ farmer?.account_number ? ('******' + farmer.account_number.slice(-4)) : 'Not configured' }}</span>
+              <span>{{ farmer?.account_number ? ('******' + farmer.account_number.slice(-4)) : $t('Not configured') }}</span>
               <span v-if="farmer?.account_name" class="text-xs font-semibold text-gray-500">({{ farmer.account_name }})</span>
             </span>
           </div>
           <button @click="openEditModal" class="text-xs font-black text-[#0B57D0] hover:underline self-start sm:self-auto cursor-pointer">
-            Update Payout Account &rarr;
+            {{ $t('Payout Account Settings') }} &rarr;
           </button>
         </div>
       </div>
@@ -129,8 +129,8 @@
               <UserCheck class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="text-base font-black text-[#1E2328]">Edit Farmer Profile</h3>
-              <p class="text-[11px] text-[#5A6270]">Manage producer identity, farm size, & payout setup</p>
+              <h3 class="text-base font-black text-[#1E2328]">{{ $t('Edit Farmer Profile') }}</h3>
+              <p class="text-[11px] text-[#5A6270]">{{ $t('farmer.farmerProfileSub') }}</p>
             </div>
           </div>
           <button @click="showEditModal = false" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
@@ -148,7 +148,7 @@
             ]"
           >
             <User class="w-3.5 h-3.5" />
-            <span>Credentials & Password</span>
+            <span>{{ $t('Credentials & Password') }}</span>
           </button>
           <button 
             @click="activeTab = 'farm'" 
@@ -158,33 +158,33 @@
             ]"
           >
             <Sprout class="w-3.5 h-3.5" />
-            <span>Farm & Payout Account</span>
+            <span>{{ $t('Farm & Payout Account') }}</span>
           </button>
         </div>
 
         <!-- Error Alert -->
         <div v-if="modalError" class="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl flex items-center gap-2">
           <AlertCircle class="w-4 h-4 text-red-600 shrink-0" />
-          <span>{{ modalError }}</span>
+          <span>{{ $t(modalError) }}</span>
         </div>
 
         <!-- Tab 1: Credentials & Security -->
         <div v-if="activeTab === 'credentials'" class="space-y-4 text-xs">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">First Name</label>
-              <input type="text" v-model="form.first_name" placeholder="First Name"
+              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.firstName') }}</label>
+              <input type="text" v-model="form.first_name" :placeholder="$t('auth.firstName')"
                 class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
             </div>
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">Second Name / Family</label>
-              <input type="text" v-model="form.second_name" placeholder="Second Name"
+              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.secondName') }}</label>
+              <input type="text" v-model="form.second_name" :placeholder="$t('auth.secondName')"
                 class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
             </div>
           </div>
 
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">Mobile Phone Number</label>
+            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.mobilePhone') }}</label>
             <div class="relative">
               <Phone class="w-4 h-4 text-gray-400 absolute left-3 top-3" />
               <input type="text" v-model="form.phone" placeholder="+251 912 345 678"
@@ -195,22 +195,22 @@
           <div class="pt-2 border-t border-gray-100">
             <h4 class="font-black text-[#1E2328] mb-2 flex items-center gap-1.5">
               <Key class="w-3.5 h-3.5 text-[#1E9444]" />
-              <span>Change Password (Optional)</span>
+              <span>{{ $t('Change Password (Optional)') }}</span>
             </h4>
             <div class="space-y-2.5">
               <div>
-                <label class="block text-[11px] font-bold text-gray-600 mb-1">Current Password</label>
-                <input type="password" v-model="form.current_password" placeholder="Enter current password if changing"
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('Current Password') }}</label>
+                <input type="password" v-model="form.current_password" :placeholder="$t('Enter current password if changing')"
                   class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                  <label class="block text-[11px] font-bold text-gray-600 mb-1">New Password</label>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('New Password') }}</label>
                   <input type="password" v-model="form.new_password" placeholder="At least 6 chars"
                     class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Confirm New Password</label>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('auth.confirmPassword') }}</label>
                   <input type="password" v-model="form.confirm_password" placeholder="Re-type new password"
                     class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
                 </div>
@@ -223,19 +223,19 @@
         <div v-if="activeTab === 'farm'" class="space-y-3.5 text-xs">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">Agricultural Region</label>
+              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('Region') }}</label>
               <select v-model="form.region" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all">
-                <option value="Sidama">Sidama Region</option>
-                <option value="Oromia">Oromia Region</option>
-                <option value="Amhara">Amhara Region</option>
-                <option value="SNNPR">SNNPR Region</option>
-                <option value="South Ethiopia">South Ethiopia</option>
-                <option value="Tigray">Tigray Region</option>
-                <option value="Harari">Harari Region</option>
+                <option value="Sidama">{{ $t('Sidama') }}</option>
+                <option value="Oromia">{{ $t('Oromia') }}</option>
+                <option value="Amhara">{{ $t('Amhara') }}</option>
+                <option value="SNNPR">{{ $t('SNNPR') }}</option>
+                <option value="South Ethiopia">{{ $t('South Ethiopia') }}</option>
+                <option value="Tigray">{{ $t('Tigray') }}</option>
+                <option value="Harari">{{ $t('Harari') }}</option>
               </select>
             </div>
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">Farm Size (Hectares)</label>
+              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.farmSizeHectares') }}</label>
               <input type="number" step="0.5" v-model="form.farmSize" placeholder="e.g. 14.5"
                 class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
             </div>
@@ -243,12 +243,12 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">Primary Crops (Comma separated)</label>
+              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.primaryCrops') }}</label>
               <input type="text" v-model="form.crops" placeholder="e.g. Coffee, Teff, Spices"
                 class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
             </div>
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">Co-op Union Membership</label>
+              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('farmer.primaryUnionCoops') }}</label>
               <input type="text" v-model="form.union" placeholder="e.g. Sidama Farmers Union"
                 class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
             </div>
@@ -257,11 +257,11 @@
           <div class="pt-2 border-t border-gray-100">
             <h4 class="font-black text-[#1E2328] mb-2 flex items-center gap-1.5">
               <CreditCard class="w-3.5 h-3.5 text-[#1E9444]" />
-              <span>Chapa Escrow Payout Account</span>
+              <span>{{ $t('farmer.payoutMethod') }}</span>
             </h4>
             <div class="space-y-2.5">
               <div>
-                <label class="block text-[11px] font-bold text-gray-600 mb-1">Bank / Mobile Money Provider</label>
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('farmer.payoutMethod') }}</label>
                 <select v-model="form.bank_code" class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all">
                   <option value="CBE">Commercial Bank of Ethiopia (CBE)</option>
                   <option value="TELEBIRR">Telebirr Mobile Money</option>
@@ -273,12 +273,12 @@
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Account Number / Phone</label>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('Account Number / Telebirr Phone') }}</label>
                   <input type="text" v-model="form.account_number" placeholder="1000..."
                     class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Account Holder Name</label>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('marketplace.holder') }}</label>
                   <input type="text" v-model="form.account_name" placeholder="Full name as on account"
                     class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#1E9444] focus:bg-white transition-all" />
                 </div>
@@ -290,12 +290,12 @@
         <!-- Modal Actions -->
         <div class="flex gap-2.5 pt-3 border-t border-gray-100">
           <button @click="showEditModal = false" class="flex-1 py-2.5 border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 transition-colors">
-            Cancel
+            {{ $t('Cancel') }}
           </button>
           <button @click="saveProfile" :disabled="isSaving"
             class="flex-1 py-2.5 bg-[#1E9444] hover:bg-[#167033] text-white rounded-xl font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer">
             <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" />
-            <span>Save Profile</span>
+            <span>{{ $t('Save Profile') }}</span>
           </button>
         </div>
       </div>

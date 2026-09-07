@@ -4,17 +4,17 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E4E7] pb-4">
       <div>
         <h1 class="text-2xl font-black text-[#1E2328] tracking-tight">
-          Procurement <span class="text-[#0B57D0]">Orders & Escrow</span> 📦
+          {{ $t('orders.title') }} 📦
         </h1>
         <p class="text-xs text-[#5A6270] mt-0.5">
-          Track agricultural crop shipments, monitor Chapa escrow funds, and verify driver delivery PINs.
+          {{ $t('orders.subtitle') }}
         </p>
       </div>
 
       <router-link to="/buyer/marketplace" 
         class="px-4 py-2 bg-[#E69500] text-white rounded-xl text-xs font-extrabold hover:bg-[#D48900] transition-colors self-start sm:self-auto flex items-center gap-1.5 shadow-2xs">
         <Store class="w-4 h-4" />
-        <span>Source Produce</span>
+        <span>{{ $t('cart.sourceProduce') }}</span>
       </router-link>
     </div>
 
@@ -22,38 +22,38 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 shadow-2xs">
         <div class="flex items-center justify-between text-[#5A6270]">
-          <span class="text-[11px] font-bold uppercase">Total Orders</span>
+          <span class="text-[11px] font-bold uppercase">{{ $t('orders.totalOrders') }}</span>
           <Package class="w-4 h-4 text-[#0B57D0]" />
         </div>
         <p class="text-2xl font-black text-[#1E2328] mt-1">{{ orders.length }}</p>
-        <span class="text-[11px] text-[#5A6270] font-medium">B2B procurement batches</span>
+        <span class="text-[11px] text-[#5A6270] font-medium">{{ $t('B2B procurement batches') }}</span>
       </div>
 
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 shadow-2xs">
         <div class="flex items-center justify-between text-[#5A6270]">
-          <span class="text-[11px] font-bold uppercase">Active Shipments</span>
+          <span class="text-[11px] font-bold uppercase">{{ $t('orders.activeShipments') }}</span>
           <Truck class="w-4 h-4 text-[#E69500]" />
         </div>
         <p class="text-2xl font-black text-[#1E2328] mt-1">{{ activeShipmentsCount }}</p>
-        <span class="text-[11px] text-amber-700 font-semibold">En route or dispatched</span>
+        <span class="text-[11px] text-amber-700 font-semibold">{{ $t('En route or dispatched') }}</span>
       </div>
 
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 shadow-2xs">
         <div class="flex items-center justify-between text-[#5A6270]">
-          <span class="text-[11px] font-bold uppercase">Escrow Locked</span>
+          <span class="text-[11px] font-bold uppercase">{{ $t('orders.escrowLocked') }}</span>
           <ShieldCheck class="w-4 h-4 text-[#1E9444]" />
         </div>
         <p class="text-2xl font-black text-[#1E2328] mt-1">{{ formatETB(totalEscrowLockedETB) }}</p>
-        <span class="text-[11px] text-[#1E9444] font-semibold">Secured capital</span>
+        <span class="text-[11px] text-[#1E9444] font-semibold">{{ $t('Secured capital') }}</span>
       </div>
 
       <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 shadow-2xs">
         <div class="flex items-center justify-between text-[#5A6270]">
-          <span class="text-[11px] font-bold uppercase">Completed</span>
+          <span class="text-[11px] font-bold uppercase">{{ $t('orders.completed') }}</span>
           <CheckCircle2 class="w-4 h-4 text-emerald-600" />
         </div>
         <p class="text-2xl font-black text-[#1E2328] mt-1">{{ completedOrdersCount }}</p>
-        <span class="text-[11px] text-emerald-700 font-semibold">Funds released to farmer</span>
+        <span class="text-[11px] text-emerald-700 font-semibold">{{ $t('Funds released to farmer') }}</span>
       </div>
     </div>
 
@@ -64,7 +64,7 @@
         <button v-for="tab in filterTabs" :key="tab.value" @click="activeTab = tab.value"
           :class="['px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border cursor-pointer flex items-center gap-1.5',
             activeTab === tab.value ? 'bg-[#0B57D0] text-white border-[#0B57D0] shadow-xs' : 'bg-white text-[#5A6270] border-[#E2E4E7] hover:border-[#0B57D0]']">
-          <span>{{ tab.label }}</span>
+          <span>{{ $t(tab.label) }}</span>
           <span v-if="getTabCount(tab.value) > 0" 
             :class="['px-1.5 py-0.2 rounded-full text-[10px] font-bold', activeTab === tab.value ? 'bg-white/20 text-white' : 'bg-gray-100 text-[#5A6270]']">
             {{ getTabCount(tab.value) }}
@@ -76,7 +76,7 @@
       <div class="w-full sm:w-64">
         <div class="relative">
           <Search class="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2.5" />
-          <input type="text" v-model="searchQuery" placeholder="Search order ID, crop, farmer..." 
+          <input type="text" v-model="searchQuery" :placeholder="$t('orders.searchOrders')" 
             class="w-full pl-8 pr-3 py-1.5 bg-white border border-[#E2E4E7] rounded-xl text-xs font-bold text-[#1E2328] focus:outline-none focus:border-[#0B57D0] shadow-2xs" />
         </div>
       </div>
@@ -85,10 +85,10 @@
     <!-- Orders List -->
     <div v-if="filteredOrders.length === 0" class="text-center py-12 bg-white rounded-2xl border border-[#E2E4E7] space-y-2">
       <Package class="w-10 h-10 text-gray-400 mx-auto" />
-      <p class="font-bold text-sm text-[#1E2328]">No procurement orders found</p>
-      <p class="text-xs text-[#5A6270]">Explore the marketplace to initiate a fresh agricultural procurement batch.</p>
+      <p class="font-bold text-sm text-[#1E2328]">{{ $t('orders.noOrdersTitle') }}</p>
+      <p class="text-xs text-[#5A6270]">{{ $t('orders.noOrdersSub') }}</p>
       <router-link to="/buyer/marketplace" class="inline-block mt-2 px-4 py-2 bg-[#E69500] text-white rounded-xl text-xs font-extrabold hover:bg-[#D48900]">
-        Go to Marketplace
+        {{ $t('marketplace.browseMarketplace') }}
       </router-link>
     </div>
 
@@ -104,17 +104,17 @@
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h4 class="text-base font-black text-[#1E2328]">{{ order.listing?.cropName || 'Produce Batch' }}</h4>
+                  <h4 class="text-base font-black text-[#1E2328]">{{ $t(order.listing?.cropName) || $t('Produce Batch') }}</h4>
                   <span class="px-2 py-0.5 bg-gray-100 text-[#5A6270] rounded-md text-[11px] font-bold">
                     {{ order.quantityKg?.toLocaleString() }} kg
                   </span>
                 </div>
                 <p class="text-xs text-[#5A6270] mt-0.5 flex flex-wrap items-center gap-2">
-                  <span class="font-bold text-[#1E2328]">Order #{{ order.id }}</span>
+                  <span class="font-bold text-[#1E2328]">{{ $t('orders.orderId') }} #{{ order.id }}</span>
                   <span>•</span>
-                  <span>Farmer: <strong class="text-[#1E2328]">{{ order.farmer?.name || 'Dawit Bekele' }}</strong></span>
+                  <span>{{ $t('orders.farmer') }}: <strong class="text-[#1E2328]">{{ order.farmer?.name || 'Dawit Bekele' }}</strong></span>
                   <span>•</span>
-                  <span>Region: <strong class="text-[#1E2328]">{{ order.listing?.region || 'Oromia Co-op' }}</strong></span>
+                  <span>{{ $t('Region') }}: <strong class="text-[#1E2328]">{{ order.listing?.region || 'Oromia Co-op' }}</strong></span>
                 </p>
               </div>
             </div>
@@ -122,7 +122,7 @@
             <!-- Price & Status Badge -->
             <div class="flex items-center gap-3 self-start sm:self-auto">
               <span :class="['px-3 py-1 rounded-full text-xs font-extrabold capitalize border shadow-2xs', statusBadgeClass(order.status || 'placed')]">
-                {{ (order.status || 'placed').replace('_', ' ') }}
+                {{ $t((order.status || 'placed').replace('_', ' ')) }}
               </span>
               <span class="text-lg font-black text-[#0B57D0]">{{ formatETB(order.totalAmountETB || 0) }}</span>
             </div>
@@ -132,7 +132,7 @@
           <div class="flex flex-wrap items-center justify-between gap-2 pt-2 text-xs">
             <div class="flex items-center gap-2 text-[#0F5C2A] bg-[#EDFAF2] px-3 py-1.5 rounded-xl border border-[#C3EFCF]">
               <ShieldCheck class="w-4 h-4 text-[#1E9444]" />
-              <span class="font-bold">Chapa Escrow Ref:</span>
+              <span class="font-bold">{{ $t('Chapa Escrow Ref') }}:</span>
               <span class="font-mono text-[11px] font-bold">{{ order.escrowReference }}</span>
             </div>
 
@@ -140,7 +140,7 @@
               <button @click="toggleLifecycleDrawer(order.id)" 
                 class="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#1E2328] font-bold transition-colors flex items-center gap-1.5 cursor-pointer">
                 <ChevronDown :class="['w-3.5 h-3.5 transition-transform', expandedLifecycleOrders[order.id] ? 'rotate-180' : '']" />
-                <span>{{ expandedLifecycleOrders[order.id] ? 'Hide Progress' : 'View Order Lifecycle' }}</span>
+                <span>{{ expandedLifecycleOrders[order.id] ? $t('Hide Progress') : $t('View Order Lifecycle') }}</span>
               </button>
             </div>
           </div>
@@ -154,23 +154,23 @@
               <Key class="w-4 h-4" />
             </div>
             <div>
-              <p class="font-bold text-[#1E2328]">Driver Delivery PIN Verification Required</p>
+              <p class="font-bold text-[#1E2328]">{{ $t('Driver Delivery PIN Verification Required') }}</p>
               <p class="text-[11px] text-amber-800">
-                Driver <strong class="underline">Abebe Tadesse</strong> is delivering batch #{{ order.id }}. Enter PIN to release escrow payment.
+                {{ $t('Driver delivery PIN prompt') }} #{{ order.id }}. {{ $t('Enter PIN to release escrow payment.') }}
               </p>
             </div>
           </div>
           <button @click="openDeliveryModal(order)" 
             class="px-4 py-2 bg-[#E69500] text-white rounded-xl font-extrabold hover:bg-[#D48900] transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0">
             <CheckCircle2 class="w-4 h-4" />
-            <span>Enter Delivery PIN</span>
+            <span>{{ $t('Enter Delivery PIN') }}</span>
           </button>
         </div>
 
         <div v-else-if="order.status === 'delivered' || order.status === 'completed'" 
           class="bg-emerald-50/70 border-b border-emerald-200/80 p-3 px-5 flex items-center gap-2 text-xs text-emerald-800 font-bold">
           <CheckCircle2 class="w-4 h-4 text-[#1E9444]" />
-          <span>Delivery confirmed & Chapa Escrow funds released to farmer.</span>
+          <span>{{ $t('Delivery confirmed & Chapa Escrow funds released to farmer.') }}</span>
         </div>
 
         <!-- Collapsible Vertical Lifecycle Drawer -->
@@ -186,7 +186,7 @@
         <div class="flex items-center justify-between border-b pb-3">
           <div class="flex items-center gap-2">
             <ShieldCheck class="w-5 h-5 text-[#1E9444]" />
-            <h3 class="text-base font-bold">Confirm Delivery & Release Escrow</h3>
+            <h3 class="text-base font-bold">{{ $t('orders.confirmDelivery') }}</h3>
           </div>
           <button @click="selectedOrderForPIN = null" class="p-1 text-gray-400 hover:text-gray-600">
             <X class="w-5 h-5" />
@@ -195,33 +195,33 @@
 
         <div class="space-y-2 text-xs">
           <p class="text-[#5A6270]">
-            Please enter the 4-digit Driver Delivery PIN provided upon physical handover of 
-            <span class="font-bold text-[#1E2328]">{{ selectedOrderForPIN.listing?.cropName }}</span>.
+            {{ $t('orders.handoffInstruction') }}
+            <span class="font-bold text-[#1E2328]">{{ $t(selectedOrderForPIN.listing?.cropName) }}</span>.
           </p>
           <div class="p-3 bg-[#F8F9FA] rounded-xl space-y-1">
             <div class="flex justify-between font-semibold">
-              <span>Order ID:</span>
+              <span>{{ $t('orders.orderId') }}:</span>
               <span class="font-bold">#{{ selectedOrderForPIN.id }}</span>
             </div>
             <div class="flex justify-between font-semibold">
-              <span>Escrow Release Payout:</span>
+              <span>{{ $t('Escrow Release Payout') }}:</span>
               <span class="text-[#0B57D0] font-black">{{ formatETB(selectedOrderForPIN.totalAmountETB) }}</span>
             </div>
           </div>
         </div>
 
         <div class="space-y-1">
-          <label class="text-xs font-bold text-[#1E2328]">4-Digit Delivery PIN</label>
+          <label class="text-xs font-bold text-[#1E2328]">{{ $t('orders.deliveryPin') }}</label>
           <input type="text" v-model="deliveryPin" maxlength="6" placeholder="e.g. 8921" 
             class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-center text-lg font-black tracking-widest focus:outline-none focus:border-[#0B57D0]" />
         </div>
 
         <div class="flex gap-2 pt-2">
           <button @click="selectedOrderForPIN = null" class="flex-1 py-2.5 border border-gray-300 rounded-xl font-bold text-xs hover:bg-gray-50">
-            Cancel
+            {{ $t('Cancel') }}
           </button>
           <button @click="submitDeliveryPin" class="flex-1 py-2.5 bg-[#1E9444] text-white rounded-xl font-bold text-xs hover:bg-[#0F5C2A] shadow-2xs">
-            Confirm & Release Payout
+            {{ $t('orders.releaseFunds') }}
           </button>
         </div>
       </div>

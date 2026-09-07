@@ -6,21 +6,21 @@
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <Users class="w-5 h-5 text-white" />
           </div>
-          <h1 class="text-[28px] font-black text-[#1E2328] tracking-tight">System Access & Users</h1>
+          <h1 class="text-[28px] font-black text-[#1E2328] tracking-tight">{{ $t('admin.systemUsersTitle') }}</h1>
         </div>
         <p class="text-[14px] font-medium text-[#5A6270] max-w-xl">
-          Manage platform participants, verified capabilities, and enforce system access policies.
+          {{ $t('admin.systemUsersSub') }}
         </p>
       </div>
       <div class="flex items-center gap-3 z-10">
         <div class="flex items-center bg-white border border-[#E2E4E7] rounded-xl p-1 shadow-xs">
-          <span class="px-3 py-1.5 text-[11px] font-black uppercase text-[#1E2328]">Total Users:</span>
+          <span class="px-3 py-1.5 text-[11px] font-black uppercase text-[#1E2328]">{{ $t('admin.totalUsers') }}</span>
           <span class="px-2.5 py-1 bg-[#F0F1F2] text-[#1E2328] rounded-lg text-xs font-bold">{{ users.length }}</span>
         </div>
         <button @click="loadUsers" :disabled="isLoading" 
-          class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] bg-white text-[13px] font-bold text-[#1E2328] hover:bg-[#F8F9FA] hover:shadow-md transition-all active:scale-95 flex items-center gap-2 group">
+          class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] bg-white text-[13px] font-bold text-[#1E2328] hover:bg-[#F8F9FA] hover:shadow-md transition-all active:scale-95 flex items-center gap-2 group cursor-pointer">
           <RefreshCcw :class="['w-4 h-4 text-[#5A6270] group-hover:text-indigo-600 transition-colors', isLoading && 'animate-spin']" /> 
-          Refresh
+          {{ $t('admin.refresh') }}
         </button>
       </div>
       <div class="absolute right-0 top-0 w-64 h-32 bg-indigo-50 rounded-full blur-[80px] -z-0 opacity-60"></div>
@@ -31,8 +31,8 @@
         <div class="absolute inset-0 bg-gradient-to-tr from-indigo-100 to-transparent opacity-50"></div>
         <Loader2 class="w-8 h-8 text-indigo-500 animate-spin relative z-10" />
       </div>
-      <p class="text-xs font-black text-[#1E2328] uppercase tracking-wider mt-2">Syncing Directory</p>
-      <p class="text-[11px] text-[#9BA1AA] font-bold mt-1">Fetching latest platform participants...</p>
+      <p class="text-xs font-black text-[#1E2328] uppercase tracking-wider mt-2">{{ $t('admin.syncingDirectory') }}</p>
+      <p class="text-[11px] text-[#9BA1AA] font-bold mt-1">{{ $t('admin.fetchingParticipants') }}</p>
     </div>
 
     <div v-else-if="users.length === 0" class="text-center py-20 bg-white border border-[#E2E4E7] rounded-[24px] px-8 shadow-sm relative overflow-hidden group">
@@ -41,9 +41,9 @@
         <div class="w-20 h-20 mx-auto bg-[#F8F9FA] rounded-full flex items-center justify-center shadow-inner mb-4 border border-[#E2E4E7]">
           <UserX class="w-10 h-10 text-[#5A6270] opacity-40" />
         </div>
-        <h3 class="text-[18px] font-extrabold text-[#1E2328] tracking-tight">No Users Found</h3>
+        <h3 class="text-[18px] font-extrabold text-[#1E2328] tracking-tight">{{ $t('admin.noUsersFound') }}</h3>
         <p class="text-[13px] font-medium text-[#5A6270] mt-1.5 max-w-sm mx-auto">
-          The system query returned an empty participant set.
+          {{ $t('admin.noUsersSub') }}
         </p>
       </div>
     </div>
@@ -71,20 +71,20 @@
               </h3>
               
               <div class="flex items-center gap-1.5">
-                <span v-if="user.is_admin" class="inline-flex w-fit px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200 shadow-2xs">Admin</span>
+                <span v-if="user.is_admin" class="inline-flex w-fit px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200 shadow-2xs">{{ $t('nav.roleAdmin') }}</span>
                 <template v-else-if="user.capabilities && user.capabilities.length > 0">
                   <span v-for="cap in user.capabilities" :key="cap.id"
                     :class="['inline-flex w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs', 
                       cap.capability_type === 'farmer' ? 'bg-[#EDFAF2] text-[#0F5C2A] border border-[#C3EFCF]' : 'bg-sky-50 text-sky-700 border border-sky-200']">
-                    {{ cap.capability_type }}
+                    {{ $t(cap.capability_type) }}
                   </span>
                 </template>
-                <span v-else class="inline-flex w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-2xs">Unverified</span>
+                <span v-else class="inline-flex w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-2xs">{{ $t('admin.unverified') }}</span>
               </div>
             </div>
             
             <div class="flex items-center gap-4 mt-2 text-[12px] font-semibold text-[#5A6270]">
-              <span class="flex items-center gap-1.5"><Phone class="w-3.5 h-3.5 opacity-60" /> {{ user.phone || 'No phone' }}</span>
+              <span class="flex items-center gap-1.5"><Phone class="w-3.5 h-3.5 opacity-60" /> {{ user.phone || $t('common.notProvided') }}</span>
               <span class="flex items-center gap-1.5"><Calendar class="w-3.5 h-3.5 opacity-60" /> {{ formatDate(user.created_at) }}</span>
             </div>
           </div>
@@ -92,25 +92,25 @@
 
         <div class="mt-4 lg:mt-0 lg:w-[25%] flex flex-col justify-center">
           <div class="flex flex-col gap-1">
-            <span class="text-[10px] font-black uppercase tracking-wider text-[#9BA1AA]">Account Status</span>
+            <span class="text-[10px] font-black uppercase tracking-wider text-[#9BA1AA]">{{ $t('admin.accountStatus') }}</span>
             <span :class="['inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold w-fit shadow-2xs border border-transparent', 
               user.account_status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700']">
               <CheckCircle2 v-if="user.account_status === 'active'" class="w-3.5 h-3.5" />
               <Ban v-else class="w-3.5 h-3.5" />
-              <span class="capitalize">{{ user.account_status || 'active' }}</span>
+              <span class="capitalize">{{ $t(user.account_status || 'active') }}</span>
             </span>
           </div>
         </div>
 
         <div class="mt-5 pt-5 border-t border-[#E2E4E7] lg:border-t-0 lg:mt-0 lg:pt-0 lg:w-[20%] flex lg:justify-end">
           <button v-if="!user.is_admin" @click="toggleStatus(user)" 
-            :class="['w-full lg:w-auto px-5 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2', 
+            :class="['w-full lg:w-auto px-5 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer', 
             user.account_status === 'active' ? 'bg-white border-2 border-red-100 text-red-600 hover:bg-red-50 hover:border-red-200' : 'bg-[#1E9444] text-white hover:bg-[#0F5C2A] shadow-emerald-500/20']">
             <template v-if="user.account_status === 'active'">
-              <Lock class="w-4 h-4" /> Suspend
+              <Lock class="w-4 h-4" /> {{ $t('admin.suspend') }}
             </template>
             <template v-else>
-              <Unlock class="w-4 h-4" /> Activate
+              <Unlock class="w-4 h-4" /> {{ $t('admin.activate') }}
             </template>
           </button>
         </div>
@@ -135,7 +135,6 @@ const loadUsers = async () => {
     users.value = res.data || res
   } catch (err) {
     users.value = []
-    alert(err.message || 'Failed to fetch users from server.')
   } finally {
     isLoading.value = false
   }
@@ -144,8 +143,6 @@ const loadUsers = async () => {
 onMounted(loadUsers)
 
 const toggleStatus = async (user) => {
-  if (!confirm(`Are you sure you want to ${user.account_status === 'active' ? 'suspend' : 'activate'} this user?`)) return
-  
   try {
     if (user.account_status === 'active') {
       await adminApi.suspendUser(user.id)
