@@ -12,7 +12,7 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <button @click="showEditModal = true" 
+        <button @click="openEditModal" 
           class="px-4 py-2 bg-white border border-[#E2E4E7] hover:border-[#0B57D0] text-[#1E2328] hover:text-[#0B57D0] rounded-xl text-xs font-extrabold transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
           <Edit3 class="w-3.5 h-3.5 text-[#0B57D0]" />
           <span>Edit Profile</span>
@@ -25,14 +25,23 @@
       </div>
     </div>
 
-    <!-- Redesigned Identity Header Card with Photo Change & Compact Small Badges -->
+    <!-- Success Toast Notification -->
+    <div v-if="successMsg" class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
+        <span>{{ successMsg }}</span>
+      </div>
+      <button @click="successMsg = ''" class="text-emerald-700 hover:text-emerald-900 font-extrabold text-sm">&times;</button>
+    </div>
+
+    <!-- Identity Header Card -->
     <div class="bg-white border border-[#E2E4E7] rounded-2xl p-6 shadow-2xs space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center gap-5">
         <!-- Avatar with Interactive Photo Upload Button -->
         <div class="relative group cursor-pointer" @click="triggerPhotoUpload">
-          <div v-if="customPhotoUrl" 
+          <div v-if="customPhotoUrl || user?.avatar" 
             class="w-18 h-18 rounded-2xl overflow-hidden border-2 border-[#0B57D0] shadow-md">
-            <img :src="customPhotoUrl" alt="Profile" class="w-full h-full object-cover" />
+            <img :src="customPhotoUrl || user?.avatar" alt="Profile" class="w-full h-full object-cover" />
           </div>
           <div v-else 
             class="w-18 h-18 rounded-2xl bg-gradient-to-br from-[#0B57D0] via-[#09429E] to-[#1E9444] text-white flex items-center justify-center text-2xl font-black shadow-md border-2 border-amber-300">
@@ -53,25 +62,25 @@
 
         <div class="space-y-1.5 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
-            <h2 class="text-xl font-black text-[#1E2328] tracking-tight">{{ user?.name || user?.first_name || 'Buyer Account' }}</h2>
+            <h2 class="text-xl font-black text-[#1E2328] tracking-tight">{{ user?.name || 'Buyer Account' }}</h2>
             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
               <ShieldCheck class="w-3.5 h-3.5 text-[#1E9444]" />
               <span>Verified Buyer</span>
             </span>
           </div>
 
-          <p class="text-xs text-[#5A6270] flex items-center gap-2 font-semibold">
+          <p class="text-xs text-[#5A6270] flex items-center gap-2 font-semibold flex-wrap">
             <Phone class="w-3.5 h-3.5 text-[#0B57D0]" />
-            <span>{{ user?.phone || 'Loading...' }}</span>
+            <span>{{ user?.phone || 'No phone set' }}</span>
             <span>•</span>
-            <span class="text-[#1E2328]">{{ profileData.region || 'Region not set' }}</span>
+            <span class="text-[#1E2328]">{{ user?.region || 'Addis Ababa' }}</span>
             <span>•</span>
             <button @click="triggerPhotoUpload" class="text-[11px] font-extrabold text-[#0B57D0] hover:underline">
               Change Photo
             </button>
           </p>
 
-          <!-- Small Compact Badges (Dynamic or Removed) -->
+          <!-- Badges -->
           <div class="pt-1 flex items-center gap-2 flex-wrap">
             <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-blue-50 text-[#0B57D0] border border-blue-200 flex items-center gap-1">
               <Wallet class="w-3 h-3 text-[#0B57D0]" />
@@ -101,19 +110,23 @@
         <div class="space-y-3 text-xs">
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Registered Full Name:</span>
-            <span class="font-bold text-[#1E2328]">{{ user?.name || user?.first_name || 'Buyer' }}</span>
+            <span class="font-bold text-[#1E2328]">{{ user?.name || 'Not set' }}</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-gray-50">
+            <span class="text-[#5A6270] font-semibold">Phone Number:</span>
+            <span class="font-bold text-[#1E2328]">{{ user?.phone || 'Not set' }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Business / Company Name:</span>
-            <span class="font-bold text-[#1E2328]">{{ profileData.businessName || 'Not specified' }}</span>
+            <span class="font-bold text-[#1E2328]">{{ user?.businessName || 'Not specified' }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Tax Identification (TIN):</span>
-            <span class="font-mono font-bold text-[#1E2328]">{{ profileData.tinNumber || 'Not specified' }}</span>
+            <span class="font-mono font-bold text-[#1E2328]">{{ user?.tinNumber || 'Not specified' }}</span>
           </div>
           <div class="flex justify-between py-1.5">
             <span class="text-[#5A6270] font-semibold">Primary Commercial Region:</span>
-            <span class="font-bold text-[#0B57D0]">{{ profileData.region }}</span>
+            <span class="font-bold text-[#0B57D0]">{{ user?.region || 'Addis Ababa' }}</span>
           </div>
         </div>
       </div>
@@ -122,71 +135,176 @@
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
           <div class="flex items-center gap-2">
             <CreditCard class="w-4 h-4 text-[#E69500]" />
-            <h3 class="text-sm font-bold text-[#1E2328]">Logistics & Escrow Security</h3>
+            <h3 class="text-sm font-bold text-[#1E2328]">Logistics & Security</h3>
           </div>
-          <span class="text-[10px] font-extrabold text-[#E69500] bg-amber-50 px-2 py-0.5 rounded-md">Chapa Active</span>
+          <span class="text-[10px] font-extrabold text-[#E69500] bg-amber-50 px-2 py-0.5 rounded-md">Active</span>
         </div>
 
         <div class="space-y-3 text-xs">
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Default Delivery Hub:</span>
-            <span class="font-bold text-[#1E2328]">{{ profileData.deliveryHub || 'Not configured' }}</span>
+            <span class="font-bold text-[#1E2328]">{{ user?.deliveryHub || 'Kality Central Hub' }}</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">Escrow Provider:</span>
-            <span class="font-bold text-[#1E9444]">Chapa Payment Guarantee</span>
+            <span class="text-[#5A6270] font-semibold">Escrow Security:</span>
+            <span class="font-bold text-[#1E9444]">Chapa Escrow Protected</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-gray-50">
             <span class="text-[#5A6270] font-semibold">Settlement Currency:</span>
             <span class="font-bold text-[#1E2328]">ETB (Ethiopian Birr)</span>
           </div>
           <div class="flex justify-between py-1.5">
-            <span class="text-[#5A6270] font-semibold">Driver Verification:</span>
-            <span class="font-bold text-[#0B57D0]">4-Digit PIN Handover</span>
+            <span class="text-[#5A6270] font-semibold">Handover Auth:</span>
+            <span class="font-bold text-[#0B57D0]">4-Digit Dynamic PIN</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Edit Profile Modal -->
-    <div v-if="showEditModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div class="max-w-md w-full bg-white rounded-2xl p-6 shadow-2xl space-y-4 text-[#1E2328]">
-        <div class="flex items-center justify-between border-b pb-3">
-          <div class="flex items-center gap-2">
-            <Edit3 class="w-5 h-5 text-[#0B57D0]" />
-            <h3 class="text-base font-bold">Edit Commercial Profile</h3>
+    <!-- Edit Profile Modal with Tabbed Sections -->
+    <div v-if="showEditModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="max-w-lg w-full bg-white rounded-3xl p-6 shadow-2xl space-y-5 text-[#1E2328] border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 bg-blue-50 text-[#0B57D0] rounded-xl">
+              <UserCheck class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-base font-black text-[#1E2328]">Edit Buyer Profile</h3>
+              <p class="text-[11px] text-[#5A6270]">Manage credentials, security, & commercial info</p>
+            </div>
           </div>
-          <button @click="showEditModal = false" class="p-1 text-gray-400 hover:text-gray-600">
+          <button @click="showEditModal = false" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
             <X class="w-5 h-5" />
           </button>
         </div>
 
-        <div class="space-y-3 text-xs">
-          <div>
-            <label class="block font-bold text-[#1E2328] mb-1">Company / Business Name</label>
-            <input type="text" v-model="profileData.businessName" 
-              class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0]" />
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-gray-100 text-xs font-bold gap-4">
+          <button 
+            @click="activeTab = 'credentials'" 
+            :class="[
+              'pb-2.5 border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer',
+              activeTab === 'credentials' ? 'border-[#0B57D0] text-[#0B57D0]' : 'border-transparent text-gray-500 hover:text-gray-800'
+            ]"
+          >
+            <User class="w-3.5 h-3.5" />
+            <span>Credentials & Password</span>
+          </button>
+          <button 
+            @click="activeTab = 'commercial'" 
+            :class="[
+              'pb-2.5 border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer',
+              activeTab === 'commercial' ? 'border-[#0B57D0] text-[#0B57D0]' : 'border-transparent text-gray-500 hover:text-gray-800'
+            ]"
+          >
+            <Building2 class="w-3.5 h-3.5" />
+            <span>Commercial & Logistics</span>
+          </button>
+        </div>
+
+        <!-- Error Alert -->
+        <div v-if="modalError" class="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl flex items-center gap-2">
+          <AlertCircle class="w-4 h-4 text-red-600 shrink-0" />
+          <span>{{ modalError }}</span>
+        </div>
+
+        <!-- Tab 1: Credentials & Security -->
+        <div v-if="activeTab === 'credentials'" class="space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-extrabold text-[#1E2328] mb-1">First Name</label>
+              <input type="text" v-model="form.first_name" placeholder="First Name"
+                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#1E2328] mb-1">Second Name / Family</label>
+              <input type="text" v-model="form.second_name" placeholder="Second Name"
+                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+            </div>
           </div>
 
           <div>
-            <label class="block font-bold text-[#1E2328] mb-1">Commercial Region</label>
-            <input type="text" v-model="profileData.region" 
-              class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0]" />
+            <label class="block font-extrabold text-[#1E2328] mb-1">Mobile Phone Number</label>
+            <div class="relative">
+              <Phone class="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <input type="text" v-model="form.phone" placeholder="+251 911 000 000"
+                class="w-full pl-9 pr-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+            </div>
           </div>
 
-          <div>
-            <label class="block font-bold text-[#1E2328] mb-1">Default Delivery Destination Hub</label>
-            <input type="text" v-model="profileData.deliveryHub" 
-              class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0]" />
+          <div class="pt-2 border-t border-gray-100">
+            <h4 class="font-black text-[#1E2328] mb-2 flex items-center gap-1.5">
+              <Key class="w-3.5 h-3.5 text-[#0B57D0]" />
+              <span>Change Password (Optional)</span>
+            </h4>
+            <div class="space-y-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-gray-600 mb-1">Current Password</label>
+                <input type="password" v-model="form.current_password" placeholder="Enter current password if changing"
+                  class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">New Password</label>
+                  <input type="password" v-model="form.new_password" placeholder="At least 6 chars"
+                    class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-600 mb-1">Confirm New Password</label>
+                  <input type="password" v-model="form.confirm_password" placeholder="Re-type new password"
+                    class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="flex gap-2 pt-2">
-          <button @click="showEditModal = false" class="flex-1 py-2.5 border border-gray-300 rounded-xl font-bold text-xs hover:bg-gray-50">
+        <!-- Tab 2: Commercial & Logistics -->
+        <div v-if="activeTab === 'commercial'" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block font-extrabold text-[#1E2328] mb-1">Company / Business Name</label>
+            <input type="text" v-model="form.businessName" placeholder="e.g. Addis Supermarket PLC"
+              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+          </div>
+
+          <div>
+            <label class="block font-extrabold text-[#1E2328] mb-1">Tax Identification Number (TIN)</label>
+            <input type="text" v-model="form.tinNumber" placeholder="e.g. 0098765432"
+              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+          </div>
+
+          <div>
+            <label class="block font-extrabold text-[#1E2328] mb-1">Commercial Region</label>
+            <select v-model="form.region" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all">
+              <option value="Addis Ababa">Addis Ababa</option>
+              <option value="Oromia">Oromia</option>
+              <option value="Amhara">Amhara</option>
+              <option value="Sidama">Sidama</option>
+              <option value="SNNPR">SNNPR</option>
+              <option value="Dire Dawa">Dire Dawa</option>
+              <option value="Somali">Somali</option>
+              <option value="Tigray">Tigray</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-extrabold text-[#1E2328] mb-1">Default Delivery Destination Hub</label>
+            <input type="text" v-model="form.deliveryHub" placeholder="e.g. Kality Central Logistics Depot"
+              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+          </div>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="flex gap-2.5 pt-3 border-t border-gray-100">
+          <button @click="showEditModal = false" class="flex-1 py-2.5 border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 transition-colors">
             Cancel
           </button>
-          <button @click="saveProfile" class="flex-1 py-2.5 bg-[#0B57D0] text-white rounded-xl font-bold text-xs hover:bg-[#09429E] shadow-2xs">
-            Save Changes
+          <button @click="saveProfile" :disabled="isSaving"
+            class="flex-1 py-2.5 bg-[#0B57D0] hover:bg-[#09429E] text-white rounded-xl font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer">
+            <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" />
+            <span>Save Profile</span>
           </button>
         </div>
       </div>
@@ -196,21 +314,51 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { ShieldCheck, Phone, Building2, CreditCard, Edit3, LogOut, Camera, Wallet, Clock, X } from 'lucide-vue-next'
+import { 
+  ShieldCheck, Phone, Building2, CreditCard, Edit3, LogOut, 
+  Camera, Wallet, Clock, X, User, Key, UserCheck, AlertCircle, CheckCircle2, Loader2 
+} from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import { api } from '@/services/api'
 
-const { user, logout } = useAuth()
+const { user, logout, updateUserProfile } = useAuth()
 const showEditModal = ref(false)
+const activeTab = ref('credentials')
 const fileInput = ref(null)
 const customPhotoUrl = ref(null)
+const modalError = ref('')
+const successMsg = ref('')
+const isSaving = ref(false)
 
-const profileData = reactive({
-  businessName: user.value?.businessName || '',
-  tinNumber: user.value?.tinNumber || '',
-  region: user.value?.region || '',
-  deliveryHub: user.value?.deliveryHub || '',
+const form = reactive({
+  first_name: '',
+  second_name: '',
+  phone: '',
+  current_password: '',
+  new_password: '',
+  confirm_password: '',
+  businessName: '',
+  tinNumber: '',
+  region: '',
+  deliveryHub: ''
 })
+
+const openEditModal = () => {
+  modalError.value = ''
+  const nameParts = (user.value?.name || '').split(' ')
+  form.first_name = user.value?.first_name || nameParts[0] || ''
+  form.second_name = user.value?.second_name || nameParts.slice(1).join(' ') || ''
+  form.phone = user.value?.phone || ''
+  form.current_password = ''
+  form.new_password = ''
+  form.confirm_password = ''
+  form.businessName = user.value?.businessName || ''
+  form.tinNumber = user.value?.tinNumber || ''
+  form.region = user.value?.region || 'Addis Ababa'
+  form.deliveryHub = user.value?.deliveryHub || 'Kality Central Hub'
+  activeTab.value = 'credentials'
+  showEditModal.value = true
+}
 
 const triggerPhotoUpload = () => {
   if (fileInput.value) {
@@ -226,6 +374,7 @@ const handlePhotoChange = async (e) => {
       const formData = new FormData()
       formData.append('profile_photo', file)
       await api.updateProfile(formData)
+      successMsg.value = 'Profile photo updated successfully!'
     } catch {
       // offline fallback
     }
@@ -233,15 +382,50 @@ const handlePhotoChange = async (e) => {
 }
 
 const saveProfile = async () => {
-  try {
-    await api.updateProfile({
-      business_name: profileData.businessName,
-      region: profileData.region,
-      delivery_hub: profileData.deliveryHub,
-    })
-  } catch {
-    // offline fallback
+  modalError.value = ''
+
+  if (form.new_password) {
+    if (!form.current_password) {
+      modalError.value = 'Please enter your current password to change password.'
+      activeTab.value = 'credentials'
+      return
+    }
+    if (form.new_password.length < 6) {
+      modalError.value = 'New password must be at least 6 characters long.'
+      activeTab.value = 'credentials'
+      return
+    }
+    if (form.new_password !== form.confirm_password) {
+      modalError.value = 'New password and confirmation do not match.'
+      activeTab.value = 'credentials'
+      return
+    }
   }
-  showEditModal.value = false
+
+  isSaving.value = true
+
+  try {
+    await updateUserProfile({
+      first_name: form.first_name,
+      second_name: form.second_name,
+      phone: form.phone,
+      current_password: form.current_password || undefined,
+      new_password: form.new_password || undefined,
+      businessName: form.businessName,
+      tinNumber: form.tinNumber,
+      region: form.region,
+      deliveryHub: form.deliveryHub,
+    })
+
+    showEditModal.value = false
+    successMsg.value = 'Profile updated successfully!'
+    setTimeout(() => {
+      successMsg.value = ''
+    }, 4000)
+  } catch (err) {
+    modalError.value = err.message || 'Failed to save profile changes. Please try again.'
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>

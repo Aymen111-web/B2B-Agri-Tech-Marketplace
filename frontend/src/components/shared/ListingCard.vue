@@ -82,6 +82,7 @@ import VerifiedBadge from './VerifiedBadge.vue'
 import GradeBadge from './GradeBadge.vue'
 import { formatETB } from '@/utils/helpers'
 import { useCart } from '@/composables/useCart'
+import { useAuth } from '@/composables/useAuth'
 
 const props = defineProps({
   listing: { type: Object, required: true },
@@ -93,6 +94,7 @@ const props = defineProps({
 const emit = defineEmits(['addToCart'])
 const router = useRouter()
 const { cartItems, addToCart, removeFromCart } = useCart()
+const { isAuthenticated } = useAuth()
 
 const isAddedToCart = computed(() => {
   if (props.isAddedToCart) return true
@@ -117,11 +119,15 @@ const getCategoryGradient = (category) => {
 }
 
 const handleClick = () => {
-  router.push(`/buyer/listing/${props.listing.id}`)
+  router.push(`/listing/${props.listing.id}`)
 }
 
 const handleCartClick = (e) => {
   e?.stopPropagation?.()
+  if (!isAuthenticated.value) {
+    emit('addToCart', props.listing, e)
+    return
+  }
   const existing = cartItems.value.find(item => 
     String(item.listingId) === String(props.listing.id) || 
     String(item.listing?.id) === String(props.listing.id)

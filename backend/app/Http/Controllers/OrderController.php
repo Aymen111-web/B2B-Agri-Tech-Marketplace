@@ -35,7 +35,12 @@ class OrderController extends Controller
         $validated = $request->validated();
 
         $orders = $user->orders()
-            ->with(['fulfillments:id,order_id,farmer_id,status,delivery_status,inspection_status,payout_status,subtotal_amount', 'payment:id,order_id,status'])
+            ->with([
+                'items.listing.farmer',
+                'fulfillments.farmer',
+                'payment',
+                'buyer',
+            ])
             ->when(isset($validated['status']), function ($query) use ($validated) {
                 $query->where('status', $validated['status']);
             })

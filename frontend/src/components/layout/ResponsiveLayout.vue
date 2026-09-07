@@ -52,13 +52,6 @@
 
       <!-- Right: Profile dropdown -->
       <div class="flex items-center gap-3 relative" ref="dropdownRef">
-        <!-- Role Switcher (non-admin dual-capability users) -->
-        <button v-if="!isAdmin && hasFarmerCapability && hasBuyerCapability" @click="handleRoleSwitch"
-          :class="['hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold transition-all border shadow-xs',
-            isFarmerTheme ? 'bg-[#1E9444] text-white border-[#52B870] hover:bg-[#1E9444]/80' : 'bg-[#EDFAF2] text-[#0F5C2A] border-[#C3EFCF] hover:bg-[#D8F6E0]']">
-          <ArrowLeftRight class="w-3.5 h-3.5" />
-          <span>Switch to {{ user?.role === 'farmer' ? 'Buyer View' : 'Farmer View' }}</span>
-        </button>
 
         <!-- Profile Trigger -->
         <button @click="isProfileMenuOpen = !isProfileMenuOpen"
