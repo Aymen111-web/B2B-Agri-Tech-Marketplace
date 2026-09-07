@@ -233,16 +233,6 @@ const checkoutItems = computed(() => {
     return cartItems.value
   }
 
-  // 4. Default fallback to first active listing
-  if (listings.value.length > 0) {
-    return [{
-      id: `default-${listings.value[0].id}`,
-      listing: listings.value[0],
-      quantityKg: 1,
-      unit: 'KG'
-    }]
-  }
-
   return []
 })
 

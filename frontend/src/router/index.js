@@ -20,6 +20,7 @@ import BuyerOrders from '@/pages/buyer/Orders.vue'
 import BuyerProfile from '@/pages/buyer/BuyerProfile.vue'
 import Cart from '@/pages/buyer/Cart.vue'
 import PaymentSuccess from '@/pages/buyer/PaymentSuccess.vue'
+import LandingPage from '@/pages/LandingPage.vue'
 
 // Farmer Pages
 import FarmerDashboard from '@/pages/farmer/Dashboard.vue'
@@ -28,6 +29,7 @@ import NewListing from '@/pages/farmer/NewListing.vue'
 import EditListing from '@/pages/farmer/EditListing.vue'
 import FarmerOrders from '@/pages/farmer/FarmerOrders.vue'
 import FarmerProfile from '@/pages/farmer/FarmerProfile.vue'
+import FarmerPayouts from '@/pages/farmer/Payouts.vue'
 
 // Admin Pages
 import AdminDashboard from '@/pages/admin/AdminDashboard.vue'
@@ -49,7 +51,9 @@ function getUserRole() {
 }
 
 const routes = [
-    { path: '/', redirect: '/login' },
+    { path: '/', name: 'Landing', component: LandingPage },
+    { path: '/marketplace', name: 'PublicMarketplace', component: Marketplace },
+    { path: '/listing/:id', name: 'PublicListingDetail', component: ListingDetail },
     { path: '/login', name: 'Login', component: Login },
     { path: '/register', name: 'Register', component: Register },
     { path: '/apply', name: 'CapabilityApplication', component: CapabilityApplication },
@@ -80,6 +84,7 @@ const routes = [
             { path: 'listings/new', name: 'NewListing', component: NewListing },
             { path: 'listings/edit/:id', name: 'EditListing', component: EditListing },
             { path: 'orders', name: 'FarmerOrders', component: FarmerOrders },
+            { path: 'payouts', name: 'FarmerPayouts', component: FarmerPayouts },
             { path: 'profile', name: 'FarmerProfile', component: FarmerProfile },
         ],
     },

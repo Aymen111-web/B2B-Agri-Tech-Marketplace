@@ -52,7 +52,7 @@ function loadCartFromStorage() {
             return
         } catch { /* ignore */ }
     }
-    cartItems.value = [...INITIAL_CART_ITEMS]
+    cartItems.value = []
     isLoaded.value = true
 }
 

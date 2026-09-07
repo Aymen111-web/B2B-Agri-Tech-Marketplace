@@ -47,13 +47,10 @@
           </button>
         </form>
 
-        <div class="text-center pt-2 space-y-1 text-[13px]">
+        <div class="text-center pt-2 text-[13px]">
           <p class="text-[#5A6270]">
             Don't have an account?
             <router-link to="/register" class="text-[#0B57D0] font-bold hover:underline">Register New Account</router-link>
-          </p>
-          <p>
-            <router-link to="/apply" class="text-[#E69500] hover:underline font-bold text-[12px]">Apply for Partner Verification</router-link>
           </p>
         </div>
       </div>
