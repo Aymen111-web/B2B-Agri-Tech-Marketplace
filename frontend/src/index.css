@@ -109,3 +109,69 @@ body {
     transform: translateY(-8px);
     opacity: 0;
 }
+
+/* Global Dark Mode Overrides */
+html.dark {
+    color-scheme: dark;
+}
+
+html.dark body {
+    background-color: #0D1117 !important;
+    color: #F8F9FA !important;
+}
+
+html.dark header {
+    background-color: rgba(13, 17, 23, 0.95) !important;
+    border-color: #30363D !important;
+    color: #F8F9FA !important;
+}
+
+html.dark nav a {
+    color: #9BA1AA !important;
+}
+
+html.dark nav a:hover,
+html.dark nav a.router-link-active {
+    color: #52B870 !important;
+}
+
+html.dark div.bg-white,
+html.dark section.bg-white,
+html.dark main.bg-white,
+html.dark article.bg-white,
+html.dark aside.bg-white {
+    background-color: #161B22 !important;
+    color: #F8F9FA !important;
+    border-color: #30363D !important;
+}
+
+html.dark button.bg-white,
+html.dark a.bg-white {
+    background-color: #FFFFFF !important;
+    color: #1E2328 !important;
+}
+
+html.dark .bg-\[\#F8F9FA\] {
+    background-color: #0D1117 !important;
+    color: #F8F9FA !important;
+}
+
+html.dark .text-\[\#1E2328\] {
+    color: #F8F9FA !important;
+}
+
+html.dark .text-\[\#5A6270\] {
+    color: #9BA1AA !important;
+}
+
+html.dark .border-\[\#E2E4E7\] {
+    border-color: #30363D !important;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+    background-color: #161B22 !important;
+    color: #F8F9FA !important;
+    border-color: #30363D !important;
+}

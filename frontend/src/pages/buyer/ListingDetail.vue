@@ -13,31 +13,28 @@
         </nav>
 
         <div class="flex items-center gap-3">
-          <template v-if="isAuthenticated">
-            <button 
-              @click="goToDashboard" 
-              class="px-4 py-2.5 rounded-xl bg-[#EDFAF2] text-[#0F5C2A] border border-[#C3EFCF] hover:bg-[#D8F6E0] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-            >
-              <User class="w-4 h-4 text-[#1E9444]" />
-              <span>Dashboard</span>
-            </button>
-          </template>
-
-          <template v-else>
-            <router-link 
-              to="/login" 
-              class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] hover:border-[#1E9444] text-[#1E2328] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white"
-            >
-              Login
-            </router-link>
-            <router-link 
-              to="/register?role=buyer" 
-              class="px-4 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-black transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-            >
-              <UserPlus class="w-4 h-4" />
-              <span>Register as Buyer</span>
-            </router-link>
-          </template>
+          <ThemeToggle />
+          <router-link 
+            to="/login" 
+            class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] hover:border-[#1E9444] text-[#1E2328] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white"
+          >
+            Login
+          </router-link>
+          <router-link 
+            to="/register?role=buyer" 
+            class="px-4 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-black transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+          >
+            <UserPlus class="w-4 h-4" />
+            <span>Sign Up</span>
+          </router-link>
+          <button 
+            v-if="isAuthenticated"
+            @click="goToDashboard" 
+            class="px-4 py-2.5 rounded-xl bg-[#EDFAF2] text-[#0F5C2A] border border-[#C3EFCF] hover:bg-[#D8F6E0] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <User class="w-4 h-4 text-[#1E9444]" />
+            <span>Dashboard</span>
+          </button>
         </div>
       </div>
     </header>
@@ -191,6 +188,7 @@ import { useListings } from '@/composables/useListings'
 import { useAuth } from '@/composables/useAuth'
 import { formatETB } from '@/utils/helpers'
 import QelemMedaLogo from '@/components/common/QelemMedaLogo.vue'
+import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import VerifiedBadge from '@/components/shared/VerifiedBadge.vue'
 import EscrowBanner from '@/components/shared/EscrowBanner.vue'
 import BuyerAuthModal from '@/components/shared/BuyerAuthModal.vue'

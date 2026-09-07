@@ -1,6 +1,14 @@
 import { ref, onMounted, watch } from 'vue'
 import { api, getAuthToken } from '@/services/api'
 
+function getCurrentUserData() {
+    try {
+        const saved = localStorage.getItem('agri_user_data')
+        if (saved) return JSON.parse(saved)
+    } catch { /* ignore */ }
+    return null
+}
+
 const INITIAL_ORDERS = [
     {
         id: 'ORD-8921', listingId: 'listing-1',

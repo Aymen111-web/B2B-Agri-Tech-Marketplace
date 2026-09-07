@@ -105,6 +105,9 @@ export function useAuth() {
         isLoading.value = true
         error.value = null
 
+        // Clear stale active role so the fresh backend role is used
+        localStorage.removeItem('agri_active_role')
+
         try {
             const res = await api.login(phone, pass)
             setAuthToken(res.token)
