@@ -308,6 +308,7 @@
             <AlertCircle class="w-3.5 h-3.5 text-red-600 shrink-0" />
             <span>{{ rejectError }}</span>
           </div>
+          <div v-else class="text-[11px] font-bold text-[#9BA1AA] italic">No documents attached</div>
         </div>
 
         <!-- Modal Actions -->
@@ -321,7 +322,7 @@
             <span>Confirm Rejection</span>
           </button>
         </div>
-      </div>
+      </article>
     </div>
   </div>
 </template>
