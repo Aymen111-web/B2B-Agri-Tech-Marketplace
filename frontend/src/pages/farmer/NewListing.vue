@@ -8,6 +8,11 @@
     </div>
 
     <form @submit.prevent="handleSubmit" class="p-5 space-y-6">
+      <div v-if="submitError" class="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-2.5 text-xs text-red-700 font-bold">
+        <AlertCircle class="w-4 h-4 text-red-600 shrink-0" />
+        <span>{{ submitError }}</span>
+      </div>
+
       <div class="space-y-4">
         <h3 class="text-[15px] font-bold text-[#1E2328] border-b border-[#E2E4E7] pb-2">Crop details</h3>
         <div><label class="text-[12px] font-bold text-[#1E2328] block mb-1">Crop Name</label><input type="text" required v-model="cropName" placeholder="e.g. Sidama Washed Coffee G1" class="w-full px-3.5 py-2.5 bg-white border border-[#E2E4E7] rounded-xl text-[14px] focus:outline-none focus:border-[#1E9444]" /></div>
@@ -94,10 +99,11 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, Camera, Sparkles, Loader2 } from 'lucide-vue-next'
+import { ArrowLeft, Camera, Sparkles, Loader2, AlertCircle } from 'lucide-vue-next'
 import { useListings } from '@/composables/useListings'
 import { useAuth } from '@/composables/useAuth'
 import { formatETB } from '@/utils/helpers'
+import { compressImageFiles } from '@/utils/imageCompressor'
 
 const router = useRouter()
 const { addListing } = useListings()
@@ -118,12 +124,27 @@ const description = ref('')
 const photos = ref([]) // Holds Raw File Objects
 const photoPreviews = ref([]) // Holds URL.createObjectURL
 
-const handleFileSelect = (event) => {
+const isCompressing = ref(false)
+
+const handleFileSelect = async (event) => {
   const files = Array.from(event.target.files)
-  files.forEach(f => {
-    photos.value.push(f)
-    photoPreviews.value.push(URL.createObjectURL(f))
-  })
+  if (!files.length) return
+  
+  isCompressing.value = true
+  try {
+    const compressedFiles = await compressImageFiles(files, 1400, 1400, 0.8)
+    compressedFiles.forEach(f => {
+      photos.value.push(f)
+      photoPreviews.value.push(URL.createObjectURL(f))
+    })
+  } catch (e) {
+    files.forEach(f => {
+      photos.value.push(f)
+      photoPreviews.value.push(URL.createObjectURL(f))
+    })
+  } finally {
+    isCompressing.value = false
+  }
 }
 
 const removePhoto = (index) => {
@@ -132,32 +153,40 @@ const removePhoto = (index) => {
 }
 
 const isSubmitting = ref(false)
+const submitError = ref(null)
 
 const categoryEmojis = { coffee: '☕', grains: '🌾', spices: '🌿', oilseeds: '🥜', pulses: '🫘', roots: '🧅', fruits: '🍋', vegetables: '🥬' }
 
 const handleSubmit = async () => {
+  submitError.value = null
   isSubmitting.value = true
-  await addListing({
-    farmerId: user.value?.id || 'farmer-1',
-    farmer: user.value,
-    cropName: cropName.value || 'Sidama Coffee Special Batch',
-    cropEmoji: categoryEmojis[category.value] || '☕',
-    category: category.value,
-    grade: grade.value,
-    region: region.value,
-    zone: zone.value,
-    process: processMethod.value,
-    pricePerKg: pricePerKg.value || 85,
-    availableQty: availableQty.value || 5000,
-    minOrderQty: minOrderQty.value || 500,
-    harvestDate: new Date(harvestDate.value),
-    moistureContent: moistureContent.value || 11.0,
-    description: description.value || 'Highland Ethiopian farm direct produce harvest.',
-    images: photos.value,
-    isActive: true,
-    isVerified: true,
-  })
-  isSubmitting.value = false
-  router.push('/farmer/listings')
+  
+  try {
+    await addListing({
+      farmerId: user.value?.id || 'farmer-1',
+      farmer: user.value,
+      cropName: cropName.value || 'Sidama Coffee Special Batch',
+      cropEmoji: categoryEmojis[category.value] || '☕',
+      category: category.value,
+      grade: grade.value,
+      region: region.value,
+      zone: zone.value,
+      process: processMethod.value,
+      pricePerKg: pricePerKg.value || 85,
+      availableQty: availableQty.value || 5000,
+      minOrderQty: minOrderQty.value || 500,
+      harvestDate: new Date(harvestDate.value),
+      moistureContent: moistureContent.value || 11.0,
+      description: description.value || 'Highland Ethiopian farm direct produce harvest.',
+      images: photos.value,
+      isActive: true,
+      isVerified: true,
+    })
+    isSubmitting.value = false
+    router.push('/farmer/listings')
+  } catch (err) {
+    isSubmitting.value = false
+    submitError.value = err.message || 'Failed to post crop listing. Please verify your details.'
+  }
 }
 </script>

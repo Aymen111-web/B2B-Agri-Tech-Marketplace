@@ -17,12 +17,12 @@ class UpdateListingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_id'            => ['sometimes', 'nullable', 'integer', 'exists:categories,id'],
+            'category_id'            => ['sometimes', 'nullable', 'integer'],
             'title'                  => ['sometimes', 'string', 'max:255'],
             'description'            => ['sometimes', 'nullable', 'string', 'max:2000'],
             'image'                  => ['sometimes', 'nullable'],
             'images'                 => ['sometimes', 'nullable', 'array', 'max:5'],
-            'images.*'               => ['image', 'max:10240'],
+            'images.*'               => ['nullable', 'max:10240'],
             'unit'                   => ['sometimes', 'string', 'max:50'],
             'price_per_unit'         => ['sometimes', 'numeric', 'min:0.01'],
             'quantity_available'     => ['sometimes', 'numeric', 'min:0'],

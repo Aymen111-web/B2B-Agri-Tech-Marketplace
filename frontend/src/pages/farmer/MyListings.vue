@@ -51,7 +51,10 @@
       <div v-for="item in filteredListings" :key="item.id" class="bg-gradient-to-br from-[#FFFBF7] via-white to-[#FFFBF7] border border-[#FBE3D0] rounded-3xl p-5 shadow-xs hover:border-[#E69500] transition-all space-y-4">
         <div class="flex items-start justify-between">
           <div class="flex items-center gap-3.5">
-            <div class="w-12 h-12 rounded-2xl bg-white border border-[#FBE3D0] flex items-center justify-center text-2xl shrink-0 shadow-2xs">{{ item.cropEmoji }}</div>
+            <div class="w-14 h-14 rounded-2xl bg-white border border-[#FBE3D0] flex items-center justify-center text-2xl shrink-0 shadow-2xs overflow-hidden">
+              <img v-if="item.primaryImage || (item.images && item.images.length > 0)" :src="item.primaryImage || item.images[0]" class="w-full h-full object-cover" />
+              <span v-else>{{ item.cropEmoji }}</span>
+            </div>
             <div>
               <div class="flex items-center gap-2">
                 <h3 class="text-base font-black text-[#1E2328]">{{ item.cropName }}</h3>
