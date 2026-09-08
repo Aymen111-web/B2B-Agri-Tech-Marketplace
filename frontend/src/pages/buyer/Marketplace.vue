@@ -8,36 +8,34 @@
         </router-link>
 
         <nav class="hidden md:flex items-center gap-8 text-xs font-bold text-[#5A6270]">
-          <router-link to="/" class="hover:text-[#1E9444] transition-colors">Home</router-link>
-          <router-link to="/#how-it-works" class="hover:text-[#1E9444] transition-colors">How It Works</router-link>
+          <router-link to="/" class="hover:text-[#1E9444] transition-colors">{{ t('home') }}</router-link>
+          <router-link to="/#how-it-works" class="hover:text-[#1E9444] transition-colors">{{ t('howItWorks') }}</router-link>
         </nav>
 
         <div class="flex items-center gap-3">
-          <template v-if="isAuthenticated">
-            <button 
-              @click="goToDashboard" 
-              class="px-4 py-2.5 rounded-xl bg-[#EDFAF2] text-[#0F5C2A] border border-[#C3EFCF] hover:bg-[#D8F6E0] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-            >
-              <User class="w-4 h-4 text-[#1E9444]" />
-              <span>Dashboard</span>
-            </button>
-          </template>
-
-          <template v-else>
-            <router-link 
-              to="/login" 
-              class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] hover:border-[#1E9444] text-[#1E2328] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white"
-            >
-              Login
-            </router-link>
-            <router-link 
-              to="/register?role=buyer" 
-              class="px-4 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-black transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-            >
-              <UserPlus class="w-4 h-4" />
-              <span>Register as Buyer</span>
-            </router-link>
-          </template>
+          <LanguageToggle />
+          <ThemeToggle />
+          <router-link 
+            to="/login" 
+            class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] hover:border-[#1E9444] text-[#1E2328] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white"
+          >
+            {{ t('login') }}
+          </router-link>
+          <router-link 
+            to="/register?role=buyer" 
+            class="px-4 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-black transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+          >
+            <UserPlus class="w-4 h-4" />
+            <span>{{ t('signUp') }}</span>
+          </router-link>
+          <button 
+            v-if="isAuthenticated"
+            @click="goToDashboard" 
+            class="px-4 py-2.5 rounded-xl bg-[#EDFAF2] text-[#0F5C2A] border border-[#C3EFCF] hover:bg-[#D8F6E0] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <User class="w-4 h-4 text-[#1E9444]" />
+            <span>{{ t('dashboard') }}</span>
+          </button>
         </div>
       </div>
     </header>
@@ -47,10 +45,10 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E4E7] pb-5">
         <div>
           <h1 class="text-2xl font-black text-[#1E2328] tracking-tight">
-            Agricultural <span class="text-[#E69500]">Marketplace</span> 🌾
+            {{ t('agriMarketplace') }} 🌾
           </h1>
           <p class="text-xs text-[#5A6270] mt-0.5">
-            Browse verified Ethiopian produce direct from regional co-op unions and primary producers.
+            {{ t('marketplaceSub') }}
           </p>
         </div>
 
@@ -61,7 +59,7 @@
             <input 
               type="text" 
               v-model="searchQuery" 
-              placeholder="Search crop name, region, farmer..." 
+              :placeholder="t('searchPlaceholder')" 
               class="w-full pl-9 pr-4 py-2 bg-white border border-[#E2E4E7] text-[#1E2328] placeholder-gray-400 rounded-xl text-xs font-bold focus:outline-none focus:border-[#E69500] shadow-2xs" 
             />
           </div>
@@ -80,7 +78,7 @@
               : 'bg-white text-[#5A6270] border-[#E2E4E7] hover:border-[#E69500] hover:text-[#1E2328]']"
         >
           <span>{{ cat.emoji }}</span>
-          <span>{{ cat.label }}</span>
+          <span>{{ t(cat.key, cat.label) }}</span>
         </button>
       </div>
 
@@ -96,13 +94,13 @@
 
       <!-- Empty State -->
       <div v-else class="text-center text-[#5A6270] py-12 bg-white rounded-2xl border border-[#E2E4E7] space-y-2">
-        <p class="font-bold text-base text-[#1E2328]">No listings found matching your criteria</p>
-        <p class="text-xs">Try selecting another crop category or clearing your search query.</p>
+        <p class="font-bold text-base text-[#1E2328]">{{ t('noListingsFound') }}</p>
+        <p class="text-xs">{{ t('tryAdjusting') }}</p>
         <button 
           @click="activeCategory = 'all'; searchQuery = ''" 
           class="mt-2 px-4 py-2 bg-[#E69500] text-white font-extrabold text-xs rounded-xl hover:bg-[#D48900] transition-colors shadow-2xs cursor-pointer"
         >
-          Reset Filters
+          {{ t('resetFilters') }}
         </button>
       </div>
     </div>
@@ -112,9 +110,9 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs text-[#C3EFCF] flex flex-col sm:flex-row items-center justify-between gap-4">
         <p>© 2026 Qelem Meda Technologies (QMT). Ethiopian B2B Agri-Tech Marketplace.</p>
         <div class="flex items-center gap-4">
-          <router-link to="/" class="hover:text-white">Home</router-link>
-          <router-link to="/login" class="hover:text-white">Login</router-link>
-          <router-link to="/register?role=buyer" class="hover:text-white">Register as Buyer</router-link>
+          <router-link to="/" class="hover:text-white">{{ t('home') }}</router-link>
+          <router-link to="/login" class="hover:text-white">{{ t('login') }}</router-link>
+          <router-link to="/register?role=buyer" class="hover:text-white">{{ t('registerCommercialBuyer') }}</router-link>
         </div>
       </div>
     </footer>
@@ -130,7 +128,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { Search, User, UserPlus } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import { useListings } from '@/composables/useListings'
+import { useLanguage } from '@/composables/useLanguage'
 import QelemMedaLogo from '@/components/common/QelemMedaLogo.vue'
+import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import LanguageToggle from '@/components/common/LanguageToggle.vue'
 import ListingCard from '@/components/shared/ListingCard.vue'
 import BuyerAuthModal from '@/components/shared/BuyerAuthModal.vue'
 
@@ -138,6 +139,7 @@ const route = useRoute()
 const router = useRouter()
 const { filterListings } = useListings()
 const { isAuthenticated, user } = useAuth()
+const { t } = useLanguage()
 
 const activeCategory = ref('all')
 const searchQuery = ref('')
@@ -146,12 +148,12 @@ const showAuthModal = ref(false)
 const isStandalone = computed(() => !route.path.startsWith('/buyer'))
 
 const categories = [
-  { value: 'all', label: 'All Crops', emoji: '🌍' },
-  { value: 'coffee', label: 'Coffee', emoji: '☕' },
-  { value: 'grains', label: 'Grains', emoji: '🌾' },
-  { value: 'spices', label: 'Spices', emoji: '🌶️' },
-  { value: 'oilseeds', label: 'Oilseeds', emoji: '🌱' },
-  { value: 'pulses', label: 'Pulses', emoji: '🫘' },
+  { value: 'all', key: 'allCrops', label: 'All Crops', emoji: '🌍' },
+  { value: 'coffee', key: 'coffee', label: 'Coffee', emoji: '☕' },
+  { value: 'grains', key: 'grains', label: 'Grains', emoji: '🌾' },
+  { value: 'spices', key: 'spices', label: 'Spices', emoji: '🌶️' },
+  { value: 'oilseeds', key: 'oilseeds', label: 'Oilseeds', emoji: '🌱' },
+  { value: 'pulses', key: 'pulses', label: 'Pulses', emoji: '🫘' },
 ]
 
 const setCategoryFromQuery = () => {

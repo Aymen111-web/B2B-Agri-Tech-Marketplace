@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between border-b pb-3">
           <div class="flex items-center gap-2">
             <Settings class="w-5 h-5 text-[#1E9444]" />
-            <h3 class="text-lg font-bold">Account Settings</h3>
+            <h3 class="text-lg font-bold">{{ t('accountSettings') }}</h3>
           </div>
           <button @click="isSettingsOpen = false" class="p-1 rounded-lg hover:bg-gray-100 text-gray-500">
             <X class="w-5 h-5" />
@@ -14,23 +14,23 @@
         </div>
         <div class="space-y-4 text-xs">
           <div class="p-3 bg-[#F8F9FA] rounded-xl space-y-1">
-            <span class="font-bold block text-[#1E2328]">Profile Name</span>
+            <span class="font-bold block text-[#1E2328]">{{ t('profileName') }}</span>
             <span class="text-[#5A6270]">{{ user?.name || 'User' }}</span>
           </div>
           <div class="p-3 bg-[#F8F9FA] rounded-xl space-y-1">
-            <span class="font-bold block text-[#1E2328]">Phone Number</span>
+            <span class="font-bold block text-[#1E2328]">{{ t('phoneNumber') }}</span>
             <span class="text-[#5A6270]">{{ user?.phone || 'Not provided' }}</span>
           </div>
           <div class="p-3 bg-[#F8F9FA] rounded-xl flex items-center justify-between">
             <div>
-              <span class="font-bold block text-[#1E2328]">SMS Verification Notifications</span>
-              <span class="text-[#5A6270]">Receive Ethiopia SMS alerts for orders</span>
+              <span class="font-bold block text-[#1E2328]">{{ t('smsNotifications') }}</span>
+              <span class="text-[#5A6270]">{{ t('smsAlertsDesc') }}</span>
             </div>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Enabled</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">{{ t('enabled') }}</span>
           </div>
         </div>
         <button @click="isSettingsOpen = false" class="w-full py-2.5 rounded-xl bg-[#1E9444] text-white font-bold text-xs hover:bg-[#0F5C2A]">
-          Save & Close Settings
+          {{ t('saveCloseSettings') }}
         </button>
       </div>
     </div>
@@ -52,6 +52,8 @@
 
       <!-- Right: Profile dropdown -->
       <div class="flex items-center gap-3 relative" ref="dropdownRef">
+        <LanguageToggle :variant="isFarmerTheme ? 'farmer' : 'default'" />
+        <ThemeToggle />
 
         <!-- Profile Trigger -->
         <button @click="isProfileMenuOpen = !isProfileMenuOpen"
@@ -80,13 +82,13 @@
                 </div>
                 <div class="overflow-hidden">
                   <h4 class="text-xs font-extrabold text-[#0F5C2A] truncate">{{ user?.name || 'User' }}</h4>
-                  <p class="text-[10px] text-[#5A6270] truncate">{{ user?.phone || user?.email || 'Active Member' }}</p>
+                  <p class="text-[10px] text-[#5A6270] truncate">{{ user?.phone || user?.email || t('activeMember') }}</p>
                 </div>
               </div>
               <div class="mt-2 pt-2 border-t border-[#C3EFCF] flex items-center justify-between text-[10px]">
-                <span class="font-bold text-[#0F5C2A] uppercase">{{ user?.role }} Mode</span>
+                <span class="font-bold text-[#0F5C2A] uppercase">{{ t(user?.role === 'farmer' ? 'Farmer' : user?.role === 'admin' ? 'Admin' : 'Buyer') }}</span>
                 <span class="flex items-center gap-1 text-emerald-700 font-semibold">
-                  <CheckCircle2 class="w-3 h-3 text-[#1E9444]" /> Verified
+                  <CheckCircle2 class="w-3 h-3 text-[#1E9444]" /> {{ t('verified') }}
                 </span>
               </div>
             </div>
@@ -94,7 +96,7 @@
             <div class="space-y-1 text-xs">
               <button @click="goToProfile" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#F0F1F2] transition-colors font-bold text-[#1E2328]">
                 <User class="w-4 h-4 text-[#1E9444]" />
-                <span>{{ isAdmin ? 'Admin Dashboard' : 'Profile' }}</span>
+                <span>{{ isAdmin ? t('adminDashboard') : t('profile') }}</span>
               </button>
 
               <template v-if="!isAdmin">
@@ -102,9 +104,9 @@
                   class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#EDFAF2] transition-colors font-bold text-[#0F5C2A]">
                   <ArrowLeftRight class="w-4 h-4 text-[#1E9444]" />
                   <div class="text-left flex-1 flex items-center justify-between">
-                    <span>Switch Capability</span>
+                    <span>{{ t('switchCapability') }}</span>
                     <span class="px-1.5 py-0.5 bg-[#1E9444] text-white rounded-md text-[9px] font-extrabold capitalize">
-                      {{ user?.role === 'farmer' ? 'Buyer' : 'Farmer' }}
+                      {{ user?.role === 'farmer' ? t('Buyer') : t('Farmer') }}
                     </span>
                   </div>
                 </button>
@@ -112,7 +114,7 @@
                   class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#F0F1F2] transition-colors font-bold text-[#1E2328]">
                   <ShieldCheck class="w-4 h-4 text-[#1E9444]" />
                   <div class="text-left flex-1 flex items-center justify-between">
-                    <span>Update Capability</span>
+                    <span>{{ t('updateCapability') }}</span>
                     <span v-if="pendingApplications.length > 0" class="px-1.5 py-0.5 bg-[#1E9444] text-white rounded-md text-[9px] font-extrabold">Pending</span>
                   </div>
                 </button>
@@ -121,7 +123,7 @@
               <div class="border-t border-gray-100 my-1" />
               <button @click="handleLogout" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-red-50 text-red-600 transition-colors font-bold">
                 <LogOut class="w-4 h-4 text-red-600" />
-                <span>Logout</span>
+                <span>{{ t('logout') }}</span>
               </button>
             </div>
           </div>
@@ -137,9 +139,9 @@
         <nav class="p-3 flex-1 space-y-1.5 overflow-y-auto">
           <template v-for="(item, index) in navItems" :key="item.path">
             <div v-if="showCategoryHeader(item, index)" class="pt-3 pb-1 px-3 text-[10px] font-extrabold text-[#9BA1AA] tracking-wider uppercase">
-              {{ item.category }}
+              {{ t(item.category) }}
             </div>
-            <button @click="$router.push(item.path)" :title="!isSidebarOpen ? item.label : undefined"
+            <button @click="$router.push(item.path)" :title="!isSidebarOpen ? t(item.label) : undefined"
               :class="['w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all group',
                 isNavActive(item) ? (isFarmerTheme ? 'bg-[#1E9444] text-white shadow-xs font-bold' : 'bg-[#EDFAF2] text-[#0F5C2A] shadow-2xs font-bold border-l-3 border-[#1E9444]')
                   : (isFarmerTheme ? 'text-[#C3EFCF] hover:bg-[#0F5C2A] hover:text-white' : 'text-[#1E2328] hover:bg-[#F0F1F2]'),
@@ -147,7 +149,7 @@
               <div class="flex items-center gap-3 overflow-hidden">
                 <component :is="item.icon"
                   :class="['w-4 h-4 shrink-0', isNavActive(item) ? (isFarmerTheme ? 'text-white' : 'text-[#1E9444]') : 'text-[#5A6270] group-hover:text-[#1E2328]']" />
-                <span v-if="isSidebarOpen" class="truncate">{{ item.label }}</span>
+                <span v-if="isSidebarOpen" class="truncate">{{ t(item.label) }}</span>
               </div>
               <div v-if="isSidebarOpen" class="flex items-center gap-1.5 shrink-0">
                 <span v-if="item.badge" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#E69500] text-white shadow-2xs">
@@ -163,7 +165,7 @@
         <div v-if="isSidebarOpen" class="p-3 border-t border-gray-200/50 m-3 rounded-xl bg-gray-50/60 text-xs">
           <div class="flex items-center gap-2">
             <User class="w-3.5 h-3.5 text-[#1E9444]" />
-            <span class="font-bold text-[#1E2328] capitalize">{{ user?.role }} Mode Active</span>
+            <span class="font-bold text-[#1E2328] capitalize">{{ t(user?.role === 'farmer' ? 'Farmer' : user?.role === 'admin' ? 'Admin' : 'Buyer') }} {{ t('Mode Active') }}</span>
           </div>
         </div>
       </aside>
@@ -187,7 +189,7 @@
             {{ item.badge }}
           </span>
         </div>
-        <span :class="['text-[11px]', isNavActive(item) ? 'font-bold' : 'font-medium']">{{ item.label }}</span>
+        <span :class="['text-[11px]', isNavActive(item) ? 'font-bold' : 'font-medium']">{{ t(item.label) }}</span>
       </button>
     </nav>
   </div>
@@ -199,6 +201,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { Menu, X, LogOut, User, ArrowLeftRight, ChevronDown, ChevronRight, Settings, ShieldCheck, CheckCircle2 } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import QelemMedaLogo from '@/components/common/QelemMedaLogo.vue'
+import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import LanguageToggle from '@/components/common/LanguageToggle.vue'
+import { useLanguage } from '@/composables/useLanguage'
 
 const props = defineProps({
   navItems: { type: Array, required: true },
@@ -207,14 +212,15 @@ const props = defineProps({
 
 const route = useRoute()
 const router = useRouter()
-const { user, logout, hasFarmerCapability, hasBuyerCapability, switchRole, pendingApplications } = useAuth()
+const { user, logout, openLogoutModal, hasFarmerCapability, hasBuyerCapability, switchRole, pendingApplications } = useAuth()
+const { t } = useLanguage()
 
 const isSidebarOpen = ref(true)
 const isProfileMenuOpen = ref(false)
 const isSettingsOpen = ref(false)
 const dropdownRef = ref(null)
 
-const isFarmerTheme = computed(() => props.theme === 'farmerDark')
+const isFarmerTheme = computed(() => props.theme === 'farmerDark' || user.value?.role === 'farmer' || route.path.startsWith('/farmer'))
 const isAdmin = computed(() => user.value?.role === 'admin' || user.value?.is_admin)
 
 const roleTitle = computed(() => {
@@ -265,8 +271,7 @@ const handleRoleSwitchDropdown = () => {
 
 const handleLogout = () => {
   isProfileMenuOpen.value = false
-  logout()
-  router.push('/login')
+  openLogoutModal()
 }
 
 // Close dropdown on click outside

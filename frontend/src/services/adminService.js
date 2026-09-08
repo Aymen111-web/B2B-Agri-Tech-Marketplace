@@ -18,16 +18,7 @@ async function adminRequest(endpoint, options = {}) {
     const primaryUrl = `${API_BASE_URL}${endpoint}`
 
     try {
-        let response = await fetch(primaryUrl, { ...options, headers })
-
-        if (response.status === 404 && API_BASE_URL === '/api') {
-            const fallbackUrl = `http://127.0.0.1:8000/api${endpoint}`
-            const fallbackRes = await fetch(fallbackUrl, { ...options, headers }).catch(() => null)
-            if (fallbackRes && fallbackRes.ok) {
-                response = fallbackRes
-            }
-        }
-
+        const response = await fetch(primaryUrl, { ...options, headers })
         const data = await response.json().catch(() => ({}))
 
         if (!response.ok) {
@@ -37,20 +28,7 @@ async function adminRequest(endpoint, options = {}) {
 
         return data
     } catch (err) {
-        if (API_BASE_URL === '/api') {
-            try {
-                const directUrl = `http://127.0.0.1:8000/api${endpoint}`
-                const directRes = await fetch(directUrl, { ...options, headers })
-                const data = await directRes.json().catch(() => ({}))
-                if (!directRes.ok) {
-                    throw new Error(data?.error || data?.message || `HTTP ${directRes.status}: Request failed`)
-                }
-                return data
-            } catch (fallbackErr) {
-                throw new Error(fallbackErr.message || err.message || 'Server request failed')
-            }
-        }
-        throw err
+        throw new Error(err.message || 'Server request failed')
     }
 }
 

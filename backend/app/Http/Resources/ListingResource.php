@@ -14,14 +14,16 @@ class ListingResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $primaryPath = $this->image_path ?: ($this->relationLoaded('images') ? $this->images->first()?->image_path : null);
+
         return [
             'id'                 => $this->id,
             'farmer_id'          => $this->farmer_id,
             'category_id'        => $this->category_id,
             'title'              => $this->title,
             'description'        => $this->description,
-            'image_path'         => $this->image_path,
-            'image_url'          => $this->image_path ? (str_starts_with($this->image_path, 'http') ? $this->image_path : asset('storage/' . $this->image_path)) : null,
+            'image_path'         => $primaryPath,
+            'image_url'          => $primaryPath ? (str_starts_with($primaryPath, 'http') ? $primaryPath : asset('storage/' . $primaryPath)) : null,
             'unit'               => $this->unit,
             'price_per_unit'     => $this->price_per_unit,
             'quantity_available' => $this->quantity_available,

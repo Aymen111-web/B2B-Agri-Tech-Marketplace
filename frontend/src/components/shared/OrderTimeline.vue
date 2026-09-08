@@ -3,10 +3,10 @@
     <div class="flex items-center justify-between pb-3 border-b border-[#E2E4E7] mb-3">
       <div class="flex items-center gap-2">
         <ShieldCheck class="w-4 h-4 text-[#1E9444]" />
-        <span class="text-xs font-bold text-[#1E2328]">Order & Escrow Lifecycle</span>
+        <span class="text-xs font-bold text-[#1E2328]">{{ $t('orders.timeline') }}</span>
       </div>
       <span class="text-[11px] font-semibold text-[#5A6270]">
-        Stage {{ activeStepIndex + 1 }} of {{ steps.length }}
+        {{ $t('auth.stepOf') }} {{ activeStepIndex + 1 }} / {{ steps.length }}
       </span>
     </div>
 
@@ -34,7 +34,7 @@
               {{ step.title }}
             </h5>
             <span v-if="isActive(idx)" class="px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
-              Current Stage
+              {{ $t('common.active') }}
             </span>
           </div>
           <p :class="['text-[11px]', (isDone(idx) || isActive(idx)) ? 'text-[#5A6270]' : 'text-gray-400']">
@@ -45,13 +45,13 @@
         <!-- Right Side Badge / Detail -->
         <div class="shrink-0 text-right">
           <span v-if="isDone(idx)" class="text-[10px] font-bold text-[#1E9444] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-            Completed
+            {{ $t('common.completed') }}
           </span>
           <span v-else-if="isActive(idx)" class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-            In Progress
+            {{ $t('common.processing') }}
           </span>
           <span v-else class="text-[10px] font-medium text-gray-400">
-            Pending
+            {{ $t('common.pending') }}
           </span>
         </div>
       </div>
@@ -62,13 +62,16 @@
 <script setup>
 import { computed } from 'vue'
 import { Check, ShieldCheck } from 'lucide-vue-next'
+import { useLanguage } from '@/composables/useLanguage'
 
 const props = defineProps({
   status: { type: String, required: true },
   className: { type: String, default: '' },
 })
 
-const steps = [
+const { t } = useLanguage()
+
+const steps = computed(() => [
   { 
     key: 'placed', 
     title: 'Order Request Submitted', 
@@ -94,7 +97,7 @@ const steps = [
     title: 'Handoff & Escrow Payout Released', 
     description: 'Physical receipt verified via 4-digit PIN to release funds to farmer.' 
   },
-]
+])
 
 const statusStepMap = {
   placed: 0,

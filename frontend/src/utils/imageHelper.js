@@ -33,15 +33,20 @@ export function getCropImage(itemOrName) {
 
     // If an object with an uploaded image URL is provided, return uploaded image first!
     if (typeof itemOrName === 'object') {
-        const path = itemOrName.image_url || itemOrName.image_path
+        const path = itemOrName.primaryImage || 
+                     itemOrName.image_url || 
+                     itemOrName.image_path || 
+                     (Array.isArray(itemOrName.images) && itemOrName.images.length > 0 ? itemOrName.images[0] : null)
         if (path) {
-            if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) {
-                return path
+            if (typeof path === 'string') {
+                if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) {
+                    return path
+                }
+                const cleanPath = path.replace(/^\/?storage\//, '')
+                return `http://127.0.0.1:8000/storage/${cleanPath}`
             }
-            const cleanPath = path.replace(/^\/?storage\//, '')
-            return `/storage/${cleanPath}`
         }
-        itemOrName = itemOrName.title || itemOrName.category?.name || ''
+        itemOrName = itemOrName.cropName || itemOrName.title || itemOrName.category?.name || ''
     } else if (typeof itemOrName === 'string') {
         if (itemOrName.startsWith('http://') || itemOrName.startsWith('https://') || itemOrName.startsWith('/storage/') || itemOrName.startsWith('blob:') || itemOrName.startsWith('data:')) {
             return itemOrName

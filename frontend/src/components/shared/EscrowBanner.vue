@@ -4,9 +4,9 @@
       <Lock class="w-4 h-4" />
     </div>
     <div>
-      <h4 class="text-[13px] font-bold text-[#1E2328]">Chapa escrow protection</h4>
+      <h4 class="text-[13px] font-bold text-[#1E2328]">{{ $t('marketplace.escrowProtection') }}</h4>
       <p class="text-[12px] text-[#5A6270] mt-0.5">
-        Payment held securely until you confirm delivery.
+        {{ $t('marketplace.escrowProtectionDesc') }}
       </p>
     </div>
   </div>

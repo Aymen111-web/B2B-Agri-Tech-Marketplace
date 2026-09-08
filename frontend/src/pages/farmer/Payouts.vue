@@ -8,10 +8,10 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">Payouts Hub</h1>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-black uppercase tracking-wider">Escrow Protected</span>
+            <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">{{ $t('farmer.payoutsHubTitle') }}</h1>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-black uppercase tracking-wider">{{ $t('badges.escrowProtected') }}</span>
           </div>
-          <p class="text-xs text-[#C3EFCF] mt-1 font-medium">Manage your crop sales revenue, escrow releases, and automated bank disbursements</p>
+          <p class="text-xs text-[#C3EFCF] mt-1 font-medium">{{ $t('farmer.payoutsHubSub') }}</p>
         </div>
 
         <button 
@@ -19,7 +19,7 @@
           class="px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-white text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer"
         >
           <CreditCard class="w-4 h-4 text-[#E69500]" />
-          <span>Payout Account Settings</span>
+          <span>{{ $t('Payout Account Settings') }}</span>
         </button>
       </div>
     </div>
@@ -31,7 +31,7 @@
         <div class="absolute top-0 left-0 right-0 h-1 bg-[#1E9444]" />
         <div class="flex items-start justify-between">
           <div>
-            <span class="text-xs font-bold text-[#5A6270]">Available for Payout</span>
+            <span class="text-xs font-bold text-[#5A6270]">{{ $t('farmer.availableBalance') }}</span>
             <h3 class="text-2xl font-black text-[#1E9444] mt-1">{{ formatETB(availableBalanceETB) }}</h3>
           </div>
           <div class="w-10 h-10 rounded-xl bg-emerald-50 text-[#1E9444] border border-emerald-100 flex items-center justify-center shrink-0">
@@ -39,13 +39,13 @@
           </div>
         </div>
         <div class="flex items-center justify-between pt-1 border-t border-gray-100">
-          <span class="text-[11px] text-[#5A6270] font-medium">Escrow Released</span>
+          <span class="text-[11px] text-[#5A6270] font-medium">{{ $t('Escrow Released') }}</span>
           <button 
             @click="handleWithdraw" 
             :disabled="availableBalanceETB <= 0" 
             class="px-3 py-1 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
           >
-            Withdraw Now
+            {{ $t('Withdraw Now') }}
           </button>
         </div>
       </div>
@@ -55,7 +55,7 @@
         <div class="absolute top-0 left-0 right-0 h-1 bg-[#F5B73A]" />
         <div class="flex items-start justify-between">
           <div>
-            <span class="text-xs font-bold text-[#5A6270]">Pending Escrow Balance</span>
+            <span class="text-xs font-bold text-[#5A6270]">{{ $t('farmer.pendingEscrow') }}</span>
             <h3 class="text-2xl font-black text-[#1E2328] mt-1">{{ formatETB(pendingEscrowETB) }}</h3>
           </div>
           <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
@@ -63,8 +63,8 @@
           </div>
         </div>
         <div class="flex items-center justify-between pt-1 border-t border-gray-100">
-          <span class="text-[11px] text-[#5A6270] font-medium">{{ pendingEscrowOrdersCount }} active escrow orders</span>
-          <span class="text-[10px] font-bold text-amber-700">Awaiting Buyer Confirm</span>
+          <span class="text-[11px] text-[#5A6270] font-medium">{{ pendingEscrowOrdersCount }} {{ $t('active escrow orders') }}</span>
+          <span class="text-[10px] font-bold text-amber-700">{{ $t('Awaiting Buyer Confirm') }}</span>
         </div>
       </div>
 
@@ -73,7 +73,7 @@
         <div class="absolute top-0 left-0 right-0 h-1 bg-[#0B57D0]" />
         <div class="flex items-start justify-between">
           <div>
-            <span class="text-xs font-bold text-[#5A6270]">Total Lifetime Payouts</span>
+            <span class="text-xs font-bold text-[#5A6270]">{{ $t('farmer.lifetimeEarnings') }}</span>
             <h3 class="text-2xl font-black text-[#0B57D0] mt-1">{{ formatETB(totalLifetimeEarned) }}</h3>
           </div>
           <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#0B57D0] border border-blue-100 flex items-center justify-center shrink-0">
@@ -81,8 +81,8 @@
           </div>
         </div>
         <div class="flex items-center justify-between pt-1 border-t border-gray-100">
-          <span class="text-[11px] text-[#5A6270] font-medium">Disbursed to Bank</span>
-          <span class="text-[10px] font-bold text-blue-700">Verified Direct Deposit</span>
+          <span class="text-[11px] text-[#5A6270] font-medium">{{ $t('Disbursed to Bank') }}</span>
+          <span class="text-[10px] font-bold text-blue-700">{{ $t('Verified Direct Deposit') }}</span>
         </div>
       </div>
     </div>
@@ -95,8 +95,8 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h4 class="text-xs font-extrabold text-[#1E2328]">Connected Withdrawal Account</h4>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">Active</span>
+            <h4 class="text-xs font-extrabold text-[#1E2328]">{{ $t('Connected Withdrawal Account') }}</h4>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">{{ $t('Active') }}</span>
           </div>
           <p class="text-xs text-[#5A6270] mt-0.5">
             {{ payoutAccount.provider }} ({{ payoutAccount.accountName }}) · <span class="font-mono font-bold">{{ maskAccount(payoutAccount.accountNumber) }}</span>
@@ -107,7 +107,7 @@
         @click="showAccountModal = true" 
         class="text-xs font-bold text-[#1E9444] hover:text-[#0F5C2A] flex items-center gap-1 cursor-pointer self-start sm:self-auto"
       >
-        <span>Change Method</span>
+        <span>{{ $t('Change Method') }}</span>
         <ChevronRight class="w-4 h-4" />
       </button>
     </div>
@@ -116,8 +116,8 @@
     <div class="bg-white border border-[#E2E4E7] rounded-2xl p-5 shadow-xs space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
         <div>
-          <h3 class="text-sm sm:text-base font-black text-[#1E2328]">Escrow Ledger & Payout History</h3>
-          <p class="text-xs text-[#5A6270]">Detailed status of all order funds, escrow holds, and completed disbursements</p>
+          <h3 class="text-sm sm:text-base font-black text-[#1E2328]">{{ $t('farmer.payoutHistory') }}</h3>
+          <p class="text-xs text-[#5A6270]">{{ $t('Detailed status of all order funds, escrow holds, and completed disbursements') }}</p>
         </div>
 
         <!-- FILTER TABS -->
@@ -131,7 +131,7 @@
               activeFilter === tab.value ? 'bg-white text-[#1E2328] shadow-2xs border border-gray-200' : 'text-[#5A6270] hover:text-[#1E2328]'
             ]"
           >
-            {{ tab.label }}
+            {{ $t(tab.label) }}
           </button>
         </div>
       </div>
@@ -139,8 +139,8 @@
       <!-- EMPTY STATE -->
       <div v-if="filteredPayouts.length === 0" class="text-center py-12 text-[#5A6270] border border-dashed border-gray-200 rounded-xl p-6">
         <Receipt class="w-10 h-10 text-gray-300 mx-auto mb-2" />
-        <p class="text-sm font-bold text-[#1E2328]">No payout records found</p>
-        <p class="text-xs text-[#5A6270] mt-1">Order payouts will appear here when buyers place produce orders with escrow.</p>
+        <p class="text-sm font-bold text-[#1E2328]">{{ $t('No payout records found') }}</p>
+        <p class="text-xs text-[#5A6270] mt-1">{{ $t('Order payouts will appear here when buyers place produce orders with escrow.') }}</p>
       </div>
 
       <!-- LIST OF PAYOUT ITEMS -->
@@ -157,11 +157,11 @@
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h4 class="text-xs font-black text-[#1E2328]">{{ item.cropName || 'Produce Order' }}</h4>
+                  <h4 class="text-xs font-black text-[#1E2328]">{{ $t(item.cropName) || $t('Produce Order') }}</h4>
                   <span class="text-[11px] font-mono text-[#5A6270] bg-white px-2 py-0.5 rounded border border-gray-200">#{{ item.orderId }}</span>
                 </div>
                 <p class="text-[11px] text-[#5A6270] mt-0.5">
-                  Buyer: <span class="font-bold text-gray-800">{{ item.buyerName }}</span> · Escrow Ref: <span class="font-mono text-gray-600">{{ item.escrowRef }}</span>
+                  {{ $t('orders.buyer') }}: <span class="font-bold text-gray-800">{{ item.buyerName }}</span> · {{ $t('Chapa Escrow Ref') }}: <span class="font-mono text-gray-600">{{ item.escrowRef }}</span>
                 </p>
               </div>
             </div>
@@ -172,7 +172,7 @@
                 <span class="text-[10px] text-[#5A6270] font-medium">{{ formatDate(item.date) }}</span>
               </div>
               <span :class="['px-3 py-1 rounded-full text-xs font-black capitalize border', getStatusClass(item.status)]">
-                {{ getStatusLabel(item.status) }}
+                {{ $t(getStatusLabel(item.status)) }}
               </span>
             </div>
           </div>
@@ -181,18 +181,18 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#5A6270] bg-white p-2.5 rounded-xl border border-gray-200/80">
             <div class="flex items-center gap-2">
               <ShieldCheck class="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Release Condition: <strong class="text-gray-800">{{ item.releaseCondition }}</strong></span>
+              <span>{{ $t('Release Condition:') }} <strong class="text-gray-800">{{ item.releaseCondition }}</strong></span>
             </div>
             
             <div class="flex items-center gap-2 self-end sm:self-auto">
               <span v-if="item.status === 'released'" class="text-emerald-700 font-bold flex items-center gap-1">
-                <CheckCircle2 class="w-4 h-4 text-emerald-600" /> Funds Ready in Wallet
+                <CheckCircle2 class="w-4 h-4 text-emerald-600" /> {{ $t('Funds Ready in Wallet') }}
               </span>
               <span v-else-if="item.status === 'paid'" class="text-blue-700 font-bold flex items-center gap-1">
-                <BuildingBank class="w-4 h-4 text-blue-600" /> Paid to {{ payoutAccount.provider }}
+                <BuildingBank class="w-4 h-4 text-blue-600" /> {{ $t('Paid to') }} {{ payoutAccount.provider }}
               </span>
               <span v-else class="text-amber-700 font-bold flex items-center gap-1">
-                <Clock class="w-4 h-4 text-amber-600" /> Escrow Locked
+                <Clock class="w-4 h-4 text-amber-600" /> {{ $t('orders.escrowLocked') }}
               </span>
             </div>
           </div>
@@ -208,31 +208,31 @@
             <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <Wallet class="w-4 h-4" />
             </div>
-            <h3 class="text-base font-black text-[#1E2328]">Request Payout Withdrawal</h3>
+            <h3 class="text-base font-black text-[#1E2328]">{{ $t('farmer.requestWithdrawal') }}</h3>
           </div>
           <button @click="showWithdrawModal = false" class="text-gray-400 hover:text-gray-600 font-bold cursor-pointer">✕</button>
         </div>
 
         <div class="space-y-3 text-xs">
           <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-1">
-            <span class="text-[#5A6270] block font-medium">Withdrawal Amount</span>
+            <span class="text-[#5A6270] block font-medium">{{ $t('farmer.withdrawalAmount') }}</span>
             <p class="text-2xl font-black text-[#1E9444]">{{ formatETB(availableBalanceETB) }}</p>
           </div>
 
           <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-1">
-            <span class="text-[#5A6270] block font-medium">Destination Account</span>
+            <span class="text-[#5A6270] block font-medium">{{ $t('farmer.payoutMethod') }}</span>
             <p class="font-bold text-[#1E2328]">{{ payoutAccount.provider }} - {{ payoutAccount.accountName }}</p>
             <p class="font-mono text-gray-600">{{ payoutAccount.accountNumber }}</p>
           </div>
 
           <p class="text-[11px] text-[#5A6270] leading-relaxed">
-            Funds will be transferred directly via Instant Interbank API. Settlement takes 1-5 minutes for Telebirr / CBE Birr.
+            {{ $t('Funds will be transferred directly via Instant Interbank API. Settlement takes 1-5 minutes for Telebirr / CBE Birr.') }}
           </p>
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
           <button @click="showWithdrawModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-[#5A6270] hover:bg-gray-100 cursor-pointer">
-            Cancel
+            {{ $t('Cancel') }}
           </button>
           <button 
             @click="confirmWithdrawal" 
@@ -240,7 +240,7 @@
             class="px-5 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shadow-xs"
           >
             <Loader2 v-if="isProcessingWithdrawal" class="w-4 h-4 animate-spin" />
-            <span>{{ isProcessingWithdrawal ? 'Processing Disbursement...' : 'Confirm Withdrawal' }}</span>
+            <span>{{ isProcessingWithdrawal ? $t('Processing Disbursement...') : $t('farmer.requestWithdrawal') }}</span>
           </button>
         </div>
       </div>
@@ -254,14 +254,14 @@
             <div class="w-8 h-8 rounded-xl bg-blue-50 text-[#0B57D0] flex items-center justify-center">
               <CreditCard class="w-4 h-4" />
             </div>
-            <h3 class="text-base font-black text-[#1E2328]">Payout Account Settings</h3>
+            <h3 class="text-base font-black text-[#1E2328]">{{ $t('Payout Account Settings') }}</h3>
           </div>
           <button @click="showAccountModal = false" class="text-gray-400 hover:text-gray-600 font-bold cursor-pointer">✕</button>
         </div>
 
         <form @submit.prevent="saveAccountSettings" class="space-y-3 text-xs">
           <div>
-            <label class="block font-bold text-[#1E2328] mb-1">Payout Provider</label>
+            <label class="block font-bold text-[#1E2328] mb-1">{{ $t('farmer.payoutMethod') }}</label>
             <select v-model="editAccountForm.provider" class="w-full p-2.5 rounded-xl border border-gray-300 bg-white font-medium focus:ring-2 focus:ring-[#1E9444] focus:outline-none">
               <option value="Commercial Bank of Ethiopia (CBE)">Commercial Bank of Ethiopia (CBE)</option>
               <option value="Telebirr Mobile Money">Telebirr Mobile Money</option>
@@ -273,7 +273,7 @@
           </div>
 
           <div>
-            <label class="block font-bold text-[#1E2328] mb-1">Account Holder Name</label>
+            <label class="block font-bold text-[#1E2328] mb-1">{{ $t('marketplace.holder') }}</label>
             <input 
               v-model="editAccountForm.accountName" 
               type="text" 
@@ -284,7 +284,7 @@
           </div>
 
           <div>
-            <label class="block font-bold text-[#1E2328] mb-1">Account Number / Telebirr Phone</label>
+            <label class="block font-bold text-[#1E2328] mb-1">{{ $t('Account Number / Telebirr Phone') }}</label>
             <input 
               v-model="editAccountForm.accountNumber" 
               type="text" 
@@ -296,10 +296,10 @@
 
           <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
             <button type="button" @click="showAccountModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-[#5A6270] hover:bg-gray-100 cursor-pointer">
-              Cancel
+              {{ $t('Cancel') }}
             </button>
             <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-bold transition-all cursor-pointer shadow-xs">
-              Save Account Details
+              {{ $t('Save Account Details') }}
             </button>
           </div>
         </form>
@@ -312,7 +312,7 @@
       class="fixed bottom-6 right-6 z-50 bg-[#062E15] text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-xl border border-emerald-500/30 flex items-center gap-2 animate-bounce"
     >
       <CheckCircle2 class="w-4 h-4 text-[#E69500]" />
-      <span>{{ toastMessage }}</span>
+      <span>{{ $t(toastMessage) }}</span>
     </div>
   </div>
 </template>

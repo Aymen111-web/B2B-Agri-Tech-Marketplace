@@ -6,21 +6,21 @@
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
             <LayoutGrid class="w-5 h-5 text-white" />
           </div>
-          <h1 class="text-[28px] font-black text-[#1E2328] tracking-tight">Listing Moderation</h1>
+          <h1 class="text-[28px] font-black text-[#1E2328] tracking-tight">{{ $t('admin.listingModerationTitle') }}</h1>
         </div>
         <p class="text-[14px] font-medium text-[#5A6270] max-w-xl">
-          Inspect marketplace produce details, grade compliance, and toggle live listing visibility.
+          {{ $t('admin.listingModerationSub') }}
         </p>
       </div>
       <div class="flex items-center gap-3 z-10">
         <div class="flex items-center bg-white border border-[#E2E4E7] rounded-xl p-1 shadow-xs">
-          <span class="px-3 py-1.5 text-[11px] font-black uppercase text-[#1E2328]">Total Listings:</span>
+          <span class="px-3 py-1.5 text-[11px] font-black uppercase text-[#1E2328]">{{ $t('admin.totalListings') }}</span>
           <span class="px-2.5 py-1 bg-[#F0F1F2] text-[#1E2328] rounded-lg text-xs font-bold">{{ listings.length }}</span>
         </div>
         <button @click="loadListings" :disabled="isLoading" 
-          class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] bg-white text-[13px] font-bold text-[#1E2328] hover:bg-[#F8F9FA] hover:shadow-md transition-all active:scale-95 flex items-center gap-2 group">
+          class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] bg-white text-[13px] font-bold text-[#1E2328] hover:bg-[#F8F9FA] hover:shadow-md transition-all active:scale-95 flex items-center gap-2 group cursor-pointer">
           <RefreshCcw :class="['w-4 h-4 text-[#5A6270] group-hover:text-amber-600 transition-colors', isLoading && 'animate-spin']" /> 
-          Refresh
+          {{ $t('admin.refresh') }}
         </button>
       </div>
       <div class="absolute right-0 top-0 w-64 h-32 bg-amber-50 rounded-full blur-[80px] -z-0 opacity-60"></div>
@@ -31,8 +31,8 @@
         <div class="absolute inset-0 bg-gradient-to-tr from-amber-100 to-transparent opacity-50"></div>
         <Loader2 class="w-8 h-8 text-amber-500 animate-spin relative z-10" />
       </div>
-      <p class="text-xs font-black text-[#1E2328] uppercase tracking-wider mt-2">Syncing Listings</p>
-      <p class="text-[11px] text-[#9BA1AA] font-bold mt-1">Fetching latest marketplace items...</p>
+      <p class="text-xs font-black text-[#1E2328] uppercase tracking-wider mt-2">{{ $t('admin.syncingListings') }}</p>
+      <p class="text-[11px] text-[#9BA1AA] font-bold mt-1">{{ $t('admin.fetchingLatestItems') }}</p>
     </div>
 
     <div v-else-if="listings.length === 0" class="text-center py-20 bg-white border border-[#E2E4E7] rounded-[24px] px-8 shadow-sm relative overflow-hidden group">
@@ -41,9 +41,9 @@
         <div class="w-20 h-20 mx-auto bg-[#F8F9FA] rounded-full flex items-center justify-center shadow-inner mb-4 border border-[#E2E4E7]">
           <ShoppingBasket class="w-10 h-10 text-[#5A6270] opacity-40" />
         </div>
-        <h3 class="text-[18px] font-extrabold text-[#1E2328] tracking-tight">No Listings Found</h3>
+        <h3 class="text-[18px] font-extrabold text-[#1E2328] tracking-tight">{{ $t('admin.noListingsFound') }}</h3>
         <p class="text-[13px] font-medium text-[#5A6270] mt-1.5 max-w-sm mx-auto">
-          There are currently no listings in the system to moderate.
+          {{ $t('admin.noListingsSub') }}
         </p>
       </div>
     </div>
@@ -65,13 +65,13 @@
               </h3>
               <span :class="['inline-flex w-fit px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-2xs', 
                 item.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200']">
-                {{ item.status === 'active' ? 'Active / Live' : item.status }}
+                {{ item.status === 'active' ? $t('admin.activeLive') : $t(item.status) }}
               </span>
             </div>
             
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-[12px] font-semibold text-[#5A6270]">
-              <span class="flex items-center gap-1.5"><User class="w-3.5 h-3.5 opacity-60" /> {{ item.farmer?.name || item.farmer?.first_name || 'Anonymous' }}</span>
-              <span class="flex items-center gap-1.5"><Award class="w-3.5 h-3.5 opacity-60" /> Grade: {{ item.quality_grade || 'Standard' }}</span>
+              <span class="flex items-center gap-1.5"><User class="w-3.5 h-3.5 opacity-60" /> {{ item.farmer?.name || item.farmer?.first_name || $t('common.anonymous') }}</span>
+              <span class="flex items-center gap-1.5"><Award class="w-3.5 h-3.5 opacity-60" /> {{ $t('marketplace.grade') }}: {{ item.quality_grade || $t('common.standard') }}</span>
               <span class="flex items-center gap-1.5"><Calendar class="w-3.5 h-3.5 opacity-60" /> {{ formatDate(item.created_at) }}</span>
             </div>
           </div>
@@ -79,21 +79,21 @@
 
         <div class="mt-4 lg:mt-0 lg:w-[25%] flex flex-col justify-center">
           <div class="flex flex-col gap-0.5">
-            <span class="text-xs font-black uppercase tracking-wider text-[#9BA1AA]">Pricing & Inventory</span>
-            <span class="text-lg font-black text-[#1E9444] block">{{ formatETB(item.price_per_unit) }}<span class="text-[14px] text-[#5A6270]"> / {{ item.unit }}</span></span>
-            <span class="text-[12px] font-bold text-[#5A6270]">{{ item.quantity_available?.toLocaleString() }} {{ item.unit }} available</span>
+            <span class="text-xs font-black uppercase tracking-wider text-[#9BA1AA]">{{ $t('admin.pricingAndInventory') }}</span>
+            <span class="text-lg font-black text-[#1E9444] block">{{ formatETB(item.price_per_unit) }}<span class="text-[14px] text-[#5A6270]"> / {{ $t(item.unit) }}</span></span>
+            <span class="text-[12px] font-bold text-[#5A6270]">{{ item.quantity_available?.toLocaleString() }} {{ $t(item.unit) }} {{ $t('admin.available') }}</span>
           </div>
         </div>
 
         <div class="mt-5 pt-5 border-t border-[#E2E4E7] lg:border-t-0 lg:mt-0 lg:pt-0 lg:w-[20%] flex lg:justify-end">
           <button @click="toggleStatus(item)" 
-            :class="['w-full lg:w-auto px-5 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2', 
+            :class="['w-full lg:w-auto px-5 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer', 
             item.status === 'active' ? 'bg-white border-2 border-rose-100 text-rose-600 hover:bg-rose-50 hover:border-rose-200' : 'bg-[#1E9444] text-white hover:bg-[#0F5C2A] shadow-emerald-500/20']">
             <template v-if="item.status === 'active'">
-              <PauseCircle class="w-4 h-4" /> Suspend
+              <PauseCircle class="w-4 h-4" /> {{ $t('admin.suspend') }}
             </template>
             <template v-else>
-              <PlayCircle class="w-4 h-4" /> Activate
+              <PlayCircle class="w-4 h-4" /> {{ $t('admin.activate') }}
             </template>
           </button>
         </div>
@@ -118,7 +118,6 @@ const loadListings = async () => {
     listings.value = res.data || res
   } catch {
     listings.value = []
-    alert('Failed to fetch listings from server.')
   } finally {
     isLoading.value = false
   }
@@ -127,8 +126,6 @@ const loadListings = async () => {
 onMounted(loadListings)
 
 const toggleStatus = async (item) => {
-  if (!confirm(`Are you sure you want to ${item.status === 'active' ? 'suspend' : 'activate'} this listing?`)) return
-  
   const newStatus = item.status === 'active' ? 'suspended' : 'active'
   try {
     await adminApi.moderateListing(item.id, newStatus)

@@ -2,8 +2,9 @@
   <!-- Row Variant -->
   <div v-if="variant === 'row'" @click="handleClick"
     :class="['flex items-center gap-3 p-3 bg-white border border-[#E2E4E7] rounded-2xl hover:border-[#1E9444] hover:bg-[#F8F9FA] transition-all cursor-pointer shadow-2xs group', className]">
-    <div class="w-12 h-12 rounded-xl bg-[#F0F1F2] flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform">
-      {{ listing.cropEmoji }}
+    <div class="w-12 h-12 rounded-xl bg-[#F0F1F2] flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition-transform overflow-hidden">
+      <img v-if="cardImage" :src="cardImage" class="w-full h-full object-cover" />
+      <span v-else>{{ listing.cropEmoji }}</span>
     </div>
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-1.5">
@@ -11,13 +12,13 @@
         <VerifiedBadge v-if="listing.isVerified" size="sm" />
       </div>
       <p class="text-[12px] text-[#5A6270] truncate font-medium">
-        {{ listing.farmer?.name }} · <span class="text-[#1E9444] font-semibold">{{ listing.region }} Co-op</span>
+        {{ listing.farmer?.name }} · <span class="text-[#1E9444] font-semibold">{{ listing.region }} {{ $t('farmer.primaryUnionCoops') }}</span>
       </p>
     </div>
     <div class="flex items-center gap-3 shrink-0">
       <div class="text-right">
         <span class="text-[15px] font-black text-[#1E9444] block">{{ formatETB(listing.pricePerKg) }}</span>
-        <span class="text-[11px] text-[#5A6270] font-medium">/ kg</span>
+        <span class="text-[11px] text-[#5A6270] font-medium">{{ $t('common.perKg') }}</span>
       </div>
       <button type="button" @click.stop="handleCartClick"
         :class="['w-9 h-9 rounded-xl flex items-center justify-center transition-colors shadow-2xs cursor-pointer',
@@ -33,7 +34,8 @@
     :class="['bg-white border border-[#E2E4E7] rounded-3xl overflow-hidden hover:border-[#1E9444] transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-md flex flex-col group', className]">
     <div :class="['h-[135px] bg-gradient-to-br relative flex items-center justify-center overflow-hidden', getCategoryGradient(listing.category)]">
       <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
-      <span class="text-6xl drop-shadow-lg select-none group-hover:scale-110 transition-transform duration-200 relative z-10">
+      <img v-if="cardImage" :src="cardImage" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-10" />
+      <span v-else class="text-6xl drop-shadow-lg select-none group-hover:scale-110 transition-transform duration-200 relative z-10">
         {{ listing.cropEmoji }}
       </span>
       <div class="absolute top-2.5 left-2.5 z-20">
@@ -52,7 +54,7 @@
         <p class="text-[12px] text-[#5A6270] mt-1 font-medium truncate flex items-center gap-1">
           <span class="text-gray-800 font-bold">{{ listing.farmer?.name }}</span>
           <span>·</span>
-          <span class="text-[#1E9444] font-semibold">{{ listing.region }} Union</span>
+          <span class="text-[#1E9444] font-semibold">{{ listing.region }}</span>
         </p>
       </div>
 
@@ -60,7 +62,7 @@
         <div>
           <span class="text-[16px] font-black text-[#1E9444] block leading-none">{{ formatETB(listing.pricePerKg) }}</span>
           <span class="text-[10px] text-[#5A6270] font-bold">
-            {{ listing.availableQty >= 1000 ? `${(listing.availableQty / 1000).toFixed(1)} tons available` : `${listing.availableQty} kg available` }}
+            {{ listing.availableQty >= 1000 ? `${(listing.availableQty / 1000).toFixed(1)} ${$t('common.tons')}` : `${listing.availableQty} ${$t('common.kg')}` }}
           </span>
         </div>
         <button type="button" @click.stop="handleCartClick"
@@ -102,6 +104,19 @@ const isAddedToCart = computed(() => {
     String(item.listingId) === String(props.listing.id) || 
     String(item.listing?.id) === String(props.listing.id)
   )
+})
+
+const cardImage = computed(() => {
+  const img = props.listing.primaryImage || 
+              (props.listing.images && props.listing.images.length > 0 ? props.listing.images[0] : null) || 
+              props.listing.image_url || 
+              props.listing.image_path
+  if (!img) return null
+  if (typeof img === 'string') {
+    if (img.startsWith('http') || img.startsWith('blob:') || img.startsWith('data:')) return img
+    return `http://127.0.0.1:8000/storage/${img.replace(/^\/?storage\//, '')}`
+  }
+  return null
 })
 
 const getCategoryGradient = (category) => {

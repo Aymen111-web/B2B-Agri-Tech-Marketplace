@@ -51,10 +51,37 @@ class CapabilityApplicationController extends Controller
             ], 409);
         }
 
+        $rawDocs = $request->input('supporting_documents');
+        $appData = $request->input('application_data');
+
+        $filesList = [];
+        if (is_array($rawDocs)) {
+            foreach ($rawDocs as $k => $v) {
+                if (is_string($v) && !empty($v)) {
+                    $filesList[] = $v;
+                } elseif (is_array($v) && (!empty($v['url']) || !empty($v['name']))) {
+                    $filesList[] = $v;
+                }
+            }
+        } elseif (is_string($rawDocs) && !empty($rawDocs)) {
+            $filesList[] = $rawDocs;
+        }
+
+        $mergedPayload = [
+            'files' => $filesList,
+        ];
+
+        if (is_array($appData)) {
+            $mergedPayload['application_data'] = $appData;
+            foreach ($appData as $k => $v) {
+                $mergedPayload[$k] = $v;
+            }
+        }
+
         $application = CapabilityApplication::create([
             'user_id'              => $user->id,
             'capability_type'      => $request->validated('capability_type'),
-            'supporting_documents' => $request->validated('supporting_documents'),
+            'supporting_documents' => $mergedPayload,
         ]);
 
         return response()->json([
@@ -171,7 +198,7 @@ class CapabilityApplicationController extends Controller
 
         return response()->json([
             'message'     => 'Application approved. ' . ucfirst($application->capability_type) . ' capability granted.',
-            'application' => new CapabilityApplicationResource($application->fresh()->load(['user:id,first_name,second_name,phone', 'capabilityGrant'])),
+            'application' => new CapabilityApplicationResource($application->fresh()->load(['user', 'capabilityGrant'])),
         ]);
     }
 

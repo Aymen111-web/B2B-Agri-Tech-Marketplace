@@ -25,9 +25,9 @@
 
           <!-- Content -->
           <div class="space-y-2">
-            <h3 class="text-xl font-black text-[#1E2328] tracking-tight">Ready to buy?</h3>
+            <h3 class="text-xl font-black text-[#1E2328] tracking-tight">{{ $t('landing.readyToSource') }}</h3>
             <p class="text-xs text-[#5A6270] leading-relaxed max-w-xs mx-auto">
-              Create a Buyer account to purchase products directly from Ethiopian farmers and suppliers.
+              {{ $t('landing.readyToSourceDesc') }}
             </p>
           </div>
 
@@ -35,11 +35,11 @@
           <div class="grid grid-cols-2 gap-2 text-left bg-[#F8F9FA] p-3 rounded-2xl border border-gray-100 text-[11px]">
             <div class="flex items-center gap-1.5 text-gray-700 font-medium">
               <ShieldCheck class="w-4 h-4 text-[#1E9444] shrink-0" />
-              <span>Chapa Escrow Protected</span>
+              <span>{{ $t('landing.escrowPayment') }}</span>
             </div>
             <div class="flex items-center gap-1.5 text-gray-700 font-medium">
               <CheckCircle2 class="w-4 h-4 text-[#1E9444] shrink-0" />
-              <span>Direct Co-op Pricing</span>
+              <span>{{ $t('landing.directFarmerTrade') }}</span>
             </div>
           </div>
 
@@ -50,14 +50,14 @@
               class="w-full py-3.5 px-4 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <UserPlus class="w-4 h-4" />
-              <span>Register as Buyer</span>
+              <span>{{ $t('landing.registerCommercialBuyer') }}</span>
             </button>
 
             <button 
               @click="close" 
               class="w-full py-3 px-4 rounded-xl border border-gray-200 hover:bg-gray-50 text-[#5A6270] font-bold text-xs transition-colors cursor-pointer"
             >
-              Continue Browsing
+              {{ $t('common.continue') }}
             </button>
           </div>
         </div>
