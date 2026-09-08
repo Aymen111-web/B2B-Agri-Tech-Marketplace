@@ -26,6 +26,7 @@ export default {
     switchToLight: 'ወደ ብርሃን ገጽታ ቀይር',
     switchToDark: 'ወደ ጨለማ ገጽታ ቀይር',
     toggleThemeAria: 'የገጽታ ቀለም ይቀይሩ',
+    selectLanguage: 'ቋንቋ ይምረጡ',
     allCrops: 'ሁሉም ሰብሎች',
     coffee: 'ቡና',
     grains: 'እህል',
