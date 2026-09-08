@@ -26,6 +26,7 @@ export default {
     switchToLight: 'Switch to Light Mode',
     switchToDark: 'Switch to Dark Mode',
     toggleThemeAria: 'Toggle Dark or Light Mode',
+    selectLanguage: 'Select Language',
     allCrops: 'All Crops',
     coffee: 'Coffee',
     grains: 'Grains',

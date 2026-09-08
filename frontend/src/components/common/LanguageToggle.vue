@@ -1,68 +1,157 @@
 <template>
-  <div class="relative" ref="toggleRef">
+  <div class="relative inline-block text-left" ref="toggleRef">
+    <!-- Main Toggle Trigger Button -->
     <button 
-      @click="isOpen = !isOpen" 
+      @click="toggleDropdown" 
       type="button"
       :title="currentLang === 'en' ? 'ቋንቋ ቀይር / Change Language' : 'Change Language / ቋንቋ ቀይር'"
-      class="px-2.5 py-1.5 rounded-xl border border-[#E2E4E7] dark:border-white/20 bg-white dark:bg-white/10 hover:bg-[#F0F1F2] dark:hover:bg-white/20 hover:border-[#0B57D0] transition-all cursor-pointer flex items-center gap-2 shadow-2xs group"
-      aria-label="Change Language"
+      :aria-expanded="isOpen"
+      aria-haspopup="listbox"
+      aria-label="Change Language / ቋንቋ ቀይር"
+      :class="[
+        'group relative flex items-center gap-2 h-9 px-3 rounded-xl border transition-all duration-200 cursor-pointer select-none text-xs font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#1E9444]',
+        variant === 'farmer'
+          ? 'bg-[#0F5C2A] hover:bg-[#157337] border-emerald-600/40 hover:border-emerald-400 text-white shadow-xs'
+          : variant === 'glass'
+            ? 'bg-slate-900/30 hover:bg-slate-900/50 border-white/20 hover:border-white/40 text-white backdrop-blur-md shadow-xs'
+            : 'bg-[#F0F2F5] dark:bg-[#1E2328] hover:bg-[#E2E6EC] dark:hover:bg-[#2A313C] border-slate-300/80 dark:border-white/15 hover:border-[#1E9444] dark:hover:border-emerald-500 text-slate-800 dark:text-white shadow-2xs'
+      ]"
     >
-      <!-- Translation Icon (White badge with A and 文 glyphs from requested design) -->
-      <span class="inline-flex items-center justify-center shrink-0">
-        <svg class="w-6 h-4 group-hover:scale-105 transition-transform duration-200" viewBox="0 0 28 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0.75" y="0.75" width="26.5" height="16.5" rx="4" fill="white" stroke="#0B57D0" stroke-width="1.5" class="dark:fill-slate-800 dark:stroke-[#6EA8FE]" />
-          <path d="M6.5 13.5L9.3 5.5H10.7L13.5 13.5M7.4 11.2H12.6" stroke="#0B57D0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="dark:stroke-[#6EA8FE]" />
-          <path d="M20.2 5V6.6M16.5 7.2H24M21.2 8.4C20.2 10.3 18.2 11.9 16.5 12.9M18.8 8.6L23.5 13" stroke="#0B57D0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="dark:stroke-[#6EA8FE]" />
+      <!-- Active Language Flag Avatar -->
+      <span class="w-5 h-5 rounded-full overflow-hidden shrink-0 shadow-2xs ring-1 ring-black/10 dark:ring-white/20 flex items-center justify-center">
+        <!-- English Flag -->
+        <svg v-if="currentLang === 'en'" viewBox="0 0 32 32" class="w-full h-full object-cover">
+          <rect width="32" height="32" fill="#012169" />
+          <path d="M0 0 L32 32 M32 0 L0 32" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="square" />
+          <path d="M0 0 L32 32 M32 0 L0 32" stroke="#C8102E" stroke-width="2.2" stroke-linecap="square" />
+          <path d="M16 0 V32 M0 16 H32" stroke="#FFFFFF" stroke-width="6.5" />
+          <path d="M16 0 V32 M0 16 H32" stroke="#C8102E" stroke-width="4" />
+        </svg>
+
+        <!-- Ethiopian Flag -->
+        <svg v-else viewBox="0 0 32 32" class="w-full h-full object-cover">
+          <rect width="32" height="10.67" y="0" fill="#009A44" />
+          <rect width="32" height="10.67" y="10.67" fill="#FED100" />
+          <rect width="32" height="10.67" y="21.33" fill="#EF3340" />
+          <circle cx="16" cy="16" r="6.2" fill="#0F47AF" />
+          <polygon points="16,11.2 17.5,14.8 21.2,14.8 18.2,17 19.3,20.6 16,18.3 12.7,20.6 13.8,17 10.8,14.8 14.5,14.8" fill="#FED100" />
+          <circle cx="16" cy="16" r="1.3" fill="#0F47AF" />
+          <circle cx="16" cy="16" r="0.7" fill="#FED100" />
         </svg>
       </span>
 
-      <!-- Language Label Indicator -->
-      <span class="text-[11px] font-extrabold text-[#1E2328] dark:text-white tracking-wide">
+      <!-- Language Code Badge -->
+      <span :class="[
+        'text-[12px] font-black tracking-wider uppercase transition-colors',
+        variant === 'farmer' || variant === 'glass'
+          ? 'text-white'
+          : 'text-slate-800 dark:text-white group-hover:text-slate-950 dark:group-hover:text-white'
+      ]">
         {{ currentLang === 'en' ? 'EN' : 'አማ' }}
       </span>
 
-      <!-- Dropdown Chevron -->
-      <ChevronDown :class="['w-3.5 h-3.5 text-gray-500 dark:text-gray-300 transition-transform duration-200', isOpen && 'rotate-180']" />
+      <!-- Animated Chevron Down -->
+      <ChevronDown 
+        :class="[
+          'w-3.5 h-3.5 transition-all duration-200 shrink-0',
+          isOpen ? 'rotate-180 text-[#1E9444]' : (
+            variant === 'farmer' || variant === 'glass'
+              ? 'text-white/80 group-hover:text-white'
+              : 'text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white'
+          )
+        ]" 
+      />
     </button>
 
-    <!-- Language Selector Dropdown Menu -->
-    <Transition name="fade-dropdown">
+    <!-- Professional Dropdown Popover -->
+    <Transition name="dropdown-popover">
       <div 
         v-if="isOpen" 
-        class="absolute right-0 top-full mt-2 w-44 bg-white dark:bg-[#1E2328] border border-[#E2E4E7] dark:border-white/20 rounded-2xl shadow-xl p-1.5 z-50 text-xs"
+        role="listbox"
+        aria-label="Language selection"
+        class="absolute right-0 top-full mt-2 w-60 bg-white/98 dark:bg-[#1E2328] backdrop-blur-xl border border-slate-200 dark:border-white/15 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-black/40 p-1.5 z-50 text-xs overflow-hidden"
       >
+        <!-- Category Sub-header with Globe icon -->
+        <div class="px-2.5 py-1.5 flex items-center justify-between border-b border-slate-100 dark:border-white/10 mb-1">
+          <div class="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400">
+            <Globe class="w-3.5 h-3.5 text-[#1E9444]" />
+            <span>{{ currentLang === 'en' ? 'Select Language' : 'ቋንቋ ይምረጡ' }}</span>
+          </div>
+          <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500">2</span>
+        </div>
+
+        <!-- English Option -->
         <button 
           type="button"
+          role="option"
+          :aria-selected="currentLang === 'en'"
           @click="selectLang('en')"
           :class="[
-            'w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer',
+            'w-full flex items-center justify-between p-2 rounded-xl transition-all duration-150 cursor-pointer text-left group',
             currentLang === 'en' 
-              ? 'bg-[#EDFAF2] dark:bg-white/15 text-[#0F5C2A] dark:text-[#6EA8FE]' 
-              : 'text-[#1E2328] dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10'
+              ? 'bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 font-bold border border-emerald-500/20' 
+              : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#2A313C] border border-transparent font-medium'
           ]"
         >
-          <div class="flex items-center gap-2">
-            <span class="text-sm">🇬🇧</span>
-            <span>English</span>
+          <div class="flex items-center gap-2.5">
+            <!-- UK Flag Icon -->
+            <div class="w-6 h-6 rounded-full overflow-hidden shrink-0 ring-1 ring-black/10 dark:ring-white/10 shadow-xs flex items-center justify-center">
+              <svg viewBox="0 0 32 32" class="w-full h-full object-cover">
+                <rect width="32" height="32" fill="#012169" />
+                <path d="M0 0 L32 32 M32 0 L0 32" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="square" />
+                <path d="M0 0 L32 32 M32 0 L0 32" stroke="#C8102E" stroke-width="2.2" stroke-linecap="square" />
+                <path d="M16 0 V32 M0 16 H32" stroke="#FFFFFF" stroke-width="6.5" />
+                <path d="M16 0 V32 M0 16 H32" stroke="#C8102E" stroke-width="4" />
+              </svg>
+            </div>
+            <div class="flex flex-col text-left">
+              <span class="text-xs font-bold leading-tight">English</span>
+              <span :class="['text-[10px] leading-tight mt-0.5', currentLang === 'en' ? 'text-emerald-700/80 dark:text-emerald-400/80 font-medium' : 'text-slate-400 dark:text-slate-400']">
+                Global / International
+              </span>
+            </div>
           </div>
-          <Check v-if="currentLang === 'en'" class="w-4 h-4 text-[#1E9444] dark:text-[#6EA8FE]" />
+          <div v-if="currentLang === 'en'" class="w-5 h-5 rounded-full bg-[#1E9444] text-white flex items-center justify-center shadow-xs shrink-0">
+            <Check class="w-3 h-3 stroke-[3]" />
+          </div>
         </button>
 
+        <!-- Amharic Option -->
         <button 
           type="button"
+          role="option"
+          :aria-selected="currentLang === 'am'"
           @click="selectLang('am')"
           :class="[
-            'w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer',
+            'w-full flex items-center justify-between p-2 rounded-xl transition-all duration-150 cursor-pointer text-left group mt-1',
             currentLang === 'am' 
-              ? 'bg-[#EDFAF2] dark:bg-white/15 text-[#0F5C2A] dark:text-[#6EA8FE]' 
-              : 'text-[#1E2328] dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10'
+              ? 'bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 font-bold border border-emerald-500/20' 
+              : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#2A313C] border border-transparent font-medium'
           ]"
         >
-          <div class="flex items-center gap-2">
-            <span class="text-sm">🇪🇹</span>
-            <span>አማርኛ (Amharic)</span>
+          <div class="flex items-center gap-2.5">
+            <!-- Ethiopian Flag Icon -->
+            <div class="w-6 h-6 rounded-full overflow-hidden shrink-0 ring-1 ring-black/10 dark:ring-white/10 shadow-xs flex items-center justify-center">
+              <svg viewBox="0 0 32 32" class="w-full h-full object-cover">
+                <rect width="32" height="10.67" y="0" fill="#009A44" />
+                <rect width="32" height="10.67" y="10.67" fill="#FED100" />
+                <rect width="32" height="10.67" y="21.33" fill="#EF3340" />
+                <circle cx="16" cy="16" r="6.2" fill="#0F47AF" />
+                <polygon points="16,11.2 17.5,14.8 21.2,14.8 18.2,17 19.3,20.6 16,18.3 12.7,20.6 13.8,17 10.8,14.8 14.5,14.8" fill="#FED100" />
+                <circle cx="16" cy="16" r="1.3" fill="#0F47AF" />
+                <circle cx="16" cy="16" r="0.7" fill="#FED100" />
+              </svg>
+            </div>
+            <div class="flex flex-col text-left">
+              <span class="text-xs font-bold leading-tight">አማርኛ</span>
+              <span :class="['text-[10px] leading-tight mt-0.5', currentLang === 'am' ? 'text-emerald-700/80 dark:text-emerald-400/80 font-medium' : 'text-slate-400 dark:text-slate-400']">
+                Amharic (Ethiopia)
+              </span>
+            </div>
           </div>
-          <Check v-if="currentLang === 'am'" class="w-4 h-4 text-[#1E9444] dark:text-[#6EA8FE]" />
+          <div v-if="currentLang === 'am'" class="w-5 h-5 rounded-full bg-[#1E9444] text-white flex items-center justify-center shadow-xs shrink-0">
+            <Check class="w-3 h-3 stroke-[3]" />
+          </div>
         </button>
       </div>
     </Transition>
@@ -71,12 +160,23 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { ChevronDown, Check } from 'lucide-vue-next'
+import { ChevronDown, Check, Globe } from 'lucide-vue-next'
 import { useLanguage } from '@/composables/useLanguage'
+
+defineProps({
+  variant: {
+    type: String,
+    default: 'default', // 'default' | 'farmer' | 'glass'
+  }
+})
 
 const { currentLang, setLanguage } = useLanguage()
 const isOpen = ref(false)
 const toggleRef = ref(null)
+
+function toggleDropdown() {
+  isOpen.value = !isOpen.value
+}
 
 function selectLang(lang) {
   setLanguage(lang)
@@ -89,23 +189,31 @@ function handleClickOutside(e) {
   }
 }
 
+function handleKeyDown(e) {
+  if (e.key === 'Escape' && isOpen.value) {
+    isOpen.value = false
+  }
+}
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  document.addEventListener('keydown', handleKeyDown)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('keydown', handleKeyDown)
 })
 </script>
 
 <style scoped>
-.fade-dropdown-enter-active,
-.fade-dropdown-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+.dropdown-popover-enter-active,
+.dropdown-popover-leave-active {
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.fade-dropdown-enter-from,
-.fade-dropdown-leave-to {
+.dropdown-popover-enter-from,
+.dropdown-popover-leave-to {
   opacity: 0;
-  transform: translateY(-6px) scale(0.96);
+  transform: translateY(-8px) scale(0.96);
 }
 </style>

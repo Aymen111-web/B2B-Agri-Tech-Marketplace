@@ -52,7 +52,7 @@
 
       <!-- Right: Profile dropdown -->
       <div class="flex items-center gap-3 relative" ref="dropdownRef">
-        <LanguageToggle />
+        <LanguageToggle :variant="isFarmerTheme ? 'farmer' : 'default'" />
         <ThemeToggle />
 
         <!-- Profile Trigger -->
@@ -220,7 +220,7 @@ const isProfileMenuOpen = ref(false)
 const isSettingsOpen = ref(false)
 const dropdownRef = ref(null)
 
-const isFarmerTheme = computed(() => props.theme === 'farmerDark')
+const isFarmerTheme = computed(() => props.theme === 'farmerDark' || user.value?.role === 'farmer' || route.path.startsWith('/farmer'))
 const isAdmin = computed(() => user.value?.role === 'admin' || user.value?.is_admin)
 
 const roleTitle = computed(() => {
