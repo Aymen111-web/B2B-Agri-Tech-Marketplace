@@ -5,12 +5,14 @@
       <div class="h-[5px] w-full bg-gradient-to-r from-[#0B57D0] via-[#F3A712] to-[#E69500]" />
       
       <div class="p-6 md:p-8 space-y-6">
-        <!-- Top Dots Decor -->
-        <div class="absolute top-5 right-6 flex items-center gap-2">
-          <LanguageToggle />
-          <span class="w-2.5 h-2.5 rounded-full bg-[#0B57D0]" />
-          <span class="w-2.5 h-2.5 rounded-full bg-[#F3A712]" />
-          <span class="w-2.5 h-2.5 rounded-full bg-[#E65100]" />
+        <!-- Top Navigation Bar: Back Button (Top-Left) & Color Dots (Top-Right) -->
+        <div class="flex items-center justify-between -mt-1 -mb-1">
+          <BackButton to="/" />
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#0B57D0]" />
+            <span class="w-2.5 h-2.5 rounded-full bg-[#F3A712]" />
+            <span class="w-2.5 h-2.5 rounded-full bg-[#E65100]" />
+          </div>
         </div>
 
         <!-- Logo -->
@@ -386,6 +388,7 @@ import {
 } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import QelemMedaLogo from '@/components/common/QelemMedaLogo.vue'
+import BackButton from '@/components/common/BackButton.vue'
 
 const route = useRoute()
 const router = useRouter()

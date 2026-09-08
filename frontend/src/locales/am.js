@@ -35,6 +35,8 @@ export default {
     pulses: 'ጥራጥሬ',
     save: 'አስቀምጥ',
     cancel: 'ሰርዝ',
+    signOut: 'ውጣ',
+    signOutConfirm: 'እርግጠኛ ነዎት ከመለያዎ መውጣት ይፈልጋሉ?',
     back: 'ተመለስ',
     continue: 'ቀጥል',
     submit: 'አስገባ',

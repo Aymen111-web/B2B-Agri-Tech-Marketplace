@@ -46,7 +46,16 @@ const INITIAL_ADMIN = {
 const user = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
+const isLogoutModalOpen = ref(false)
 let initialized = false
+
+function openLogoutModal() {
+    isLogoutModalOpen.value = true
+}
+
+function closeLogoutModal() {
+    isLogoutModalOpen.value = false
+}
 
 function loadUserFromStorage() {
     const savedUser = localStorage.getItem('agri_user_data')
@@ -266,5 +275,8 @@ export function useAuth() {
         switchRole,
         login,
         logout,
+        isLogoutModalOpen,
+        openLogoutModal,
+        closeLogoutModal,
     }
 }

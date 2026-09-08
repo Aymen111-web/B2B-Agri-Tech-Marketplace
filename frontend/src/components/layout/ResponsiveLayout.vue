@@ -212,7 +212,7 @@ const props = defineProps({
 
 const route = useRoute()
 const router = useRouter()
-const { user, logout, hasFarmerCapability, hasBuyerCapability, switchRole, pendingApplications } = useAuth()
+const { user, logout, openLogoutModal, hasFarmerCapability, hasBuyerCapability, switchRole, pendingApplications } = useAuth()
 const { t } = useLanguage()
 
 const isSidebarOpen = ref(true)
@@ -271,8 +271,7 @@ const handleRoleSwitchDropdown = () => {
 
 const handleLogout = () => {
   isProfileMenuOpen.value = false
-  logout()
-  router.push('/login')
+  openLogoutModal()
 }
 
 // Close dropdown on click outside

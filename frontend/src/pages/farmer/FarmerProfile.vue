@@ -42,7 +42,7 @@
           <Edit3 class="w-4 h-4 text-amber-300" />
           <span>{{ $t('Edit Profile') }}</span>
         </button>
-        <button @click="logout" 
+        <button @click="openLogoutModal" 
           class="px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 border border-red-300/40 text-red-100 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer">
           <LogOut class="w-4 h-4" />
           <span>{{ $t('Sign Out') }}</span>
@@ -313,7 +313,7 @@ import { useAuth } from '@/composables/useAuth'
 import { api } from '@/services/api'
 import { compressImageFile } from '@/utils/imageCompressor'
 
-const { user, logout, updateUserProfile } = useAuth()
+const { user, logout, openLogoutModal, updateUserProfile } = useAuth()
 const farmer = computed(() => user.value)
 
 const showEditModal = ref(false)
