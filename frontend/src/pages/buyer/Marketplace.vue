@@ -41,17 +41,8 @@
     </header>
 
     <div :class="[isStandalone ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6' : 'space-y-6 pb-6']">
-      <!-- Top Header & Search -->
+      <!-- Top Search Bar -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E4E7] dark:border-[#30363D] pb-5">
-        <div>
-          <h1 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">
-            {{ t('agriMarketplace') }} 🌾
-          </h1>
-          <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-0.5">
-            {{ t('marketplaceSub') }}
-          </p>
-        </div>
-
         <!-- Search Input -->
         <div class="w-full sm:w-80">
           <div class="relative">
