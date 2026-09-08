@@ -35,6 +35,8 @@ export default {
     pulses: 'Pulses',
     save: 'Save',
     cancel: 'Cancel',
+    signOut: 'Sign Out',
+    signOutConfirm: 'Are you sure you want to sign out?',
     back: 'Back',
     continue: 'Continue',
     submit: 'Submit',

@@ -17,7 +17,7 @@
           <Edit3 class="w-3.5 h-3.5 text-[#0B57D0]" />
           <span>{{ $t('Edit Profile') }}</span>
         </button>
-        <button @click="logout" 
+        <button @click="openLogoutModal" 
           class="px-4 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 rounded-xl text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer">
           <LogOut class="w-3.5 h-3.5" />
           <span>{{ $t('Sign Out') }}</span>
@@ -321,7 +321,7 @@ import {
 import { useAuth } from '@/composables/useAuth'
 import { api } from '@/services/api'
 
-const { user, logout, updateUserProfile } = useAuth()
+const { user, logout, openLogoutModal, updateUserProfile } = useAuth()
 const showEditModal = ref(false)
 const activeTab = ref('credentials')
 const fileInput = ref(null)
