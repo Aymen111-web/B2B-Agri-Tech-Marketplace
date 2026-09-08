@@ -110,11 +110,11 @@
                   </span>
                 </div>
                 <p class="text-xs text-[#5A6270] mt-0.5 flex flex-wrap items-center gap-2">
-                  <span class="font-bold text-[#1E2328]">Order #{{ order.displayId }}</span>
+                  <span class="font-bold text-[#1E2328]">{{ $t('orders.orderId') }} #{{ order.displayId }}</span>
                   <span>•</span>
-                  <span>Farmer: <strong class="text-[#1E2328]">{{ order.farmer?.name || 'Dawit Bekele' }}</strong></span>
+                  <span>{{ $t('orders.farmer') }}: <strong class="text-[#1E2328]">{{ order.farmer?.name || 'Dawit Bekele' }}</strong></span>
                   <span>•</span>
-                  <span>Region: <strong class="text-[#1E2328]">{{ order.listing?.region || 'Oromia Co-op' }}</strong></span>
+                  <span>{{ $t('Region') }}: <strong class="text-[#1E2328]">{{ order.listing?.region || 'Oromia Co-op' }}</strong></span>
                 </p>
               </div>
             </div>
@@ -154,9 +154,9 @@
               <Key class="w-4 h-4" />
             </div>
             <div>
-              <p class="font-bold text-[#1E2328]">Driver Delivery PIN Verification Required</p>
+              <p class="font-bold text-[#1E2328]">{{ $t('Driver Delivery PIN Verification Required') }}</p>
               <p class="text-[11px] text-amber-800">
-                Driver is delivering batch #{{ order.displayId }}. Enter PIN to release escrow payment.
+                {{ $t('Driver delivery PIN prompt') }} #{{ order.displayId }}. {{ $t('Enter PIN to release escrow payment.') }}
               </p>
             </div>
           </div>
@@ -250,11 +250,11 @@
           </p>
           <div class="p-3 bg-[#F8F9FA] rounded-xl space-y-1">
             <div class="flex justify-between font-semibold">
-              <span>Order ID:</span>
+              <span>{{ $t('orders.orderId') }}:</span>
               <span class="font-bold">#{{ selectedOrderForPIN?.displayId || selectedOrderForPIN?.id }}</span>
             </div>
             <div class="flex justify-between font-semibold">
-              <span>Escrow Release Payout:</span>
+              <span>{{ $t('Escrow Release Payout') }}:</span>
               <span class="text-[#0B57D0] font-black">{{ formatETB(selectedOrderForPIN.totalAmountETB) }}</span>
             </div>
           </div>

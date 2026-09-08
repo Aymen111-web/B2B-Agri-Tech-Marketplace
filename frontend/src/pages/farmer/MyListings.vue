@@ -55,13 +55,13 @@
         </div>
 
         <div class="flex items-center justify-between pt-1 border-t border-orange-100/60 text-xs">
-          <span class="text-[#5A6270] font-medium flex items-center gap-1"><Package class="w-3.5 h-3.5 text-[#1E9444]" /><span>Batch #{{ String(item.id || '').slice(-6) }} · Live on QMT Portal</span></span>
+          <span class="text-[#5A6270] font-medium flex items-center gap-1"><Package class="w-3.5 h-3.5 text-[#1E9444]" /><span>{{ $t('Batch') }} #{{ String(item.id || '').slice(-6) }} · {{ $t('farmer.liveOnMarketplace') }}</span></span>
           <div class="flex items-center gap-2">
             <button @click="handleDelete(item.id)" class="px-3 py-1.5 rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-600 font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
               <Trash2 class="w-3.5 h-3.5" /><span>Delete</span>
             </button>
             <router-link :to="`/farmer/listings/edit/${item.id}`" class="px-3.5 py-1.5 rounded-xl border border-[#FBE3D0] bg-white hover:bg-orange-50/50 text-[#1E9444] font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
-              <Edit2 class="w-3.5 h-3.5" /><span>Edit Details</span>
+              <Edit2 class="w-3.5 h-3.5" /><span>{{ $t('Edit Details') }}</span>
             </router-link>
           </div>
         </div>
@@ -88,7 +88,14 @@ const handleDelete = async (id) => {
   }
 }
 
-const farmerListings = computed(() => listings.value.filter(l => l.farmerId === farmer.value?.id || l.farmer?.name === farmer.value?.name))
+const farmerListings = computed(() => {
+  if (!farmer.value) return []
+  return listings.value.filter(l => 
+    String(l.farmerId) === String(farmer.value.id) || 
+    String(l.farmer?.id) === String(farmer.value.id) || 
+    (farmer.value.phone && l.farmer?.phone === farmer.value.phone)
+  )
+})
 const displayListings = computed(() => farmerListings.value.length > 0 ? farmerListings.value : listings.value.slice(0, 4))
 const filteredListings = computed(() => displayListings.value.filter(l => {
   if (statusFilter.value === 'live') return l.isActive
