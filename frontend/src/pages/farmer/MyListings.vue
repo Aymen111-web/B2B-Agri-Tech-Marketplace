@@ -49,58 +49,74 @@
       </router-link>
     </div>
 
-    <div v-else class="space-y-3">
-      <div v-for="item in filteredListings" :key="item.id" class="bg-gradient-to-br from-[#FFFBF7] via-white to-[#FFFBF7] dark:from-[#161B22] dark:via-[#161B22] dark:to-[#161B22] border border-[#FBE3D0] dark:border-[#30363D] rounded-3xl p-5 shadow-xs hover:border-[#E69500] transition-all space-y-4">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center gap-3.5">
-            <div class="w-14 h-14 rounded-2xl bg-white dark:bg-[#21262D] border border-[#FBE3D0] dark:border-[#30363D] flex items-center justify-center text-2xl shrink-0 shadow-2xs overflow-hidden">
-              <img v-if="item.primaryImage || (item.images && item.images.length > 0)" :src="item.primaryImage || item.images[0]" class="w-full h-full object-cover" />
-              <span v-else>{{ item.cropEmoji }}</span>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ $t(item.cropName) }}</h3>
-                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1"><CheckCircle2 class="w-3 h-3 text-[#1E9444] dark:text-emerald-400" /> {{ $t('badges.verifiedGrade') }}</span>
+    <div v-else class="space-y-4">
+      <div class="space-y-3">
+        <div v-for="item in paginatedListings" :key="item.id" class="bg-gradient-to-br from-[#FFFBF7] via-white to-[#FFFBF7] dark:from-[#161B22] dark:via-[#161B22] dark:to-[#161B22] border border-[#FBE3D0] dark:border-[#30363D] rounded-3xl p-5 shadow-xs hover:border-[#E69500] transition-all space-y-4">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3.5">
+              <div class="w-14 h-14 rounded-2xl bg-white dark:bg-[#21262D] border border-[#FBE3D0] dark:border-[#30363D] flex items-center justify-center text-2xl shrink-0 shadow-2xs overflow-hidden">
+                <img v-if="item.primaryImage || (item.images && item.images.length > 0)" :src="item.primaryImage || item.images[0]" class="w-full h-full object-cover" />
+                <span v-else>{{ item.cropEmoji }}</span>
               </div>
-              <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-0.5 font-medium">{{ $t(farmer?.region) || 'Sidama' }} {{ $t('Region') }} · {{ $t(item.grade) || 'Grade 1' }}</p>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ $t(item.cropName) }}</h3>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1"><CheckCircle2 class="w-3 h-3 text-[#1E9444] dark:text-emerald-400" /> {{ $t('badges.verifiedGrade') }}</span>
+                </div>
+                <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-0.5 font-medium">{{ $t(farmer?.region) || 'Sidama' }} {{ $t('Region') }} · {{ $t(item.grade) || 'Grade 1' }}</p>
+              </div>
             </div>
+            <span class="px-3 py-1 rounded-full text-xs font-black bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/60">{{ $t('badges.live') }}</span>
           </div>
-          <span class="px-3 py-1 rounded-full text-xs font-black bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/60">{{ $t('badges.live') }}</span>
-        </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white/80 dark:bg-[#21262D] p-3.5 rounded-2xl border border-orange-100/60 dark:border-[#30363D] text-xs">
-          <div><span class="text-[#5A6270] dark:text-[#8B949E] font-medium block">{{ $t('marketplace.pricePerKg') }}</span><span class="font-black text-[#1E9444] dark:text-emerald-400 text-sm mt-0.5 block">{{ formatETB(item.pricePerKg) }}/{{ $t('kg') }}</span></div>
-          <div><span class="text-[#5A6270] dark:text-[#8B949E] font-medium block">{{ $t('marketplace.availableQuantity') }}</span><span class="font-black text-[#1E2328] dark:text-[#F0F6FC] text-sm mt-0.5 block">{{ item.availableQty?.toLocaleString() }} kg</span></div>
-          <div class="col-span-2 sm:col-span-1"><span class="text-[#5A6270] dark:text-[#8B949E] font-medium block">{{ $t('farmer.minimumOrderQuantity') }}</span><span class="font-bold text-[#1E2328] dark:text-[#F0F6FC] text-xs mt-0.5 block">{{ item.minOrderQty ? `${item.minOrderQty.toLocaleString()} kg` : '500 kg' }}</span></div>
-        </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white/80 dark:bg-[#21262D] p-3.5 rounded-2xl border border-orange-100/60 dark:border-[#30363D] text-xs">
+            <div><span class="text-[#5A6270] dark:text-[#8B949E] font-medium block">{{ $t('marketplace.pricePerKg') }}</span><span class="font-black text-[#1E9444] dark:text-emerald-400 text-sm mt-0.5 block">{{ formatETB(item.pricePerKg) }}/{{ $t('kg') }}</span></div>
+            <div><span class="text-[#5A6270] dark:text-[#8B949E] font-medium block">{{ $t('marketplace.availableQuantity') }}</span><span class="font-black text-[#1E2328] dark:text-[#F0F6FC] text-sm mt-0.5 block">{{ item.availableQty?.toLocaleString() }} kg</span></div>
+            <div class="col-span-2 sm:col-span-1"><span class="text-[#5A6270] dark:text-[#8B949E] font-medium block">{{ $t('farmer.minimumOrderQuantity') }}</span><span class="font-bold text-[#1E2328] dark:text-[#F0F6FC] text-xs mt-0.5 block">{{ item.minOrderQty ? `${item.minOrderQty.toLocaleString()} kg` : '500 kg' }}</span></div>
+          </div>
 
-        <div class="flex items-center justify-between pt-1 border-t border-orange-100/60 text-xs">
-          <span class="text-[#5A6270] font-medium flex items-center gap-1"><Package class="w-3.5 h-3.5 text-[#1E9444]" /><span>{{ $t('Batch') }} #{{ String(item.id || '').slice(-6) }} · {{ $t('farmer.liveOnMarketplace') }}</span></span>
-          <div class="flex items-center gap-2">
-            <button @click="handleDelete(item.id)" class="px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-white dark:bg-[#161B22] hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
-              <Trash2 class="w-3.5 h-3.5" /><span>{{ $t('common.delete') || 'Delete' }}</span>
-            </button>
-            <router-link :to="`/farmer/listings/edit/${item.id}`" class="px-3.5 py-1.5 rounded-xl border border-[#FBE3D0] bg-white hover:bg-orange-50/50 text-[#1E9444] font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
-              <Edit2 class="w-3.5 h-3.5" /><span>{{ $t('Edit Details') }}</span>
-            </router-link>
+          <div class="flex items-center justify-between pt-1 border-t border-orange-100/60 text-xs">
+            <span class="text-[#5A6270] font-medium flex items-center gap-1"><Package class="w-3.5 h-3.5 text-[#1E9444]" /><span>{{ $t('Batch') }} #{{ String(item.id || '').slice(-6) }} · {{ $t('farmer.liveOnMarketplace') }}</span></span>
+            <div class="flex items-center gap-2">
+              <button @click="handleDelete(item.id)" class="px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-white dark:bg-[#161B22] hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                <Trash2 class="w-3.5 h-3.5" /><span>{{ $t('common.delete') || 'Delete' }}</span>
+              </button>
+              <router-link :to="`/farmer/listings/edit/${item.id}`" class="px-3.5 py-1.5 rounded-xl border border-[#FBE3D0] bg-white hover:bg-orange-50/50 text-[#1E9444] font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                <Edit2 class="w-3.5 h-3.5" /><span>{{ $t('Edit Details') }}</span>
+              </router-link>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Pagination Controls -->
+      <Pagination 
+        :currentPage="currentPage" 
+        :totalPages="totalPages" 
+        :totalItems="filteredListings.length" 
+        :itemsPerPage="itemsPerPage" 
+        @update:currentPage="currentPage = $event" 
+        @refresh="refreshListings"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Plus, Edit2, Package, CheckCircle2, Sparkles, Trash2, Sprout } from 'lucide-vue-next'
 import { useListings } from '@/composables/useListings'
 import { useAuth } from '@/composables/useAuth'
 import { formatETB } from '@/utils/helpers'
+import Pagination from '@/components/common/Pagination.vue'
 
-const { listings, deleteListing } = useListings()
+const { listings, deleteListing, refreshListings } = useListings()
 const { user } = useAuth()
 const farmer = computed(() => user.value)
 const statusFilter = ref('all')
+
+const currentPage = ref(1)
+const itemsPerPage = 6
 
 const handleDelete = async (id) => {
   if (confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
@@ -122,4 +138,16 @@ const filteredListings = computed(() => displayListings.value.filter(l => {
   if (statusFilter.value === 'pending') return !l.isActive
   return true
 }))
+
+const totalPages = computed(() => Math.ceil(filteredListings.value.length / itemsPerPage) || 1)
+
+const paginatedListings = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return filteredListings.value.slice(start, start + itemsPerPage)
+})
+
+// Reset to page 1 when filter changes
+watch(statusFilter, () => {
+  currentPage.value = 1
+})
 </script>

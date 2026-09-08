@@ -77,12 +77,24 @@
       </div>
 
       <!-- Listings Grid -->
-      <div v-if="filteredListings.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <ListingCard 
-          v-for="listing in filteredListings" 
-          :key="listing.id" 
-          :listing="listing" 
-          @addToCart="handleCartAction"
+      <div v-if="filteredListings.length > 0" class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ListingCard 
+            v-for="listing in paginatedListings" 
+            :key="listing.id" 
+            :listing="listing" 
+            @addToCart="handleCartAction"
+          />
+        </div>
+
+        <!-- Pagination Controls -->
+        <Pagination 
+          :currentPage="currentPage" 
+          :totalPages="totalPages" 
+          :totalItems="filteredListings.length" 
+          :itemsPerPage="itemsPerPage" 
+          @update:currentPage="currentPage = $event" 
+          @refresh="refreshListings"
         />
       </div>
 
@@ -128,17 +140,21 @@ import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import LanguageToggle from '@/components/common/LanguageToggle.vue'
 import ListingCard from '@/components/shared/ListingCard.vue'
 import BuyerAuthModal from '@/components/shared/BuyerAuthModal.vue'
+import Pagination from '@/components/common/Pagination.vue'
 import { CATEGORY_PHOTOS } from '@/utils/categoryImages'
 
 const route = useRoute()
 const router = useRouter()
-const { filterListings } = useListings()
+const { filterListings, refreshListings } = useListings()
 const { isAuthenticated, user } = useAuth()
 const { t } = useLanguage()
 
 const activeCategory = ref('all')
 const searchQuery = ref('')
 const showAuthModal = ref(false)
+
+const currentPage = ref(1)
+const itemsPerPage = 6
 
 const isStandalone = computed(() => !route.path.startsWith('/buyer'))
 
@@ -166,6 +182,18 @@ onMounted(setCategoryFromQuery)
 watch(() => route.query.category, setCategoryFromQuery)
 
 const filteredListings = computed(() => filterListings(activeCategory.value, searchQuery.value))
+
+const totalPages = computed(() => Math.ceil(filteredListings.value.length / itemsPerPage) || 1)
+
+const paginatedListings = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return filteredListings.value.slice(start, start + itemsPerPage)
+})
+
+// Reset pagination to page 1 whenever search or category changes
+watch([searchQuery, activeCategory], () => {
+  currentPage.value = 1
+})
 
 function goToDashboard() {
   if (user.value?.role === 'farmer') router.push('/farmer')
