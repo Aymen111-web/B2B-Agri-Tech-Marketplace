@@ -56,9 +56,14 @@
 
         <div class="flex items-center justify-between pt-1 border-t border-orange-100/60 text-xs">
           <span class="text-[#5A6270] font-medium flex items-center gap-1"><Package class="w-3.5 h-3.5 text-[#1E9444]" /><span>Batch #{{ String(item.id || '').slice(-6) }} · Live on QMT Portal</span></span>
-          <router-link :to="`/farmer/listings/edit/${item.id}`" class="px-3.5 py-1.5 rounded-xl border border-[#FBE3D0] bg-white hover:bg-orange-50/50 text-[#1E9444] font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
-            <Edit2 class="w-3.5 h-3.5" /><span>Edit Details</span>
-          </router-link>
+          <div class="flex items-center gap-2">
+            <button @click="handleDelete(item.id)" class="px-3 py-1.5 rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-600 font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
+              <Trash2 class="w-3.5 h-3.5" /><span>Delete</span>
+            </button>
+            <router-link :to="`/farmer/listings/edit/${item.id}`" class="px-3.5 py-1.5 rounded-xl border border-[#FBE3D0] bg-white hover:bg-orange-50/50 text-[#1E9444] font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
+              <Edit2 class="w-3.5 h-3.5" /><span>Edit Details</span>
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -67,15 +72,21 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Plus, Edit2, Package, CheckCircle2, Sparkles } from 'lucide-vue-next'
+import { Plus, Edit2, Package, CheckCircle2, Sparkles, Trash2 } from 'lucide-vue-next'
 import { useListings } from '@/composables/useListings'
 import { useAuth } from '@/composables/useAuth'
 import { formatETB } from '@/utils/helpers'
 
-const { listings } = useListings()
+const { listings, deleteListing } = useListings()
 const { user } = useAuth()
 const farmer = computed(() => user.value)
 const statusFilter = ref('all')
+
+const handleDelete = async (id) => {
+  if (confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+    await deleteListing(id)
+  }
+}
 
 const farmerListings = computed(() => listings.value.filter(l => l.farmerId === farmer.value?.id || l.farmer?.name === farmer.value?.name))
 const displayListings = computed(() => farmerListings.value.length > 0 ? farmerListings.value : listings.value.slice(0, 4))

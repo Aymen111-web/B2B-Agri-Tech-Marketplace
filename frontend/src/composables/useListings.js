@@ -159,11 +159,23 @@ export function useListings() {
         })
     }
 
+    const deleteListing = async (id) => {
+        try {
+            await api.deleteListing(id)
+            listings.value = listings.value.filter(l => String(l.id) !== String(id))
+            return true
+        } catch (err) {
+            console.error('Failed to delete listing', err)
+            return false
+        }
+    }
+
     return {
         listings,
         isLoading,
         refreshListings,
         addListing,
+        deleteListing,
         getListingById,
         filterListings,
     }
