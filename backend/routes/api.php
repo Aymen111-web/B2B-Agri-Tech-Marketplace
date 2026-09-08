@@ -78,10 +78,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/buyer/dashboard/stats',            [BuyerDashboardController::class, 'stats']);
-    Route::get('/orders',                          [OrderController::class, 'index']);
-    Route::get('/orders/{id}',                     [OrderController::class, 'show']);
-    Route::post('/orders/checkout',                [OrderController::class, 'checkout']);
-    Route::post('/orders/{id}/cancel',             [OrderController::class, 'cancel']);
+    Route::get('/orders',                           [OrderController::class, 'index']);
+    Route::get('/orders/{id}',                      [OrderController::class, 'show']);
+    Route::post('/orders/checkout',                 [OrderController::class, 'checkout']);
+    Route::post('/orders/{id}/pay',                 [PaymentController::class, 'initiate']);
+    Route::post('/orders/{id}/verify-payment',      [PaymentController::class, 'verifyOrderPayments']);
+    Route::post('/orders/{id}/cancel',              [OrderController::class, 'cancel']);
     Route::post('/orders/{id}/verify-delivery-pin', [OrderController::class, 'verifyDeliveryPin']);
 });
 
