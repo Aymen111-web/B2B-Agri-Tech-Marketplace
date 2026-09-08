@@ -1,37 +1,42 @@
 /**
  * Image helper utility for B2B Agri-Tech Marketplace.
- * Maps produce categories, features, and user roles to real photorealistic & vector image assets.
+ * Category images are mapped from the dedicated assets provided by their name.
+ * IMPORTANT: Crop listings only display uploaded produce photos, NOT category photos!
  */
+import {
+    CATEGORY_PHOTOS,
+    getCategoryPhoto,
+    coffeeImg,
+    fruitsImg,
+    grainsImg,
+    oilseedImg,
+    pulsesImg,
+    spicesImg,
+    vegetablesImg,
+} from './categoryImages'
 
-export const CATEGORY_IMAGES = {
-    coffee: '/images/coffee_produce.jpg',
-    wheat: '/images/wheat_produce.jpg',
-    grain: '/images/wheat_produce.jpg',
-    cereal: '/images/wheat_produce.jpg',
-    teff: '/images/wheat_produce.jpg',
-    sesame: '/images/sesame_produce.jpg',
-    pulse: '/images/sesame_produce.jpg',
-    bean: '/images/sesame_produce.jpg',
-    lentil: '/images/sesame_produce.jpg',
-    vegetable: '/images/vegetables_produce.svg',
-    tomato: '/images/vegetables_produce.svg',
-    carrot: '/images/vegetables_produce.svg',
-    salad: '/images/vegetables_produce.svg',
-    fruit: '/images/fruits_produce.svg',
-    avocado: '/images/fruits_produce.svg',
-    banana: '/images/fruits_produce.svg',
-    honey: '/images/honey_produce.svg',
-    spice: '/images/honey_produce.svg',
-    seed: '/images/seeds_produce.svg',
-    oil: '/images/seeds_produce.svg',
-    dairy: '/images/seeds_produce.svg',
-    default: '/images/agri_placeholder.svg',
+export {
+    CATEGORY_PHOTOS,
+    getCategoryPhoto,
+    coffeeImg,
+    fruitsImg,
+    grainsImg,
+    oilseedImg,
+    pulsesImg,
+    spicesImg,
+    vegetablesImg,
 }
 
-export function getCropImage(itemOrName) {
-    if (!itemOrName) return CATEGORY_IMAGES.default
+export const CATEGORY_IMAGES = CATEGORY_PHOTOS
 
-    // If an object with an uploaded image URL is provided, return uploaded image first!
+/**
+ * Returns the uploaded produce image for a crop listing.
+ * NEVER falls back to category photos: photos in assets are strictly for categories only!
+ */
+export function getCropImage(itemOrName) {
+    if (!itemOrName) return null
+
+    // If an object with an uploaded image URL is provided, return uploaded image
     if (typeof itemOrName === 'object') {
         const path = itemOrName.primaryImage || 
                      itemOrName.image_url || 
@@ -45,22 +50,19 @@ export function getCropImage(itemOrName) {
                 const cleanPath = path.replace(/^\/?storage\//, '')
                 return `http://127.0.0.1:8000/storage/${cleanPath}`
             }
+            if (typeof window !== 'undefined' && (path instanceof File || path instanceof Blob)) {
+                return URL.createObjectURL(path)
+            }
         }
-        itemOrName = itemOrName.cropName || itemOrName.title || itemOrName.category?.name || ''
+        return null
     } else if (typeof itemOrName === 'string') {
         if (itemOrName.startsWith('http://') || itemOrName.startsWith('https://') || itemOrName.startsWith('/storage/') || itemOrName.startsWith('blob:') || itemOrName.startsWith('data:')) {
             return itemOrName
         }
     }
 
-    const str = String(itemOrName).toLowerCase()
-
-    for (const [key, path] of Object.entries(CATEGORY_IMAGES)) {
-        if (key !== 'default' && str.includes(key)) {
-            return path
-        }
-    }
-    return CATEGORY_IMAGES.default
+    // Do NOT fall back to category photos from assets for crops.
+    return null
 }
 
 export function getAvatarImage(role) {

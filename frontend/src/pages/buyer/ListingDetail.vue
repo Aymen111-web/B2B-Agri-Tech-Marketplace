@@ -1,13 +1,13 @@
 <template>
-  <div :class="[isStandalone ? 'min-h-screen bg-[#F8F9FA] text-[#1E2328] flex flex-col' : '']">
+  <div :class="[isStandalone ? 'min-h-screen bg-[#F8F9FA] dark:bg-[#0D1117] text-[#1E2328] dark:text-[#F0F6FC] flex flex-col' : '']">
     <!-- Standalone Header for Public Visitors -->
-    <header v-if="isStandalone" class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E2E4E7] shadow-2xs">
+    <header v-if="isStandalone" class="sticky top-0 z-40 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-md border-b border-[#E2E4E7] dark:border-[#30363D] shadow-2xs">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <router-link to="/" class="flex items-center gap-3">
           <QelemMedaLogo :size="40" variant="full" />
         </router-link>
 
-        <nav class="hidden md:flex items-center gap-8 text-xs font-bold text-[#5A6270]">
+        <nav class="hidden md:flex items-center gap-8 text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">
           <router-link to="/" class="hover:text-[#1E9444] transition-colors">{{ t('home') }}</router-link>
           <router-link to="/#how-it-works" class="hover:text-[#1E9444] transition-colors">{{ t('howItWorks') }}</router-link>
         </nav>
@@ -17,7 +17,7 @@
           <ThemeToggle />
           <router-link 
             to="/login" 
-            class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] hover:border-[#1E9444] text-[#1E2328] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white"
+            class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] dark:border-[#30363D] hover:border-[#1E9444] text-[#1E2328] dark:text-[#F0F6FC] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white dark:bg-[#161B22]"
           >
             {{ t('login') }}
           </router-link>
@@ -31,9 +31,9 @@
           <button 
             v-if="isAuthenticated"
             @click="goToDashboard" 
-            class="px-4 py-2.5 rounded-xl bg-[#EDFAF2] text-[#0F5C2A] border border-[#C3EFCF] hover:bg-[#D8F6E0] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            class="px-4 py-2.5 rounded-xl bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/60 hover:bg-[#D8F6E0] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
-            <User class="w-4 h-4 text-[#1E9444]" />
+            <User class="w-4 h-4 text-[#1E9444] dark:text-emerald-400" />
             <span>{{ t('dashboard') }}</span>
           </button>
         </div>
@@ -41,22 +41,22 @@
     </header>
 
     <div :class="[isStandalone ? 'max-w-3xl mx-auto px-4 py-8 flex-1 w-full space-y-6' : 'space-y-6 max-w-3xl']">
-      <button @click="$router.back()" class="text-[13px] text-[#1E9444] font-bold hover:underline cursor-pointer">{{ t('backToMarketplace') }}</button>
+      <button @click="$router.back()" class="text-[13px] text-[#1E9444] dark:text-emerald-400 font-bold hover:underline cursor-pointer">{{ t('backToMarketplace') }}</button>
 
-      <div v-if="listing" class="bg-white border border-[#E2E4E7] rounded-2xl overflow-hidden shadow-sm">
+      <div v-if="listing" class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl overflow-hidden shadow-sm">
         
         <!-- Native Images Gallery or Emoji Fallback -->
         <div v-if="displayImages.length > 0" class="flex flex-col">
           <div class="h-64 md:h-80 w-full overflow-hidden bg-black flex items-center justify-center">
             <img :src="displayImages[activeImageIndex]" class="max-h-full max-w-full object-contain object-center" />
           </div>
-          <div v-if="displayImages.length > 1" class="flex gap-2 p-3 overflow-x-auto bg-[#F8F9FA] border-b border-[#E2E4E7]">
+          <div v-if="displayImages.length > 1" class="flex gap-2 p-3 overflow-x-auto bg-[#F8F9FA] dark:bg-[#21262D] border-b border-[#E2E4E7] dark:border-[#30363D]">
             <img 
               v-for="(img, idx) in displayImages" :key="idx" 
               :src="img" 
               @click="activeImageIndex = idx"
               class="w-16 h-16 object-cover rounded-lg cursor-pointer border-2 transition-all"
-              :class="activeImageIndex === idx ? 'border-[#1E9444] shadow-md opacity-100' : 'border-[#E2E4E7] opacity-60 hover:opacity-100'" 
+              :class="activeImageIndex === idx ? 'border-[#1E9444] shadow-md opacity-100' : 'border-[#E2E4E7] dark:border-[#30363D] opacity-60 hover:opacity-100'" 
             />
           </div>
         </div>
@@ -66,44 +66,44 @@
         
         <div class="p-6 space-y-4">
           <div class="flex items-center justify-between">
-            <h1 class="text-[20px] font-black text-[#1E2328]">{{ listing.cropName }}</h1>
+            <h1 class="text-[20px] font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ listing.cropName }}</h1>
             <VerifiedBadge v-if="listing.isVerified" />
           </div>
 
-          <p class="text-[13px] text-[#5A6270] leading-relaxed">{{ listing.description }}</p>
+          <p class="text-[13px] text-[#5A6270] dark:text-[#8B949E] leading-relaxed">{{ listing.description }}</p>
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px]">
-            <div class="bg-[#F8F9FA] p-3 rounded-xl">
-              <span class="font-bold text-[#5A6270] block text-[11px]">{{ t('price') }}</span>
-              <span class="font-black text-[#1E9444]">{{ formatETB(listing.pricePerKg) }}{{ t('perKg') }}</span>
+            <div class="bg-[#F8F9FA] dark:bg-[#21262D] p-3 rounded-xl">
+              <span class="font-bold text-[#5A6270] dark:text-[#8B949E] block text-[11px]">{{ t('price') }}</span>
+              <span class="font-black text-[#1E9444] dark:text-emerald-400">{{ formatETB(listing.pricePerKg) }}{{ t('perKg') }}</span>
             </div>
-            <div class="bg-[#F8F9FA] p-3 rounded-xl">
-              <span class="font-bold text-[#5A6270] block text-[11px]">{{ t('availableStock') }}</span>
-              <span class="font-black text-[#1E2328]">{{ listing.availableQty?.toLocaleString() }} kg</span>
+            <div class="bg-[#F8F9FA] dark:bg-[#21262D] p-3 rounded-xl">
+              <span class="font-bold text-[#5A6270] dark:text-[#8B949E] block text-[11px]">{{ t('availableStock') }}</span>
+              <span class="font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ listing.availableQty?.toLocaleString() }} kg</span>
             </div>
-            <div class="bg-[#F8F9FA] p-3 rounded-xl">
-              <span class="font-bold text-[#5A6270] block text-[11px]">{{ t('grade') }}</span>
-              <span class="font-bold text-[#1E2328]">{{ listing.grade }}</span>
+            <div class="bg-[#F8F9FA] dark:bg-[#21262D] p-3 rounded-xl">
+              <span class="font-bold text-[#5A6270] dark:text-[#8B949E] block text-[11px]">{{ t('grade') }}</span>
+              <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ listing.grade }}</span>
             </div>
-            <div class="bg-[#F8F9FA] p-3 rounded-xl">
-              <span class="font-bold text-[#5A6270] block text-[11px]">{{ t('region') }}</span>
-              <span class="font-bold text-[#1E2328]">{{ listing.region }}</span>
+            <div class="bg-[#F8F9FA] dark:bg-[#21262D] p-3 rounded-xl">
+              <span class="font-bold text-[#5A6270] dark:text-[#8B949E] block text-[11px]">{{ t('region') }}</span>
+              <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ listing.region }}</span>
             </div>
           </div>
 
           <!-- Producer & Payout Information Card -->
-          <div class="bg-[#F4FBF7] border border-[#C3EFCF] rounded-2xl p-5 space-y-4 text-xs">
-            <div class="flex items-center justify-between border-b border-[#C3EFCF]/60 pb-3">
+          <div class="bg-[#F4FBF7] dark:bg-[#0E2014] border border-[#C3EFCF] dark:border-emerald-900/60 rounded-2xl p-5 space-y-4 text-xs">
+            <div class="flex items-center justify-between border-b border-[#C3EFCF]/60 dark:border-emerald-900/60 pb-3">
               <div class="flex items-center gap-2.5">
                 <div class="w-10 h-10 rounded-full bg-[#1E9444] text-white font-black flex items-center justify-center text-sm shadow-xs shrink-0">
                   {{ listing.farmer?.name?.[0] || 'F' }}
                 </div>
                 <div>
-                  <h3 class="text-sm font-black text-[#0F5C2A] flex items-center gap-1.5">
+                  <h3 class="text-sm font-black text-[#0F5C2A] dark:text-emerald-300 flex items-center gap-1.5">
                     <span>{{ listing.farmer?.name || 'Verified Farmer' }}</span>
-                    <ShieldCheck class="w-4 h-4 text-[#1E9444]" />
+                    <ShieldCheck class="w-4 h-4 text-[#1E9444] dark:text-emerald-400" />
                   </h3>
-                  <p class="text-[11px] text-[#5A6270] font-medium">Verified Agricultural Producer • {{ listing.region }}</p>
+                  <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E] font-medium">Verified Agricultural Producer • {{ listing.region }}</p>
                 </div>
               </div>
               <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#1E9444] text-white shadow-2xs">
@@ -113,32 +113,32 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <!-- Farmer Phone -->
-              <div class="bg-white p-3.5 rounded-xl border border-[#E2E4E7] flex items-center gap-3 shadow-2xs">
-                <div class="p-2.5 bg-emerald-50 text-[#1E9444] rounded-xl shrink-0">
+              <div class="bg-white dark:bg-[#161B22] p-3.5 rounded-xl border border-[#E2E4E7] dark:border-[#30363D] flex items-center gap-3 shadow-2xs">
+                <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 rounded-xl shrink-0">
                   <Phone class="w-4 h-4" />
                 </div>
                 <div class="overflow-hidden">
-                  <span class="text-[#5A6270] font-bold block text-[10px] uppercase tracking-wider">Farmer Direct Phone</span>
-                  <a :href="'tel:' + (listing.farmer?.phone || '')" class="font-black text-[#1E2328] hover:text-[#1E9444] text-xs transition-colors block truncate">
+                  <span class="text-[#5A6270] dark:text-[#8B949E] font-bold block text-[10px] uppercase tracking-wider">Farmer Direct Phone</span>
+                  <a :href="'tel:' + (listing.farmer?.phone || '')" class="font-black text-[#1E2328] dark:text-[#F0F6FC] hover:text-[#1E9444] dark:hover:text-emerald-400 text-xs transition-colors block truncate">
                     {{ listing.farmer?.phone || '+251 912 345 678' }}
                   </a>
                 </div>
               </div>
 
               <!-- Payout Account / CBE / Telebirr -->
-              <div class="bg-white p-3.5 rounded-xl border border-[#E2E4E7] flex items-center gap-3 shadow-2xs">
-                <div class="p-2.5 bg-blue-50 text-[#0B57D0] rounded-xl shrink-0">
+              <div class="bg-white dark:bg-[#161B22] p-3.5 rounded-xl border border-[#E2E4E7] dark:border-[#30363D] flex items-center gap-3 shadow-2xs">
+                <div class="p-2.5 bg-blue-50 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 rounded-xl shrink-0">
                   <CreditCard class="w-4 h-4" />
                 </div>
                 <div class="overflow-hidden">
-                  <span class="text-[#5A6270] font-bold block text-[10px] uppercase tracking-wider">Payout Account (CBE / Bank)</span>
-                  <div class="font-black text-[#1E2328] text-xs flex items-center gap-1.5 truncate mt-0.5">
-                    <span class="uppercase text-[9px] px-1.5 py-0.2 bg-blue-50 text-[#0B57D0] border border-blue-200 rounded font-black shrink-0">
+                  <span class="text-[#5A6270] dark:text-[#8B949E] font-bold block text-[10px] uppercase tracking-wider">Payout Account (CBE / Bank)</span>
+                  <div class="font-black text-[#1E2328] dark:text-[#F0F6FC] text-xs flex items-center gap-1.5 truncate mt-0.5">
+                    <span class="uppercase text-[9px] px-1.5 py-0.2 bg-blue-50 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 border border-blue-200 dark:border-blue-800/60 rounded font-black shrink-0">
                       {{ listing.farmer?.bank_code || listing.farmer?.bank_name || 'CBE' }}
                     </span>
                     <span class="font-mono text-xs">{{ listing.farmer?.account_number || listing.farmer?.account_number_masked || '1000123456789' }}</span>
                   </div>
-                  <span v-if="listing.farmer?.account_name" class="text-[10px] text-gray-500 font-bold block truncate mt-0.5">
+                  <span v-if="listing.farmer?.account_name" class="text-[10px] text-gray-500 dark:text-gray-400 font-bold block truncate mt-0.5">
                     Holder: {{ listing.farmer.account_name }}
                   </span>
                 </div>
@@ -158,9 +158,9 @@
         </div>
       </div>
 
-      <div v-else class="text-center py-12 bg-white rounded-2xl border border-gray-200 p-6 space-y-2">
-        <p class="text-[#5A6270] font-bold">{{ t('noListingsFound') }}</p>
-        <router-link to="/marketplace" class="text-[#1E9444] font-bold hover:underline inline-block">{{ t('agriMarketplace') }}</router-link>
+      <div v-else class="text-center py-12 bg-white dark:bg-[#161B22] rounded-2xl border border-gray-200 dark:border-[#30363D] p-6 space-y-2">
+        <p class="text-[#5A6270] dark:text-[#8B949E] font-bold">{{ t('noListingsFound') }}</p>
+        <router-link to="/marketplace" class="text-[#1E9444] dark:text-emerald-400 font-bold hover:underline inline-block">{{ t('agriMarketplace') }}</router-link>
       </div>
     </div>
 

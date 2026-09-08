@@ -19,13 +19,13 @@
     </svg>
     <div class="mt-2">
       <div class="flex items-center justify-center text-[22px] font-extrabold leading-tight">
-        <span class="text-[#0B57D0]">Agri</span>
-        <span class="text-[#E69500]">Gate</span>
+        <span class="text-[#0B57D0] dark:text-blue-400">Agri</span>
+        <span class="text-[#E69500] dark:text-amber-400">Gate</span>
       </div>
       <div v-if="showTagline" class="text-[10px] font-bold block mt-0.5 tracking-tight">
-        <span class="text-[#5F6368]">by </span>
-        <span class="text-[#0B57D0]">Qelem Meda </span>
-        <span class="text-[#E69500]">Technologies</span>
+        <span class="text-[#5F6368] dark:text-gray-400">by </span>
+        <span class="text-[#0B57D0] dark:text-blue-400">Qelem Meda </span>
+        <span class="text-[#E69500] dark:text-amber-400">Technologies</span>
       </div>
     </div>
   </div>
@@ -40,13 +40,13 @@
     </svg>
     <div class="flex flex-col justify-center">
       <div class="flex items-center text-[24px] font-black leading-none tracking-tight">
-        <span class="text-[#0B57D0]">Agri</span>
-        <span class="text-[#E69500] ml-1">Gate</span>
+        <span class="text-[#0B57D0] dark:text-blue-400">Agri</span>
+        <span class="text-[#E69500] dark:text-amber-400 ml-1">Gate</span>
       </div>
       <div v-if="showTagline" class="text-[11px] font-bold block mt-1 tracking-tight">
-        <span class="text-[#5F6368]">by </span>
-        <span class="text-[#0B57D0]">Qelem Meda </span>
-        <span class="text-[#E69500]">Technologies</span>
+        <span class="text-[#5F6368] dark:text-gray-400">by </span>
+        <span class="text-[#0B57D0] dark:text-blue-400">Qelem Meda </span>
+        <span class="text-[#E69500] dark:text-amber-400">Technologies</span>
       </div>
     </div>
   </div>

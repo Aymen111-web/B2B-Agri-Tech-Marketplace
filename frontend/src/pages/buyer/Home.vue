@@ -1,80 +1,71 @@
 <template>
   <div class="space-y-6 pb-6">
-    <!-- Simplified Top Welcome & Quick Category Sourcing Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E2E4E7] pb-5">
+    <!-- Top Welcome Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E4E7] dark:border-[#30363D] pb-5">
       <div>
-        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0B57D0]/10 text-[#0B57D0] text-[11px] font-extrabold mb-1">
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0B57D0]/10 dark:bg-blue-900/30 text-[#0B57D0] dark:text-blue-400 text-[11px] font-extrabold mb-1">
           <span class="w-2 h-2 rounded-full bg-[#E69500]" />
           <span>{{ $t('buyer.portalBadge') }}</span>
         </div>
-        <h1 class="text-2xl font-black text-[#1E2328] tracking-tight">
-          {{ $t('buyer.welcomeBack') }}, <span class="text-[#0B57D0]">{{ firstName }}</span> 👋
+        <h1 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">
+          {{ $t('buyer.welcomeBack') }}, <span class="text-[#0B57D0] dark:text-blue-400">{{ firstName }}</span> 👋
         </h1>
-        <p class="text-xs text-[#5A6270] mt-0.5">
+        <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-0.5">
           {{ $t('buyer.welcomeSub') }}
         </p>
-      </div>
-
-      <!-- Quick Category Sourcing Chips -->
-      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-        <button v-for="cat in quickCategories" :key="cat.slug" @click="navigateToCategory(cat.slug)"
-          class="px-3.5 py-2 rounded-xl bg-white border border-[#E2E4E7] text-[#1E2328] hover:border-[#E69500] hover:text-[#0B57D0] text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 shadow-2xs">
-          <span>{{ cat.emoji }}</span>
-          <span>{{ $t(cat.key, cat.name) }}</span>
-        </button>
       </div>
     </div>
 
     <!-- 4 High-Impact Metric Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-      <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">{{ $t('buyer.activeOrders') }}</span>
-          <div class="w-9 h-9 rounded-xl bg-[#0B57D0]/10 text-[#0B57D0] flex items-center justify-center font-bold">
+          <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('buyer.activeOrders') }}</span>
+          <div class="w-9 h-9 rounded-xl bg-[#0B57D0]/10 dark:bg-blue-900/30 text-[#0B57D0] dark:text-blue-400 flex items-center justify-center font-bold">
             <ShoppingCart class="w-4 h-4" />
           </div>
         </div>
-        <p class="text-2xl sm:text-3xl font-black text-[#1E2328] mt-2">{{ dashboardStats.active_orders }}</p>
-        <div class="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-[#0B57D0]">
-          <span class="w-2 h-2 rounded-full bg-[#0B57D0] animate-pulse" />
+        <p class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-2">{{ dashboardStats.active_orders }}</p>
+        <div class="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-[#0B57D0] dark:text-blue-400">
+          <span class="w-2 h-2 rounded-full bg-[#0B57D0] dark:bg-blue-400 animate-pulse" />
           <span>{{ dashboardStats.pending_handoffs_count }} {{ $t('buyer.awaitingHandoff') }}</span>
         </div>
       </div>
 
-      <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">{{ $t('buyer.totalSpent') }}</span>
-          <div class="w-9 h-9 rounded-xl bg-amber-50 text-[#E69500] flex items-center justify-center font-bold">
+          <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('buyer.totalSpent') }}</span>
+          <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-[#E69500] dark:text-amber-300 flex items-center justify-center font-bold">
             <Wallet class="w-4 h-4" />
           </div>
         </div>
-        <p class="text-2xl sm:text-3xl font-black text-[#1E2328] mt-2">{{ formatETB(dashboardStats.total_procurement_etb) }}</p>
-        <p class="mt-2 text-[11px] font-semibold text-[#5A6270]">{{ $t('buyer.securedViaChapa') }}</p>
+        <p class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-2">{{ formatETB(dashboardStats.total_procurement_etb) }}</p>
+        <p class="mt-2 text-[11px] font-semibold text-[#5A6270] dark:text-[#8B949E]">{{ $t('buyer.securedViaChapa') }}</p>
       </div>
 
-      <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">{{ $t('buyer.coopFarmers') }}</span>
-          <div class="w-9 h-9 rounded-xl bg-emerald-50 text-[#1E9444] flex items-center justify-center font-bold">
+          <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('buyer.coopFarmers') }}</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 flex items-center justify-center font-bold">
             <Users class="w-4 h-4" />
           </div>
         </div>
-        <p class="text-2xl sm:text-3xl font-black text-[#1E2328] mt-2">{{ dashboardStats.verified_farmers_count.toLocaleString() }}+</p>
-        <p class="mt-2 text-[11px] font-semibold text-[#1E9444] flex items-center gap-1">
-          <Building2 class="w-3 h-3 text-[#1E9444]" />
+        <p class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-2">{{ dashboardStats.verified_farmers_count.toLocaleString() }}+</p>
+        <p class="mt-2 text-[11px] font-semibold text-[#1E9444] dark:text-emerald-400 flex items-center gap-1">
+          <Building2 class="w-3 h-3 text-[#1E9444] dark:text-emerald-400" />
           <span>{{ dashboardStats.primary_unions_count }} {{ $t('farmer.primaryUnionCoops') }}</span>
         </p>
       </div>
 
-      <div class="bg-white border border-[#E2E4E7] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-shadow relative overflow-hidden group">
         <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-[#5A6270] uppercase tracking-wider">{{ $t('common.Carts') }}</span>
-          <div class="w-9 h-9 rounded-xl bg-amber-50 text-[#E69500] flex items-center justify-center font-bold">
+          <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('common.Carts') }}</span>
+          <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-[#E69500] dark:text-amber-300 flex items-center justify-center font-bold">
             <Bookmark class="w-4 h-4" />
           </div>
         </div>
-        <p class="text-2xl sm:text-3xl font-black text-[#1E2328] mt-2">{{ dashboardStats.cart_items_count }}</p>
-        <p class="mt-2 text-[11px] font-semibold text-amber-700">{{ $t('cart.title') }}</p>
+        <p class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-2">{{ dashboardStats.cart_items_count }}</p>
+        <p class="mt-2 text-[11px] font-semibold text-amber-700 dark:text-amber-300">{{ $t('cart.title') }}</p>
       </div>
     </div>
 
@@ -82,10 +73,10 @@
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-bold text-[#1E2328]">{{ $t('buyer.recentProcurement') }}</h2>
-          <p class="text-xs text-[#5A6270]">{{ $t('marketplace.subtitle') }}</p>
+          <h2 class="text-lg font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('buyer.recentProcurement') }}</h2>
+          <p class="text-xs text-[#5A6270] dark:text-[#8B949E]">{{ $t('marketplace.subtitle') }}</p>
         </div>
-        <router-link to="/buyer/marketplace" class="text-xs font-extrabold text-[#0B57D0] hover:underline flex items-center gap-1">
+        <router-link to="/buyer/marketplace" class="text-xs font-extrabold text-[#0B57D0] dark:text-blue-400 hover:underline flex items-center gap-1">
           <span>{{ $t('marketplace.browseMarketplace') }} →</span>
         </router-link>
       </div>
@@ -99,7 +90,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { ShoppingCart, Wallet, Users, Bookmark, Building2 } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import { useListings } from '@/composables/useListings'
@@ -107,21 +97,12 @@ import { api } from '@/services/api'
 import { formatETB } from '@/utils/helpers'
 import ListingCard from '@/components/shared/ListingCard.vue'
 
-const router = useRouter()
 const { user } = useAuth()
 const { listings } = useListings()
 
 const firstName = computed(() => {
   return user.value?.name?.split(' ')[0] || 'Buyer'
 })
-
-const quickCategories = [
-  { name: 'Coffee', key: 'common.coffee', emoji: '☕', slug: 'coffee' },
-  { name: 'Grains', key: 'common.grains', emoji: '🌾', slug: 'grains' },
-  { name: 'Spices', key: 'common.spices', emoji: '🌶️', slug: 'spices' },
-  { name: 'Oilseeds', key: 'common.oilseeds', emoji: '🌱', slug: 'oilseeds' },
-  { name: 'Pulses', key: 'common.pulses', emoji: '🫘', slug: 'pulses' },
-]
 
 const dashboardStats = ref({
   active_orders: 0,
@@ -142,10 +123,6 @@ const featuredListingsToShow = computed(() => {
   }
   return listings.value.slice(0, 3)
 })
-
-const navigateToCategory = (slug) => {
-  router.push({ path: '/buyer/marketplace', query: { category: slug } })
-}
 
 onMounted(async () => {
   try {

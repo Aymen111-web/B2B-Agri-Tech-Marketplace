@@ -44,7 +44,7 @@ function mapRawListingToFrontend(item) {
         farmerId: String(item.farmer_id || item.farmerId || 'farmer-1'),
         farmer: item.farmer ? {
             id: String(item.farmer.id || 'farmer-1'),
-            name: `${item.farmer.first_name || ''} ${item.farmer.second_name || ''}`.trim() || item.farmer.name || 'Dawit Bekele',
+            name: farmerFullName,
             email: item.farmer.email || 'farmer@agri.et',
             phone: item.farmer.phone || '+251 912 345 678',
             role: 'farmer', status: 'verified', region: item.farmer.region || 'SNNPR',
@@ -139,6 +139,16 @@ export function useListings() {
     const addListing = async (newListingData) => {
         const token = getAuthToken()
 
+        const filesToUpload = newListingData.rawFiles || 
+                              (newListingData.images || []).filter(f => typeof window !== 'undefined' && (f instanceof File || f instanceof Blob))
+
+        const stringImages = (newListingData.images || []).map(img => {
+            if (typeof img === 'string') return img
+            return null
+        }).filter(Boolean)
+
+        const primaryUploadedImg = newListingData.primaryImage || (stringImages.length > 0 ? stringImages[0] : null)
+
         if (token) {
             try {
                 const formData = new FormData()
@@ -176,11 +186,9 @@ export function useListings() {
                 }
                 if (newListingData.grade) formData.append('quality_grade', newListingData.grade)
 
-                if (newListingData.images && newListingData.images.length > 0) {
-                    newListingData.images.forEach((file) => {
-                        if (file instanceof File || file instanceof Blob) {
-                            formData.append('images[]', file)
-                        }
+                if (filesToUpload && filesToUpload.length > 0) {
+                    filesToUpload.forEach((file) => {
+                        formData.append('images[]', file)
                     })
                 }
 
@@ -197,12 +205,16 @@ export function useListings() {
             }
         }
 
+        // Local creation with uploaded photos
         const created = {
             ...newListingData,
             id: `listing-${Date.now()}`,
+            primaryImage: primaryUploadedImg,
+            images: stringImages.length > 0 ? stringImages : (primaryUploadedImg ? [primaryUploadedImg] : []),
             createdAt: new Date(),
             viewCount: 1,
         }
+        delete created.rawFiles
         listings.value = [created, ...listings.value]
         return created
     }
