@@ -41,17 +41,8 @@
     </header>
 
     <div :class="[isStandalone ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6' : 'space-y-6 pb-6']">
-      <!-- Top Header & Search -->
+      <!-- Top Search Bar -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E4E7] dark:border-[#30363D] pb-5">
-        <div>
-          <h1 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">
-            {{ t('agriMarketplace') }} 🌾
-          </h1>
-          <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-0.5">
-            {{ t('marketplaceSub') }}
-          </p>
-        </div>
-
         <!-- Search Input -->
         <div class="w-full sm:w-80">
           <div class="relative">
@@ -86,12 +77,24 @@
       </div>
 
       <!-- Listings Grid -->
-      <div v-if="filteredListings.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <ListingCard 
-          v-for="listing in filteredListings" 
-          :key="listing.id" 
-          :listing="listing" 
-          @addToCart="handleCartAction"
+      <div v-if="filteredListings.length > 0" class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ListingCard 
+            v-for="listing in paginatedListings" 
+            :key="listing.id" 
+            :listing="listing" 
+            @addToCart="handleCartAction"
+          />
+        </div>
+
+        <!-- Pagination Controls -->
+        <Pagination 
+          :currentPage="currentPage" 
+          :totalPages="totalPages" 
+          :totalItems="filteredListings.length" 
+          :itemsPerPage="itemsPerPage" 
+          @update:currentPage="currentPage = $event" 
+          @refresh="refreshListings"
         />
       </div>
 
@@ -137,17 +140,21 @@ import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import LanguageToggle from '@/components/common/LanguageToggle.vue'
 import ListingCard from '@/components/shared/ListingCard.vue'
 import BuyerAuthModal from '@/components/shared/BuyerAuthModal.vue'
+import Pagination from '@/components/common/Pagination.vue'
 import { CATEGORY_PHOTOS } from '@/utils/categoryImages'
 
 const route = useRoute()
 const router = useRouter()
-const { filterListings } = useListings()
+const { filterListings, refreshListings } = useListings()
 const { isAuthenticated, user } = useAuth()
 const { t } = useLanguage()
 
 const activeCategory = ref('all')
 const searchQuery = ref('')
 const showAuthModal = ref(false)
+
+const currentPage = ref(1)
+const itemsPerPage = 6
 
 const isStandalone = computed(() => !route.path.startsWith('/buyer'))
 
@@ -175,6 +182,18 @@ onMounted(setCategoryFromQuery)
 watch(() => route.query.category, setCategoryFromQuery)
 
 const filteredListings = computed(() => filterListings(activeCategory.value, searchQuery.value))
+
+const totalPages = computed(() => Math.ceil(filteredListings.value.length / itemsPerPage) || 1)
+
+const paginatedListings = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return filteredListings.value.slice(start, start + itemsPerPage)
+})
+
+// Reset pagination to page 1 whenever search or category changes
+watch([searchQuery, activeCategory], () => {
+  currentPage.value = 1
+})
 
 function goToDashboard() {
   if (user.value?.role === 'farmer') router.push('/farmer')

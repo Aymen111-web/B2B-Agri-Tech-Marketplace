@@ -47,97 +47,109 @@
     </div>
 
     <!-- Clean Single-Row Applications List -->
-    <div v-else class="space-y-3">
-      <article v-for="app in applications" :key="app.id" 
-        class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
-        
-        <!-- One-Row Applicant Meta (Name, Capability Badge, Phone, Date) -->
-        <div class="flex items-center gap-3.5 flex-1 flex-wrap min-w-0">
-          <div :class="[
-            'w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border shadow-xs shrink-0', 
-            app.capability_type === 'farmer' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border-[#C3EFCF] dark:border-emerald-800/50' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800/50'
-          ]">
-            {{ app.user?.first_name?.[0] || app.user?.name?.[0] || 'U' }}
+    <div v-else class="space-y-4">
+      <div class="space-y-3">
+        <article v-for="app in paginatedApplications" :key="app.id" 
+          class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+          
+          <!-- One-Row Applicant Meta (Name, Capability Badge, Phone, Date) -->
+          <div class="flex items-center gap-3.5 flex-1 flex-wrap min-w-0">
+            <div :class="[
+              'w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border shadow-xs shrink-0', 
+              app.capability_type === 'farmer' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border-[#C3EFCF] dark:border-emerald-800/50' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800/50'
+            ]">
+              {{ app.user?.first_name?.[0] || app.user?.name?.[0] || 'U' }}
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <h3 class="text-[15px] font-extrabold text-[#1E2328] dark:text-[#F0F6FC] truncate">
+                {{ getApplicantName(app) }}
+              </h3>
+
+              <span :class="[
+                'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0', 
+                app.capability_type === 'farmer' ? 'bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/50' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50'
+              ]">
+                {{ app.capability_type === 'farmer' ? $t('admin.farmerProducerRequest') : $t('admin.commercialBuyerRequest') }}
+              </span>
+
+              <span class="text-gray-300 dark:text-gray-600 hidden md:inline">•</span>
+
+              <span class="text-xs text-[#5A6270] dark:text-[#8B949E] font-semibold flex items-center gap-1 shrink-0">
+                <Phone class="w-3.5 h-3.5 text-[#1E9444] dark:text-emerald-400" />
+                <span>{{ app.user?.phone || $t('common.notProvided') }}</span>
+              </span>
+
+              <span class="text-gray-300 dark:text-gray-600 hidden md:inline">•</span>
+
+              <span class="text-xs text-[#5A6270] dark:text-[#8B949E] font-semibold flex items-center gap-1 shrink-0">
+                <Calendar class="w-3.5 h-3.5 text-gray-400" />
+                <span>{{ $t('admin.submitted') }} {{ formatDate(app.created_at) }}</span>
+              </span>
+
+              <template v-if="getDocsList(app).length > 0">
+                <span class="text-gray-300 dark:text-gray-600 hidden md:inline">•</span>
+                <span class="text-xs font-semibold flex items-center gap-1 shrink-0">
+                  <Paperclip class="w-3.5 h-3.5 text-[#0B57D0] dark:text-blue-400" />
+                  <button 
+                    @click.stop="openDoc(getDocsList(app)[0], app)" 
+                    class="text-[#0B57D0] dark:text-blue-400 hover:text-[#0842A0] dark:hover:text-blue-300 font-extrabold flex items-center gap-1 cursor-pointer bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-800/50 transition-colors hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                    title="Click to view attached document in new window"
+                  >
+                    <span>{{ getDocName(getDocsList(app)[0]) }}</span>
+                    <ExternalLink class="w-3 h-3" />
+                  </button>
+                </span>
+              </template>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2.5 flex-wrap">
-            <h3 class="text-[15px] font-extrabold text-[#1E2328] dark:text-[#F0F6FC] truncate">
-              {{ getApplicantName(app) }}
-            </h3>
-
-            <span :class="[
-              'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0', 
-              app.capability_type === 'farmer' ? 'bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/50' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50'
-            ]">
-              {{ app.capability_type === 'farmer' ? $t('admin.farmerProducerRequest') : $t('admin.commercialBuyerRequest') }}
-            </span>
-
-            <span class="text-gray-300 dark:text-gray-600 hidden md:inline">•</span>
-
-            <span class="text-xs text-[#5A6270] dark:text-[#8B949E] font-semibold flex items-center gap-1 shrink-0">
-              <Phone class="w-3.5 h-3.5 text-[#1E9444] dark:text-emerald-400" />
-              <span>{{ app.user?.phone || $t('common.notProvided') }}</span>
-            </span>
-
-            <span class="text-gray-300 dark:text-gray-600 hidden md:inline">•</span>
-
-            <span class="text-xs text-[#5A6270] dark:text-[#8B949E] font-semibold flex items-center gap-1 shrink-0">
-              <Calendar class="w-3.5 h-3.5 text-gray-400" />
-              <span>{{ $t('admin.submitted') }} {{ formatDate(app.created_at) }}</span>
-            </span>
-
-            <template v-if="getDocsList(app).length > 0">
-              <span class="text-gray-300 dark:text-gray-600 hidden md:inline">•</span>
-              <span class="text-xs font-semibold flex items-center gap-1 shrink-0">
-                <Paperclip class="w-3.5 h-3.5 text-[#0B57D0] dark:text-blue-400" />
-                <button 
-                  @click.stop="openDoc(getDocsList(app)[0], app)" 
-                  class="text-[#0B57D0] dark:text-blue-400 hover:text-[#0842A0] dark:hover:text-blue-300 font-extrabold flex items-center gap-1 cursor-pointer bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-800/50 transition-colors hover:bg-blue-100 dark:hover:bg-blue-900/40"
-                  title="Click to view attached document in new window"
-                >
-                  <span>{{ getDocName(getDocsList(app)[0]) }}</span>
-                  <ExternalLink class="w-3 h-3" />
-                </button>
+          <!-- Action Buttons (Audit Specifications, Reject, Approve) -->
+          <div class="flex items-center gap-2 shrink-0 self-end md:self-auto">
+            <template v-if="app.status === 'pending'">
+              <button @click="openDetailModal(app)" 
+                class="px-3.5 py-2 rounded-xl bg-gray-100 dark:bg-[#21262D] hover:bg-gray-200 dark:hover:bg-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer border border-gray-200 dark:border-[#30363D]">
+                <Eye class="w-3.5 h-3.5 text-[#0B57D0] dark:text-blue-400" />
+                <span>{{ $t('admin.auditSpecifications') }}</span>
+              </button>
+              <button @click="openRejectModal(app)" 
+                class="px-3.5 py-2 rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 text-xs font-extrabold transition-colors cursor-pointer">
+                {{ $t('admin.reject') }}
+              </button>
+              <button @click="handleApprove(app.id)" 
+                class="px-4 py-2 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-black transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer">
+                <Check class="w-4 h-4" />
+                <span>{{ $t('admin.approve') }}</span>
+              </button>
+            </template>
+            <template v-else>
+              <button @click="openDetailModal(app)" 
+                class="px-3.5 py-1.5 rounded-xl bg-gray-50 dark:bg-[#21262D] hover:bg-gray-100 dark:hover:bg-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] text-xs font-bold transition-colors flex items-center gap-1 border border-gray-200 dark:border-[#30363D] cursor-pointer">
+                <Eye class="w-3.5 h-3.5 text-gray-500" />
+                <span>{{ $t('admin.viewAudit') }}</span>
+              </button>
+              <span :class="[
+                'px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5',
+                app.status === 'approved' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50' : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/50'
+              ]">
+                <CheckCircle2 v-if="app.status === 'approved'" class="w-3.5 h-3.5" />
+                <XCircle v-else class="w-3.5 h-3.5" />
+                <span>{{ $t(app.status) }}</span>
               </span>
             </template>
           </div>
-        </div>
+        </article>
+      </div>
 
-        <!-- Action Buttons (Audit Specifications, Reject, Approve) -->
-        <div class="flex items-center gap-2 shrink-0 self-end md:self-auto">
-          <template v-if="app.status === 'pending'">
-            <button @click="openDetailModal(app)" 
-              class="px-3.5 py-2 rounded-xl bg-gray-100 dark:bg-[#21262D] hover:bg-gray-200 dark:hover:bg-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer border border-gray-200 dark:border-[#30363D]">
-              <Eye class="w-3.5 h-3.5 text-[#0B57D0] dark:text-blue-400" />
-              <span>{{ $t('admin.auditSpecifications') }}</span>
-            </button>
-            <button @click="openRejectModal(app)" 
-              class="px-3.5 py-2 rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 text-xs font-extrabold transition-colors cursor-pointer">
-              {{ $t('admin.reject') }}
-            </button>
-            <button @click="handleApprove(app.id)" 
-              class="px-4 py-2 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-black transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer">
-              <Check class="w-4 h-4" />
-              <span>{{ $t('admin.approve') }}</span>
-            </button>
-          </template>
-          <template v-else>
-            <button @click="openDetailModal(app)" 
-              class="px-3.5 py-1.5 rounded-xl bg-gray-50 dark:bg-[#21262D] hover:bg-gray-100 dark:hover:bg-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] text-xs font-bold transition-colors flex items-center gap-1 border border-gray-200 dark:border-[#30363D] cursor-pointer">
-              <Eye class="w-3.5 h-3.5 text-gray-500" />
-              <span>{{ $t('admin.viewAudit') }}</span>
-            </button>
-            <span :class="[
-              'px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5',
-              app.status === 'approved' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50' : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/50'
-            ]">
-              <CheckCircle2 v-if="app.status === 'approved'" class="w-3.5 h-3.5" />
-              <XCircle v-else class="w-3.5 h-3.5" />
-              <span>{{ $t(app.status) }}</span>
-            </span>
-          </template>
-        </div>
-      </article>
+      <!-- Pagination Controls -->
+      <Pagination 
+        :currentPage="currentPage" 
+        :totalPages="totalPages" 
+        :totalItems="applications.length" 
+        :itemsPerPage="itemsPerPage" 
+        @update:currentPage="currentPage = $event" 
+        @refresh="loadApplications"
+      />
     </div>
 
     <!-- SPECIFICATIONS AUDIT MODAL -->
@@ -337,12 +349,23 @@ import {
 import { adminApi } from '@/services/adminService'
 import { formatDate } from '@/utils/helpers'
 import { useLanguage } from '@/composables/useLanguage'
+import Pagination from '@/components/common/Pagination.vue'
 
 const { t, currentLanguage } = useLanguage()
 
 const applications = ref([])
 const isLoading = ref(true)
 const selectedApp = ref(null)
+
+const currentPage = ref(1)
+const itemsPerPage = 6
+
+const totalPages = computed(() => Math.ceil(applications.value.length / itemsPerPage) || 1)
+
+const paginatedApplications = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return applications.value.slice(start, start + itemsPerPage)
+})
 
 const rejectingApp = ref(null)
 const rejectionReasonInput = ref('')

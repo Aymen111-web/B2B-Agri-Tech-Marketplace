@@ -48,85 +48,108 @@
       </div>
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-5 relative z-10">
-      <article v-for="user in users" :key="user.id" 
-        :class="['bg-white dark:bg-[#161B22] border lg:border-transparent lg:border-b lg:border-b-[#E2E4E7] dark:lg:border-b-[#30363D] lg:rounded-none rounded-2xl p-5 lg:p-6 shadow-sm lg:shadow-none transition-all group lg:flex lg:items-center lg:justify-between lg:gap-8',
-          user.account_status === 'suspended' ? 'opacity-80 lg:hover:bg-red-50 dark:lg:hover:bg-red-950/30 hover:border-red-200 dark:hover:border-red-800/40' : 'lg:hover:bg-[#F8F9FA] dark:lg:hover:bg-[#21262D] hover:shadow-xl hover:border-[#E2E4E7] dark:hover:border-[#30363D]']">
-        
-        <div class="flex items-start gap-4 lg:gap-5 lg:w-[45%]">
-          <div class="relative">
-            <div class="w-14 h-14 rounded-full bg-[#F8F9FA] dark:bg-[#21262D] border border-[#E2E4E7] dark:border-[#30363D] flex items-center justify-center text-xl font-black shrink-0 shadow-sm overflow-hidden text-indigo-800 dark:text-indigo-300 bg-gradient-to-br from-indigo-50 dark:from-indigo-950/40 to-violet-100 dark:to-violet-950/40">
-              <img v-if="user.profile_photo_url" :src="user.profile_photo_url" class="absolute inset-0 w-full h-full object-cover" />
-              <span v-else>{{ user.first_name?.[0] || 'U' }}</span>
-            </div>
-            <div v-if="user.account_status === 'suspended'" class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-red-100 dark:bg-red-950 flex items-center justify-center border-2 border-white dark:border-[#161B22] shadow-2xs">
-              <Ban class="w-3 h-3 text-red-600 dark:text-red-400" />
-            </div>
-          </div>
+    <div v-else class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-5 relative z-10">
+        <article v-for="user in paginatedUsers" :key="user.id" 
+          :class="['bg-white dark:bg-[#161B22] border lg:border-transparent lg:border-b lg:border-b-[#E2E4E7] dark:lg:border-b-[#30363D] lg:rounded-none rounded-2xl p-5 lg:p-6 shadow-sm lg:shadow-none transition-all group lg:flex lg:items-center lg:justify-between lg:gap-8',
+            user.account_status === 'suspended' ? 'opacity-80 lg:hover:bg-red-50 dark:lg:hover:bg-red-950/30 hover:border-red-200 dark:hover:border-red-800/40' : 'lg:hover:bg-[#F8F9FA] dark:lg:hover:bg-[#21262D] hover:shadow-xl hover:border-[#E2E4E7] dark:hover:border-[#30363D]']">
           
-          <div>
-            <div class="flex flex-wrap sm:items-center gap-2">
-              <h3 class="text-[17px] font-extrabold text-[#1E2328] dark:text-[#F0F6FC] group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">
-                {{ user.first_name }} {{ user.second_name }}
-              </h3>
-              
-              <div class="flex items-center gap-1.5">
-                <span v-if="user.is_admin" class="inline-flex w-fit px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-fuchsia-50 dark:bg-fuchsia-950/40 text-fuchsia-700 dark:text-fuchsia-300 border border-fuchsia-200 dark:border-fuchsia-800/50 shadow-2xs">{{ $t('nav.roleAdmin') }}</span>
-                <template v-else-if="user.capabilities && user.capabilities.length > 0">
-                  <span v-for="cap in user.capabilities" :key="cap.id"
-                    :class="['inline-flex w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs', 
-                      cap.capability_type === 'farmer' ? 'bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/50' : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/50']">
-                    {{ $t(cap.capability_type) }}
-                  </span>
-                </template>
-                <span v-else class="inline-flex w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gray-100 dark:bg-[#21262D] text-gray-600 dark:text-[#8B949E] border border-gray-200 dark:border-[#30363D] shadow-2xs">{{ $t('admin.unverified') }}</span>
+          <div class="flex items-start gap-4 lg:gap-5 lg:w-[45%]">
+            <div class="relative">
+              <div class="w-14 h-14 rounded-full bg-[#F8F9FA] dark:bg-[#21262D] border border-[#E2E4E7] dark:border-[#30363D] flex items-center justify-center text-xl font-black shrink-0 shadow-sm overflow-hidden text-indigo-800 dark:text-indigo-300 bg-gradient-to-br from-indigo-50 dark:from-indigo-950/40 to-violet-100 dark:to-violet-950/40">
+                <img v-if="user.profile_photo_url" :src="user.profile_photo_url" class="absolute inset-0 w-full h-full object-cover" />
+                <span v-else>{{ user.first_name?.[0] || 'U' }}</span>
+              </div>
+              <div v-if="user.account_status === 'suspended'" class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-red-100 dark:bg-red-950 flex items-center justify-center border-2 border-white dark:border-[#161B22] shadow-2xs">
+                <Ban class="w-3 h-3 text-red-600 dark:text-red-400" />
               </div>
             </div>
             
-            <div class="flex items-center gap-4 mt-2 text-[12px] font-semibold text-[#5A6270] dark:text-[#8B949E]">
-              <span class="flex items-center gap-1.5"><Phone class="w-3.5 h-3.5 opacity-60" /> {{ user.phone || $t('common.notProvided') }}</span>
-              <span class="flex items-center gap-1.5"><Calendar class="w-3.5 h-3.5 opacity-60" /> {{ formatDate(user.created_at) }}</span>
+            <div>
+              <div class="flex flex-wrap sm:items-center gap-2">
+                <h3 class="text-[17px] font-extrabold text-[#1E2328] dark:text-[#F0F6FC] group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">
+                  {{ user.first_name }} {{ user.second_name }}
+                </h3>
+                
+                <div class="flex items-center gap-1.5">
+                  <span v-if="user.is_admin" class="inline-flex w-fit px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-fuchsia-50 dark:bg-fuchsia-950/40 text-fuchsia-700 dark:text-fuchsia-300 border border-fuchsia-200 dark:border-fuchsia-800/50 shadow-2xs">{{ $t('nav.roleAdmin') }}</span>
+                  <template v-else-if="user.capabilities && user.capabilities.length > 0">
+                    <span v-for="cap in user.capabilities" :key="cap.id"
+                      :class="['inline-flex w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs', 
+                        cap.capability_type === 'farmer' ? 'bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/50' : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/50']">
+                      {{ $t(cap.capability_type) }}
+                    </span>
+                  </template>
+                  <span v-else class="inline-flex w-fit px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gray-100 dark:bg-[#21262D] text-gray-600 dark:text-[#8B949E] border border-gray-200 dark:border-[#30363D] shadow-2xs">{{ $t('admin.unverified') }}</span>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-4 mt-2 text-[12px] font-semibold text-[#5A6270] dark:text-[#8B949E]">
+                <span class="flex items-center gap-1.5"><Phone class="w-3.5 h-3.5 opacity-60" /> {{ user.phone || $t('common.notProvided') }}</span>
+                <span class="flex items-center gap-1.5"><Calendar class="w-3.5 h-3.5 opacity-60" /> {{ formatDate(user.created_at) }}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="mt-4 lg:mt-0 lg:w-[25%] flex flex-col justify-center">
-          <div class="flex flex-col gap-1">
-            <span class="text-[10px] font-black uppercase tracking-wider text-[#9BA1AA] dark:text-[#8B949E]">{{ $t('admin.accountStatus') }}</span>
-            <span :class="['inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold w-fit shadow-2xs border', 
-              user.account_status === 'active' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/50' : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200/60 dark:border-red-800/50']">
-              <CheckCircle2 v-if="user.account_status === 'active'" class="w-3.5 h-3.5" />
-              <Ban v-else class="w-3.5 h-3.5" />
-              <span class="capitalize">{{ $t(user.account_status || 'active') }}</span>
-            </span>
+          <div class="mt-4 lg:mt-0 lg:w-[25%] flex flex-col justify-center">
+            <div class="flex flex-col gap-1">
+              <span class="text-[10px] font-black uppercase tracking-wider text-[#9BA1AA] dark:text-[#8B949E]">{{ $t('admin.accountStatus') }}</span>
+              <span :class="['inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold w-fit shadow-2xs border', 
+                user.account_status === 'active' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/50' : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200/60 dark:border-red-800/50']">
+                <CheckCircle2 v-if="user.account_status === 'active'" class="w-3.5 h-3.5" />
+                <Ban v-else class="w-3.5 h-3.5" />
+                <span class="capitalize">{{ $t(user.account_status || 'active') }}</span>
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div class="mt-5 pt-5 border-t border-[#E2E4E7] dark:border-[#30363D] lg:border-t-0 lg:mt-0 lg:pt-0 lg:w-[20%] flex lg:justify-end">
-          <button v-if="!user.is_admin" @click="toggleStatus(user)" 
-            :class="['w-full lg:w-auto px-5 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer', 
-            user.account_status === 'active' ? 'bg-white dark:bg-[#161B22] border-2 border-red-100 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 hover:border-red-200 dark:hover:border-red-800' : 'bg-[#1E9444] text-white hover:bg-[#0F5C2A] shadow-emerald-500/20']">
-            <template v-if="user.account_status === 'active'">
-              <Lock class="w-4 h-4" /> {{ $t('admin.suspend') }}
-            </template>
-            <template v-else>
-              <Unlock class="w-4 h-4" /> {{ $t('admin.activate') }}
-            </template>
-          </button>
-        </div>
-      </article>
+          <div class="mt-5 pt-5 border-t border-[#E2E4E7] dark:border-[#30363D] lg:border-t-0 lg:mt-0 lg:pt-0 lg:w-[20%] flex lg:justify-end">
+            <button v-if="!user.is_admin" @click="toggleStatus(user)" 
+              :class="['w-full lg:w-auto px-5 py-2.5 rounded-xl text-[12px] font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 cursor-pointer', 
+              user.account_status === 'active' ? 'bg-white dark:bg-[#161B22] border-2 border-red-100 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 hover:border-red-200 dark:hover:border-red-800' : 'bg-[#1E9444] text-white hover:bg-[#0F5C2A] shadow-emerald-500/20']">
+              <template v-if="user.account_status === 'active'">
+                <Lock class="w-4 h-4" /> {{ $t('admin.suspend') }}
+              </template>
+              <template v-else>
+                <Unlock class="w-4 h-4" /> {{ $t('admin.activate') }}
+              </template>
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <!-- Pagination Controls -->
+      <Pagination 
+        :currentPage="currentPage" 
+        :totalPages="totalPages" 
+        :totalItems="users.length" 
+        :itemsPerPage="itemsPerPage" 
+        @update:currentPage="currentPage = $event" 
+        @refresh="loadUsers"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Loader2, Users, RefreshCcw, UserX, Phone, Calendar, Ban, CheckCircle2, Lock, Unlock } from 'lucide-vue-next'
 import { adminApi } from '@/services/adminService'
 import { formatDate } from '@/utils/helpers'
+import Pagination from '@/components/common/Pagination.vue'
 
 const users = ref([])
 const isLoading = ref(true)
+
+const currentPage = ref(1)
+const itemsPerPage = 6
+
+const totalPages = computed(() => Math.ceil(users.value.length / itemsPerPage) || 1)
+
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return users.value.slice(start, start + itemsPerPage)
+})
 
 const loadUsers = async () => {
   isLoading.value = true
