@@ -94,7 +94,7 @@ class ListingController extends Controller
             $validated['image_path'] = $request->file('image')->store('produce-photos', 'public');
         }
 
-        $listing = DB::transaction(function () use ($validated, $user) {
+        $listing = DB::transaction(function () use ($validated, $user, $request) {
             $listing = Listing::create([
                 'farmer_id'              => $user->id,
                 'category_id'            => $validated['category_id'] ?? null,
@@ -156,7 +156,7 @@ class ListingController extends Controller
             $validated['image_path'] = $request->file('image')->store('produce-photos', 'public');
         }
 
-        DB::transaction(function () use ($listing, $validated, $user) {
+        DB::transaction(function () use ($listing, $validated, $user, $request) {
             // Track price change in history when price_per_unit is updated.
             if (isset($validated['price_per_unit']) && (float) $validated['price_per_unit'] !== (float) $listing->price_per_unit) {
                 ListingPriceHistory::create([
