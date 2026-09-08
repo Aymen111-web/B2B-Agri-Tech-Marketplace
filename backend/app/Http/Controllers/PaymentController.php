@@ -217,11 +217,25 @@ class PaymentController extends Controller
 
         $verification = $chapaService->verifyTransaction($txRef);
 
+        \Illuminate\Support\Facades\Log::info("VERIFY REACHED for $txRef", [
+            'payment_status' => $payment->status,
+            'verification'   => $verification,
+            'order_status'   => $payment->order?->status
+        ]);
+
         // Auto-confirm test transactions or valid local payment records
         if ($verification['success'] || in_array($payment->status, ['pending', 'confirmed']) || str_starts_with($txRef, 'TX-')) {
             if ($payment->status !== 'confirmed') {
-                $paymentService->confirmPayment($payment, $verification['data'] ?? ['verified_via' => 'test_verification']);
+                try {
+                    \Illuminate\Support\Facades\Log::info("ATTEMPTING confirmPayment for $txRef");
+                    $paymentService->confirmPayment($payment, $verification['data'] ?? ['verified_via' => 'test_verification']);
+                    \Illuminate\Support\Facades\Log::info("SUCCESS confirmPayment for $txRef - Order Status Now: " . $payment->fresh()->order?->status);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("CRASH in confirmPayment for $txRef", ['error' => $e->getMessage()]);
+                }
                 $payment->refresh();
+            } else {
+                \Illuminate\Support\Facades\Log::info("ALREADY CONFIRMED for $txRef");
             }
 
             $chapaRef = $verification['data']['reference'] ?? $verification['data']['ref_id'] ?? null;
@@ -283,13 +297,18 @@ class PaymentController extends Controller
             if ($payment) {
                 $verification = $chapaService->verifyTransaction($txRef);
 
+                \Illuminate\Support\Facades\Log::info("CALLBACK REACHED for $txRef");
+
                 // Extract the real Chapa reference so we can build a valid receipt URL
                 $chapaRef = $chapaRef
                     ?? ($verification['data']['reference'] ?? null)
                     ?? ($verification['data']['ref_id']    ?? null);
 
                 if ($payment->status !== 'confirmed') {
-                    $paymentService->confirmPayment($payment, $verification['data'] ?? ['verified_via' => 'callback_redirect']);
+                    try {
+                        $paymentService->confirmPayment($payment, $verification['data'] ?? ['verified_via' => 'callback_redirect']);
+                        \Illuminate\Support\Facades\Log::info("CALLBACK confirmPayment SUCCESS for $txRef");
+                    } catch (\Exception $e) {}
                 }
             }
         }

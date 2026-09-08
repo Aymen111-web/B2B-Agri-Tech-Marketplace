@@ -170,8 +170,8 @@
       >
         <Loader2 v-if="isProcessing" class="w-4 h-4 animate-spin" />
         <span v-else class="flex items-center gap-2">
-          <Lock class="w-4 h-4" />
-          <span>Proceed to Chapa Escrow Payment ({{ formatETB(totalPayableETB) }})</span>
+          <ShieldCheck class="w-4 h-4" />
+          <span>Send Contract Request to Farmer ({{ formatETB(totalPayableETB) }})</span>
         </span>
       </button>
 
@@ -296,26 +296,16 @@ const handleCheckout = async () => {
       }
     })
 
-    // 3. Call backend Chapa payment initiation API if real order created
+    // 3. Route directly to the orders tracking page to await Farmer acceptance
     if (orderId) {
-      const payRes = await api.initiateOrderPayment(orderId).catch((err) => {
-        throw err // Properly throw error up to catch block for alerting
-      })
-
-      // Clear checkout items from cart
       clearCart()
-
-      // 4. Direct redirect to Chapa hosted payment checkout URL (e.g. https://checkout.chapa.co/...)
-      if (payRes && payRes.checkout_url) {
-        window.location.href = payRes.checkout_url
-        return
-      }
+      router.push('/buyer/orders')
+      return
     }
 
-    // 5. Fallback error if we couldn't proceed
-    throw new Error('Payment Initiation Failed: Order could not be created or payment URL was empty.')
+    throw new Error('Order Placement Failed: Order could not be created.')
   } catch (err) {
-    alert(err.message || 'Payment initiation failed.')
+    alert(err.message || 'Order initiation failed.')
   } finally {
     isProcessing.value = false
   }

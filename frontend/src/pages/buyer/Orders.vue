@@ -110,7 +110,7 @@
                   </span>
                 </div>
                 <p class="text-xs text-[#5A6270] mt-0.5 flex flex-wrap items-center gap-2">
-                  <span class="font-bold text-[#1E2328]">Order #{{ order.id }}</span>
+                  <span class="font-bold text-[#1E2328]">Order #{{ order.displayId }}</span>
                   <span>•</span>
                   <span>Farmer: <strong class="text-[#1E2328]">{{ order.farmer?.name || 'Dawit Bekele' }}</strong></span>
                   <span>•</span>
@@ -156,7 +156,7 @@
             <div>
               <p class="font-bold text-[#1E2328]">Driver Delivery PIN Verification Required</p>
               <p class="text-[11px] text-amber-800">
-                Driver <strong class="underline">Abebe Tadesse</strong> is delivering batch #{{ order.id }}. Enter PIN to release escrow payment.
+                Driver is delivering batch #{{ order.displayId }}. Enter PIN to release escrow payment.
               </p>
             </div>
           </div>
@@ -165,6 +165,56 @@
             <CheckCircle2 class="w-4 h-4" />
             <span>Enter Delivery PIN</span>
           </button>
+        </div>
+
+        <div v-else-if="order.status === 'awaiting_buyer_payment'" 
+          class="bg-blue-50/70 border-b border-blue-200/80 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-[#0B57D0] text-white flex items-center justify-center font-black">
+              <CreditCard class="w-4 h-4" />
+            </div>
+            <div>
+              <p class="font-bold text-[#1E2328]">Payment Required (Escrow Lock)</p>
+              <p class="text-[11px] text-blue-800">
+                Farmer accepted the order. Please complete payment to secure funds in escrow.
+              </p>
+            </div>
+          </div>
+          <button @click="handlePayment(order.id)" 
+            class="px-4 py-2 bg-[#0B57D0] text-white rounded-xl font-extrabold hover:bg-blue-800 transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0">
+            <ShieldCheck class="w-4 h-4" />
+            <span>{{ isProcessingPayment === order.id ? 'Loading...' : 'Pay with Chapa' }}</span>
+          </button>
+        </div>
+
+        <div v-else-if="order.status === 'paid_in_escrow'" 
+          class="bg-emerald-50/70 border-b border-emerald-200/80 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-[#1E9444] text-white flex items-center justify-center font-black">
+              <Package class="w-4 h-4" />
+            </div>
+            <div>
+              <p class="font-bold text-[#1E2328]">Payment Secured in Escrow</p>
+              <p class="text-[11px] text-emerald-800">
+                Waiting for the farmer to dispatch the shipment.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="order.status === 'pending_farmer_approval' || order.status === 'pending_payment'" 
+          class="bg-gray-50/70 border-b border-gray-200/80 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gray-200 text-gray-600 flex items-center justify-center font-black">
+              <Clock class="w-4 h-4" />
+            </div>
+            <div>
+              <p class="font-bold text-[#1E2328]">Awaiting Farmer Approval</p>
+              <p class="text-[11px] text-gray-600">
+                The farmer is reviewing the order. You can pay after they accept it.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div v-else-if="order.status === 'delivered' || order.status === 'completed'" 
@@ -201,7 +251,7 @@
           <div class="p-3 bg-[#F8F9FA] rounded-xl space-y-1">
             <div class="flex justify-between font-semibold">
               <span>Order ID:</span>
-              <span class="font-bold">#{{ selectedOrderForPIN.id }}</span>
+              <span class="font-bold">#{{ selectedOrderForPIN?.displayId || selectedOrderForPIN?.id }}</span>
             </div>
             <div class="flex justify-between font-semibold">
               <span>Escrow Release Payout:</span>
@@ -231,9 +281,10 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X } from 'lucide-vue-next'
+import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { formatETB } from '@/utils/helpers'
+import { api } from '@/services/api'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
 
 const { orders, confirmDelivery } = useOrders()
@@ -298,6 +349,10 @@ const filteredOrders = computed(() => {
 const statusBadgeClass = (status) => {
   const map = {
     placed: 'bg-blue-50 text-blue-700 border-blue-200',
+    pending_payment: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    pending_farmer_approval: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    awaiting_buyer_payment: 'bg-orange-50 text-orange-700 border-orange-200',
+    paid_in_escrow: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     confirmed: 'bg-indigo-50 text-indigo-700 border-indigo-200',
     dispatched: 'bg-amber-50 text-amber-700 border-amber-200',
     in_transit: 'bg-amber-100 text-amber-800 border-amber-300',
@@ -318,6 +373,25 @@ const submitDeliveryPin = () => {
     confirmDelivery(selectedOrderForPIN.value.id, deliveryPin.value)
     selectedOrderForPIN.value = null
     deliveryPin.value = ''
+  }
+}
+
+const isProcessingPayment = ref(null)
+
+const handlePayment = async (orderId) => {
+  if (isProcessingPayment.value) return
+  isProcessingPayment.value = orderId
+  
+  try {
+    const numericId = String(orderId).replace('ORD-', '')
+    const res = await api.initiateOrderPayment(numericId)
+    if (res.checkout_url) {
+      window.location.href = res.checkout_url
+    }
+  } catch (err) {
+    alert(err.message || 'Payment initiation failed. Please try again.')
+  } finally {
+    isProcessingPayment.value = null
   }
 }
 </script>

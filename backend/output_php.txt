@@ -1,0 +1,6 @@
+SCHEMA UPDATED SUCCESSFULLY.
+Order DB Status: awaiting_buyer_payment
+Payment DB Status: pending
+Confirm Result: {"status":"success","message":"Payment confirmed and order completed successfully."}
+FINAL Order DB Status: paid_in_escrow
+Fulfillment 10 Status: paid_in_escrow

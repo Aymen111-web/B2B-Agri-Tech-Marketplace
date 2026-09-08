@@ -71,36 +71,48 @@ const props = defineProps({
 const steps = [
   { 
     key: 'placed', 
-    title: 'Order Placed & Contract Locked', 
-    description: 'Purchase terms and crop batch reserved with regional co-op.' 
+    title: 'Order Request Submitted', 
+    description: 'Purchase terms sent to regional farmer for approval.' 
   },
   { 
-    key: 'confirmed', 
-    title: 'Chapa Escrow Secured', 
-    description: 'Procurement capital deposited in Chapa protected escrow account.' 
+    key: 'accepted', 
+    title: 'Farmer Approved & Awaiting Escrow', 
+    description: 'Contract terms accepted. Commercial buyer must fund escrow to continue.' 
+  },
+  { 
+    key: 'paid_in_escrow', 
+    title: 'Chapa Escrow Capital Secured', 
+    description: 'Procurement capital securely deposited in Chapa protected escrow account.' 
   },
   { 
     key: 'dispatched', 
-    title: 'Dispatched from Primary Union', 
-    description: 'Crop quality inspected and loaded on logistics truck.' 
-  },
-  { 
-    key: 'in_transit', 
-    title: 'Live Highway Transit', 
-    description: 'En route to local delivery destination with driver assigned.' 
+    title: 'Dispatched & Live Transit', 
+    description: 'Crop quality inspected and loaded on logistics truck toward destination.' 
   },
   { 
     key: 'delivered', 
-    title: 'Handover & Escrow Payout', 
+    title: 'Handoff & Escrow Payout Released', 
     description: 'Physical receipt verified via 4-digit PIN to release funds to farmer.' 
   },
 ]
 
 const statusStepMap = {
   placed: 0,
-  confirmed: 1,
-  dispatched: 2,
-  in_transit: 3,
+  pending: 0,
+  
+  accepted: 1,
+  pending_payment: 1,
+  pending_farmer_approval: 1,
+  awaiting_buyer_payment: 1,
+
+  paid_in_escrow: 2,
+  confirmed: 2,
+
+  dispatched: 3,
+  
+  in_transit: 4,
+  buyer_received: 4,
+  
   delivered: 4,
   completed: 4,
   disputed: 2,

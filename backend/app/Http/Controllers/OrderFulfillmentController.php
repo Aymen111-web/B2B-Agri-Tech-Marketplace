@@ -37,7 +37,7 @@ class OrderFulfillmentController extends Controller
 
         $fulfillments = $user->orderFulfillments()
             ->with([
-                'order:id,order_number,buyer_id,status,delivery_status,inspection_status,payout_status,total_amount,currency,placed_at',
+                'order:id,order_number,buyer_id,status,delivery_status,inspection_status,payout_status,total_amount,currency,placed_at,delivery_pin',
                 'order.buyer:id,first_name,second_name',
                 'items.listing:id,title,unit',
             ])
@@ -58,7 +58,7 @@ class OrderFulfillmentController extends Controller
     public function show(int $id): JsonResponse
     {
         $fulfillment = OrderFulfillment::with([
-            'order:id,order_number,buyer_id,status,delivery_status,inspection_status,payout_status,total_amount,currency,placed_at',
+            'order:id,order_number,buyer_id,status,delivery_status,inspection_status,payout_status,total_amount,currency,placed_at,delivery_pin',
             'order.buyer:id,first_name,second_name',
             'items.listing:id,title,unit,price_per_unit',
         ])->findOrFail($id);
@@ -137,6 +137,38 @@ class OrderFulfillmentController extends Controller
 
         return response()->json([
             'message'     => 'Fulfillment accepted.',
+            'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
+                'order', 'items.listing',
+            ])),
+        ]);
+    }
+
+    /**
+     * Dispatch a fulfillment (handoff to delivery driver/in transit).
+     *
+     * POST /api/fulfillments/{id}/dispatch
+     */
+    public function dispatchFulfillment(int $id): JsonResponse
+    {
+        $fulfillment = OrderFulfillment::findOrFail($id);
+
+        $this->authorize('accept', $fulfillment); 
+
+        if (! in_array($fulfillment->status, ['accepted', 'paid_in_escrow'])) {
+            return response()->json([
+                'message' => 'Only accepted or escrowed fulfillments can be dispatched.',
+            ], 422);
+        }
+
+        $fulfillment->update([
+            'status'          => 'dispatched',
+            'delivery_status' => 'in_transit',
+        ]);
+
+        $this->syncOrderStatus($fulfillment->order_id);
+
+        return response()->json([
+            'message'     => 'Fulfillment dispatched successfully.',
             'fulfillment' => new OrderFulfillmentResource($fulfillment->fresh([
                 'order', 'items.listing',
             ])),
@@ -299,6 +331,7 @@ class OrderFulfillmentController extends Controller
         $hasPending          = $statuses->contains('pending') || $statuses->contains('pending_farmer_approval');
         $hasAccepted         = $statuses->contains('accepted');
         $hasPaidInEscrow     = $statuses->contains('paid_in_escrow');
+        $hasDispatched       = $statuses->contains('dispatched') || $statuses->contains('in_transit');
         $hasBuyerReceived    = $statuses->contains('buyer_received');
         $hasRejected         = $statuses->contains('rejected');
 
@@ -314,6 +347,8 @@ class OrderFulfillmentController extends Controller
             $order->status = Order::STATUS_CANCELLED;
         } elseif ($hasBuyerReceived) {
             $order->status = Order::STATUS_PROCESSING;
+        } elseif ($hasDispatched) {
+            $order->status = 'dispatched';
         } elseif ($hasPaidInEscrow) {
             $order->status = Order::STATUS_PAID_IN_ESCROW;
         } elseif ($hasAccepted) {

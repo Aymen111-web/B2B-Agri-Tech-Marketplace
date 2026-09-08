@@ -91,6 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/fulfillments',                          [OrderFulfillmentController::class, 'index']);
     Route::get('/fulfillments/{id}',                     [OrderFulfillmentController::class, 'show']);
     Route::post('/fulfillments/{id}/accept',             [OrderFulfillmentController::class, 'accept']);
+    Route::post('/fulfillments/{id}/dispatch',           [OrderFulfillmentController::class, 'dispatchFulfillment']);
     Route::post('/fulfillments/{id}/reject',             [OrderFulfillmentController::class, 'reject']);
     Route::post('/fulfillments/{id}/complete',           [OrderFulfillmentController::class, 'complete']);
     Route::post('/fulfillments/{id}/confirm-received',   [OrderFulfillmentController::class, 'confirmReceived']);

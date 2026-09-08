@@ -50,40 +50,28 @@ class PaymentService
                 }
             }
 
-            // Instantly complete accepted fulfillments upon payment
+            // Do not instantly complete fulfillments for marketplace escrow flow!
+            // The farmer still needs to deliver the goods.
             if ($payment->order_fulfillment_id) {
                 $fulfillment = \App\Models\OrderFulfillment::find($payment->order_fulfillment_id);
-                if ($fulfillment && in_array($fulfillment->status, ['accepted', 'paid_in_escrow'])) {
+                if ($fulfillment && in_array($fulfillment->status, ['accepted', 'pending'])) {
                     $fulfillment->update([
-                        'status'          => 'completed',
-                        'delivery_status' => 'delivered',
-                        'completed_at'    => now(),
+                        'status' => 'paid_in_escrow',
                     ]);
-
-                    \App\Models\Payout::firstOrCreate(
-                        ['order_fulfillment_id' => $fulfillment->id],
-                        [
-                            'farmer_id'    => $fulfillment->farmer_id,
-                            'amount'       => $payment->amount,
-                            'status'       => 'processed',
-                            'reference'    => $payment->chapa_tx_ref,
-                            'processed_at' => now(),
-                        ]
-                    );
                 }
             } else {
-                foreach ($order->fulfillments()->whereIn('status', ['accepted', 'paid_in_escrow'])->get() as $fulfillment) {
-                    $fulfillment->update([
-                        'status'          => 'completed',
-                        'delivery_status' => 'delivered',
-                        'completed_at'    => now(),
-                    ]);
+                foreach ($order->fulfillments as $fulfillment) {
+                    if (in_array($fulfillment->status, ['accepted', 'pending'])) {
+                        $fulfillment->update([
+                            'status' => 'paid_in_escrow',
+                        ]);
+                    }
                 }
             }
 
-            // Synchronise parent order status to completed
+            // Synchronise parent order status to paid in escrow (NOT completed, delivery pending)
             $order->update([
-                'status'         => Order::STATUS_COMPLETED,
+                'status'         => Order::STATUS_PAID_IN_ESCROW,
                 'payment_status' => 'paid',
             ]);
 

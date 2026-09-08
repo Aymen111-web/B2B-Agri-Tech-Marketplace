@@ -31,6 +31,14 @@ const INITIAL_ORDERS = [
     },
 ]
 
+function getCurrentUserData() {
+    try {
+        const saved = localStorage.getItem('agri_user_data')
+        return saved ? JSON.parse(saved) : null
+    } catch {
+        return null
+    }
+}
 
 function mapRawOrderToFrontend(item) {
     const isEscrowReleased = item.escrow_status === 'released' || item.escrowStatus === 'released' || item.payout_status === 'released'
@@ -58,8 +66,8 @@ function mapRawOrderToFrontend(item) {
 
     return {
         id: String(item.id || item.order_number || `ORD-${Math.floor(1000 + Math.random() * 9000)}`),
-        orderNumber: String(item.order_number || item.id || ''),
-        listingId: String(firstListing.id || item.listingId || ''),
+        displayId: String(item.order?.id || item.order_id || item.id || ''),
+        orderNumber: String(item.order?.order_number || item.order_number || item.id || ''),
         listing: {
             id: String(firstListing.id || ''),
             farmerId: String(farmerObj.id || firstListing.farmer_id || ''),
@@ -242,9 +250,10 @@ export function useOrders() {
         const token = getAuthToken()
         if (token) {
             try {
-                let statusAction = 'accept'
+                let statusAction = status
                 if (status === 'completed' || status === 'delivered') statusAction = 'complete'
-                else if (status === 'dispatched' || status === 'in_transit') statusAction = 'accept'
+                else if (status === 'dispatched' || status === 'in_transit') statusAction = 'dispatch'
+                else if (status === 'accepted') statusAction = 'accept'
 
                 await api.updateFulfillmentStatus(orderId, statusAction, note)
             } catch {

@@ -20,7 +20,7 @@
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg"><Package class="w-5 h-5" /></div>
             <div>
-              <h3 class="text-sm font-black text-[#1E2328]">Order #{{ order.id }}</h3>
+              <h3 class="text-sm font-black text-[#1E2328]">Order #{{ order.displayId }}</h3>
               <p class="text-xs text-[#5A6270]">Buyer: {{ order.buyer?.name || 'Commercial Buyer' }} · {{ formatDate(order.createdAt || order.placedAt || order.created_at) }}</p>
             </div>
           </div>
@@ -37,13 +37,19 @@
         <OrderTimeline :status="order.status" />
 
         <div v-if="order.status === 'placed' || order.status === 'pending'" class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+          <button @click="updateOrderStatus(order.id, 'accepted', 'Farmer accepted order parameters')" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 shadow-2xs">
+            <CheckCircle2 class="w-4 h-4" /><span>Accept Order</span>
+          </button>
+        </div>
+
+        <div v-if="order.status === 'paid_in_escrow'" class="flex justify-end gap-2 pt-2 border-t border-gray-100">
           <button @click="dispatchOrder(order.id)" class="px-4 py-2 rounded-xl bg-[#1E9444] text-white text-xs font-bold hover:bg-[#0F5C2A] flex items-center gap-1.5 shadow-2xs">
             <Truck class="w-4 h-4" /><span>Dispatch Shipment</span>
           </button>
         </div>
 
         <!-- Escrow PIN Box for Farmer -->
-        <div v-if="order.status === 'in_transit' || order.status === 'dispatched' || order.status === 'accepted'" 
+        <div v-if="order.status === 'in_transit' || order.status === 'dispatched'" 
           class="bg-[#EDFAF2] border border-[#C3EFCF] p-4 rounded-xl mt-3 flex items-center justify-between shadow-2xs">
           <div>
             <h4 class="text-xs font-black text-[#0F5C2A] uppercase tracking-wider">Escrow Handoff PIN</h4>
@@ -64,7 +70,7 @@ import { useOrders } from '@/composables/useOrders'
 import { formatETB, formatDate } from '@/utils/helpers'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
 
-const { orders, dispatchOrder } = useOrders()
+const { orders, dispatchOrder, updateOrderStatus } = useOrders()
 
 const statusBadgeClass = (status) => {
   const map = { placed: 'bg-blue-50 text-blue-700 border border-blue-200', dispatched: 'bg-amber-50 text-amber-700 border border-amber-200', in_transit: 'bg-amber-50 text-amber-700 border border-amber-200', delivered: 'bg-emerald-50 text-emerald-700 border border-emerald-200', completed: 'bg-emerald-50 text-emerald-700 border border-emerald-200' }
