@@ -4,8 +4,6 @@ import { api, getAuthToken } from '@/services/api'
 const DEFAULT_PRODUCE = []
 
 function mapRawListingToFrontend(item) {
-<<<<<<< ours
-=======
     const farmerObj = item.farmer || {}
     const farmerFirstName = farmerObj.first_name || ''
     const farmerSecondName = farmerObj.second_name || ''
@@ -41,13 +39,12 @@ function mapRawListingToFrontend(item) {
         imagesList.unshift(primaryImg)
     }
 
->>>>>>> theirs
     return {
         id: String(item.id),
         farmerId: String(item.farmer_id || item.farmerId || 'farmer-1'),
         farmer: item.farmer ? {
             id: String(item.farmer.id || 'farmer-1'),
-            name: `${item.farmer.first_name || ''} ${item.farmer.second_name || ''}`.trim() || item.farmer.name || 'Dawit Bekele',
+            name: farmerFullName,
             email: item.farmer.email || 'farmer@agri.et',
             phone: item.farmer.phone || '+251 912 345 678',
             role: 'farmer', status: 'verified', region: item.farmer.region || 'SNNPR',
@@ -65,7 +62,8 @@ function mapRawListingToFrontend(item) {
         minOrderQty: Number(item.min_order_qty ?? item.minOrderQty ?? 100),
         harvestDate: item.harvest_date ? new Date(item.harvest_date) : new Date(),
         description: item.description || '',
-        images: item.image_path ? [`http://127.0.0.1:8000/storage/${item.image_path}`] : (item.images || []),
+        primaryImage: primaryImg,
+        images: imagesList.length > 0 ? imagesList : (primaryImg ? [primaryImg] : []),
         isActive: item.status === 'active' || item.isActive !== false,
         isVerified: true,
         createdAt: item.created_at ? new Date(item.created_at) : new Date(),
@@ -167,15 +165,6 @@ export function useListings() {
                 }
 
                 const res = await api.createListing(formData)
-<<<<<<< ours
-                if (res?.listing) {
-                    const created = mapRawListingToFrontend(res.listing)
-                    listings.value = [created, ...listings.value]
-                    return created
-                }
-            } catch {
-                // Fallback to local creation
-=======
                 const rawObj = res?.listing || res?.data || res
                 if (rawObj) {
                     const created = mapRawListingToFrontend(rawObj)
@@ -188,7 +177,6 @@ export function useListings() {
                 }
             } catch (err) {
                 console.warn('API createListing failed, saving listing locally:', err)
->>>>>>> theirs
             }
         }
 
