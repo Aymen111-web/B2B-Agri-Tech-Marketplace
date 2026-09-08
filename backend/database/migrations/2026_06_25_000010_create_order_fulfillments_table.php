@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('farmer_id')->constrained('users')->cascadeOnDelete();
 
-            $table->enum('status', ['pending', 'accepted', 'rejected', 'completed', 'cancelled'])
+            $table->enum('status', ['pending', 'accepted', 'paid_in_escrow', 'dispatched', 'in_transit', 'buyer_received', 'rejected', 'completed', 'cancelled'])
                 ->default('pending');
 
             $table->decimal('subtotal_amount', 14, 2); // sum of this farmer's order_items

@@ -1,44 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { api, getAuthToken } from '@/services/api'
 
-const INITIAL_CART_ITEMS = [
-    {
-        id: 'cart-1',
-        listingId: 1,
-        listing: {
-            id: 1,
-            cropName: 'Sidama Washed Coffee G1',
-            cropEmoji: '☕',
-            grade: 'Grade 1',
-            region: 'SNNPR',
-            pricePerKg: 85,
-            availableQty: 12000,
-            minOrderQty: 500,
-            farmer: { name: 'Dawit Bekele' }
-        },
-        quantityKg: 5,
-        unit: 'KG',
-        selected: true
-    },
-    {
-        id: 'cart-2',
-        listingId: 3,
-        listing: {
-            id: 3,
-            cropName: 'Bale Durum Wheat',
-            cropEmoji: '🌾',
-            grade: 'Grade A',
-            region: 'Oromia',
-            pricePerKg: 28,
-            availableQty: 55000,
-            minOrderQty: 1000,
-            farmer: { name: 'Abebe Girma' }
-        },
-        quantityKg: 10,
-        unit: 'Quintals',
-        selected: true
-    }
-]
+const INITIAL_CART_ITEMS = []
 
 const cartItems = ref([])
 const isLoaded = ref(false)
