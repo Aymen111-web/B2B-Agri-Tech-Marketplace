@@ -4,6 +4,44 @@ import { api, getAuthToken } from '@/services/api'
 const DEFAULT_PRODUCE = []
 
 function mapRawListingToFrontend(item) {
+<<<<<<< ours
+=======
+    const farmerObj = item.farmer || {}
+    const farmerFirstName = farmerObj.first_name || ''
+    const farmerSecondName = farmerObj.second_name || ''
+    const farmerFullName = `${farmerFirstName} ${farmerSecondName}`.trim() || farmerObj.name || 'Dawit Bekele'
+
+    let imagesList = []
+    if (Array.isArray(item.images) && item.images.length > 0) {
+        imagesList = item.images.map(img => {
+            if (typeof img === 'string') {
+                return img.startsWith('http') || img.startsWith('blob:') || img.startsWith('data:') 
+                    ? img 
+                    : `http://127.0.0.1:8000/storage/${img.replace(/^\/?storage\//, '')}`
+            }
+            if (img && img.image_path) {
+                return img.image_path.startsWith('http') || img.image_path.startsWith('blob:') 
+                    ? img.image_path 
+                    : `http://127.0.0.1:8000/storage/${img.image_path.replace(/^\/?storage\//, '')}`
+            }
+            return img
+        }).filter(Boolean)
+    }
+
+    let primaryImg = item.primaryImage || item.image_url || (item.image_path 
+        ? (item.image_path.startsWith('http') || item.image_path.startsWith('blob:') || item.image_path.startsWith('data:')
+            ? item.image_path 
+            : `http://127.0.0.1:8000/storage/${item.image_path.replace(/^\/?storage\//, '')}`)
+        : null)
+
+    if (!primaryImg && imagesList.length > 0) {
+        primaryImg = imagesList[0]
+    }
+    if (primaryImg && !imagesList.includes(primaryImg)) {
+        imagesList.unshift(primaryImg)
+    }
+
+>>>>>>> theirs
     return {
         id: String(item.id),
         farmerId: String(item.farmer_id || item.farmerId || 'farmer-1'),
@@ -99,6 +137,16 @@ export function useListings() {
     const addListing = async (newListingData) => {
         const token = getAuthToken()
 
+        const filesToUpload = newListingData.rawFiles || 
+                              (newListingData.images || []).filter(f => typeof window !== 'undefined' && (f instanceof File || f instanceof Blob))
+
+        const stringImages = (newListingData.images || []).map(img => {
+            if (typeof img === 'string') return img
+            return null
+        }).filter(Boolean)
+
+        const primaryUploadedImg = newListingData.primaryImage || (stringImages.length > 0 ? stringImages[0] : null)
+
         if (token) {
             try {
                 const formData = new FormData()
@@ -112,15 +160,14 @@ export function useListings() {
                 if (newListingData.harvestDate) formData.append('harvest_date', new Date(newListingData.harvestDate).toISOString().split('T')[0])
                 if (newListingData.grade) formData.append('quality_grade', newListingData.grade)
 
-                if (newListingData.images && newListingData.images.length > 0) {
-                    newListingData.images.forEach((file) => {
-                        if (file instanceof File || file instanceof Blob) {
-                            formData.append('images[]', file)
-                        }
+                if (filesToUpload && filesToUpload.length > 0) {
+                    filesToUpload.forEach((file) => {
+                        formData.append('images[]', file)
                     })
                 }
 
                 const res = await api.createListing(formData)
+<<<<<<< ours
                 if (res?.listing) {
                     const created = mapRawListingToFrontend(res.listing)
                     listings.value = [created, ...listings.value]
@@ -128,15 +175,33 @@ export function useListings() {
                 }
             } catch {
                 // Fallback to local creation
+=======
+                const rawObj = res?.listing || res?.data || res
+                if (rawObj) {
+                    const created = mapRawListingToFrontend(rawObj)
+                    if (!created.primaryImage && primaryUploadedImg) {
+                        created.primaryImage = primaryUploadedImg
+                        created.images = stringImages.length > 0 ? stringImages : [primaryUploadedImg]
+                    }
+                    listings.value = [created, ...listings.value]
+                    return created
+                }
+            } catch (err) {
+                console.warn('API createListing failed, saving listing locally:', err)
+>>>>>>> theirs
             }
         }
 
+        // Local creation with uploaded photos
         const created = {
             ...newListingData,
             id: `listing-${Date.now()}`,
+            primaryImage: primaryUploadedImg,
+            images: stringImages.length > 0 ? stringImages : (primaryUploadedImg ? [primaryUploadedImg] : []),
             createdAt: new Date(),
             viewCount: 1,
         }
+        delete created.rawFiles
         listings.value = [created, ...listings.value]
         return created
     }

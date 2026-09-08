@@ -9,7 +9,7 @@
       aria-labelledby="logout-title"
     >
       <div
-        class="w-full max-w-[370px] bg-white dark:bg-[#1E2328] rounded-[22px] p-6 shadow-2xl border border-slate-100 dark:border-white/10 relative overflow-hidden"
+        class="w-full max-w-[370px] bg-white dark:bg-[#161B22] rounded-[22px] p-6 shadow-2xl border border-slate-100 dark:border-[#30363D] relative overflow-hidden"
       >
         <!-- Top subtle accent bar -->
         <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#EE5D50] via-rose-300 to-transparent" />
@@ -17,7 +17,7 @@
         <!-- Top Content Row: Icon Badge + Text -->
         <div class="flex items-start gap-3.5">
           <!-- Circular Pink/Red Badge with Logout Icon -->
-          <div class="w-12 h-12 rounded-full bg-[#FEECEB] dark:bg-rose-950/40 flex items-center justify-center shrink-0">
+          <div class="w-12 h-12 rounded-full bg-[#FEECEB] dark:bg-rose-950/60 flex items-center justify-center shrink-0">
             <LogOut class="w-5 h-5 text-[#EE5D50]" />
           </div>
 
@@ -26,7 +26,7 @@
             <h3 id="logout-title" class="text-[17px] font-black text-[#0B4A8F] dark:text-blue-400 tracking-tight leading-tight">
               {{ t('common.signOut') || t('signOut') || 'Sign Out' }}
             </h3>
-            <p class="text-[13px] text-slate-500 dark:text-slate-400 font-medium leading-snug mt-1">
+            <p class="text-[13px] text-slate-500 dark:text-[#8B949E] font-medium leading-snug mt-1">
               {{ t('common.signOutConfirm') || t('signOutConfirm') || 'Are you sure you want to sign out?' }}
             </p>
           </div>
@@ -37,7 +37,7 @@
           <button
             type="button"
             @click="closeLogoutModal"
-            class="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-transparent hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 font-bold text-[14px] transition-all cursor-pointer text-center shadow-2xs"
+            class="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-[#30363D] bg-white dark:bg-[#21262D] hover:bg-slate-50 dark:hover:bg-[#30363D] text-slate-700 dark:text-[#F0F6FC] font-bold text-[14px] transition-all cursor-pointer text-center shadow-2xs"
           >
             {{ t('common.cancel') || t('cancel') || 'Cancel' }}
           </button>

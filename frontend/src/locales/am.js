@@ -33,6 +33,8 @@ export default {
     spices: 'ቅመማ ቅመም',
     oilseeds: 'የቅባት እህሎች',
     pulses: 'ጥራጥሬ',
+    vegetables: 'አትክልት',
+    fruits: 'ፍራፍሬ',
     save: 'አስቀምጥ',
     cancel: 'ሰርዝ',
     signOut: 'ውጣ',
