@@ -74,13 +74,13 @@
           <div class="col-span-2 sm:col-span-1"><span class="text-[#5A6270] dark:text-[#8B949E] font-medium block">{{ $t('farmer.minimumOrderQuantity') }}</span><span class="font-bold text-[#1E2328] dark:text-[#F0F6FC] text-xs mt-0.5 block">{{ item.minOrderQty ? `${item.minOrderQty.toLocaleString()} kg` : '500 kg' }}</span></div>
         </div>
 
-        <div class="flex items-center justify-between pt-1 border-t border-orange-100/60 dark:border-[#30363D] text-xs">
-          <span class="text-[#5A6270] dark:text-[#8B949E] font-medium flex items-center gap-1"><Package class="w-3.5 h-3.5 text-[#1E9444] dark:text-emerald-400" /><span>{{ $t('Batch') }} #{{ String(item.id || '').slice(-6) }} · {{ $t('farmer.liveOnMarketplace') }}</span></span>
+        <div class="flex items-center justify-between pt-1 border-t border-orange-100/60 text-xs">
+          <span class="text-[#5A6270] font-medium flex items-center gap-1"><Package class="w-3.5 h-3.5 text-[#1E9444]" /><span>{{ $t('Batch') }} #{{ String(item.id || '').slice(-6) }} · {{ $t('farmer.liveOnMarketplace') }}</span></span>
           <div class="flex items-center gap-2">
             <button @click="handleDelete(item.id)" class="px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-white dark:bg-[#161B22] hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
               <Trash2 class="w-3.5 h-3.5" /><span>{{ $t('common.delete') || 'Delete' }}</span>
             </button>
-            <router-link :to="`/farmer/listings/edit/${item.id}`" class="px-3.5 py-1.5 rounded-xl border border-[#FBE3D0] dark:border-[#30363D] bg-white dark:bg-[#161B22] hover:bg-orange-50/50 dark:hover:bg-[#21262D] text-[#1E9444] dark:text-emerald-400 font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
+            <router-link :to="`/farmer/listings/edit/${item.id}`" class="px-3.5 py-1.5 rounded-xl border border-[#FBE3D0] bg-white hover:bg-orange-50/50 text-[#1E9444] font-extrabold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
               <Edit2 class="w-3.5 h-3.5" /><span>{{ $t('Edit Details') }}</span>
             </router-link>
           </div>
@@ -108,7 +108,14 @@ const handleDelete = async (id) => {
   }
 }
 
-const farmerListings = computed(() => listings.value.filter(l => l.farmerId === farmer.value?.id || l.farmer?.name === farmer.value?.name))
+const farmerListings = computed(() => {
+  if (!farmer.value) return []
+  return listings.value.filter(l => 
+    String(l.farmerId) === String(farmer.value.id) || 
+    String(l.farmer?.id) === String(farmer.value.id) || 
+    (farmer.value.phone && l.farmer?.phone === farmer.value.phone)
+  )
+})
 const displayListings = computed(() => farmerListings.value.length > 0 ? farmerListings.value : listings.value.slice(0, 4))
 const filteredListings = computed(() => displayListings.value.filter(l => {
   if (statusFilter.value === 'live') return l.isActive

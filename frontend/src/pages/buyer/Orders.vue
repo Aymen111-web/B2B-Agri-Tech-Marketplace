@@ -109,12 +109,12 @@
                     {{ order.quantityKg?.toLocaleString() }} kg
                   </span>
                 </div>
-                <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-0.5 flex flex-wrap items-center gap-2">
-                  <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('orders.orderId') }} #{{ order.displayId || order.id }}</span>
+                <p class="text-xs text-[#5A6270] mt-0.5 flex flex-wrap items-center gap-2">
+                  <span class="font-bold text-[#1E2328]">{{ $t('orders.orderId') }} #{{ order.displayId }}</span>
                   <span>•</span>
-                  <span>{{ $t('orders.farmer') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC]">{{ order.farmer?.name || 'Dawit Bekele' }}</strong></span>
+                  <span>{{ $t('orders.farmer') }}: <strong class="text-[#1E2328]">{{ order.farmer?.name || 'Dawit Bekele' }}</strong></span>
                   <span>•</span>
-                  <span>{{ $t('Region') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC]">{{ order.listing?.region || 'Oromia Co-op' }}</strong></span>
+                  <span>{{ $t('Region') }}: <strong class="text-[#1E2328]">{{ order.listing?.region || 'Oromia Co-op' }}</strong></span>
                 </p>
               </div>
             </div>
@@ -154,9 +154,9 @@
               <Key class="w-4 h-4" />
             </div>
             <div>
-              <p class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('Driver Delivery PIN Verification Required') }}</p>
-              <p class="text-[11px] text-amber-800 dark:text-amber-300">
-                {{ $t('Driver delivery PIN prompt') }} #{{ order.displayId || order.id }}. {{ $t('Enter PIN to release escrow payment.') }}
+              <p class="font-bold text-[#1E2328]">{{ $t('Driver Delivery PIN Verification Required') }}</p>
+              <p class="text-[11px] text-amber-800">
+                {{ $t('Driver delivery PIN prompt') }} #{{ order.displayId }}. {{ $t('Enter PIN to release escrow payment.') }}
               </p>
             </div>
           </div>
@@ -180,11 +180,19 @@
               </p>
             </div>
           </div>
-          <button @click="handlePayment(order.id)" 
-            class="px-4 py-2 bg-[#0B57D0] text-white rounded-xl font-extrabold hover:bg-blue-800 transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0">
-            <ShieldCheck class="w-4 h-4" />
-            <span>{{ isProcessingPayment === order.id ? 'Loading...' : 'Pay with Chapa' }}</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button @click="verifyPayment(order.id)" 
+              class="px-4 py-2 bg-white text-[#0B57D0] border border-[#0B57D0] rounded-xl font-extrabold hover:bg-blue-50 transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0">
+              <RefreshCw v-if="isVerifyingPayment === order.id" class="w-4 h-4 animate-spin" />
+              <CheckCircle2 v-else class="w-4 h-4" />
+              <span>Verify Status</span>
+            </button>
+            <button @click="handlePayment(order.id)" 
+              class="px-4 py-2 bg-[#0B57D0] text-white rounded-xl font-extrabold hover:bg-blue-800 transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0">
+              <ShieldCheck class="w-4 h-4" />
+              <span>{{ isProcessingPayment === order.id ? 'Loading...' : 'Pay with Chapa' }}</span>
+            </button>
+          </div>
         </div>
 
         <div v-else-if="order.status === 'paid_in_escrow'" 
@@ -250,12 +258,12 @@
           </p>
           <div class="p-3 bg-[#F8F9FA] dark:bg-[#21262D] rounded-xl space-y-1">
             <div class="flex justify-between font-semibold">
-              <span>Order ID:</span>
+              <span>{{ $t('orders.orderId') }}:</span>
               <span class="font-bold">#{{ selectedOrderForPIN?.displayId || selectedOrderForPIN?.id }}</span>
             </div>
             <div class="flex justify-between font-semibold">
               <span>{{ $t('Escrow Release Payout') }}:</span>
-              <span class="text-[#0B57D0] dark:text-blue-400 font-black">{{ formatETB(selectedOrderForPIN.totalAmountETB) }}</span>
+              <span class="text-[#0B57D0] font-black">{{ formatETB(selectedOrderForPIN.totalAmountETB) }}</span>
             </div>
           </div>
         </div>
@@ -281,7 +289,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock } from 'lucide-vue-next'
+import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { formatETB } from '@/utils/helpers'
 import { api } from '@/services/api'
@@ -377,6 +385,22 @@ const submitDeliveryPin = () => {
 }
 
 const isProcessingPayment = ref(null)
+const isVerifyingPayment = ref(null)
+
+const verifyPayment = async (orderId) => {
+  if (isVerifyingPayment.value) return
+  isVerifyingPayment.value = orderId
+  
+  try {
+    const numericId = String(orderId).replace('ORD-', '')
+    await api.verifyPendingPaymentForOrder(numericId)
+    window.location.reload()
+  } catch (err) {
+    alert(err.message || "Payment is not yet verified. Please complete payment in the Chapa tester and try again.")
+  } finally {
+    isVerifyingPayment.value = null
+  }
+}
 
 const handlePayment = async (orderId) => {
   if (isProcessingPayment.value) return
@@ -386,7 +410,7 @@ const handlePayment = async (orderId) => {
     const numericId = String(orderId).replace('ORD-', '')
     const res = await api.initiateOrderPayment(numericId)
     if (res.checkout_url) {
-      window.location.href = res.checkout_url
+      window.open(res.checkout_url, '_blank')
     }
   } catch (err) {
     alert(err.message || 'Payment initiation failed. Please try again.')

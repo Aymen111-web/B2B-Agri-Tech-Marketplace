@@ -267,6 +267,29 @@ class PaymentController extends Controller
     }
 
     /**
+     * Verify any pending payment records for a specific order.
+     * POST /api/orders/{id}/verify-payment
+     */
+    public function verifyOrderPayments($id, ChapaService $chapaService, PaymentService $paymentService): JsonResponse
+    {
+        $order = Order::findOrFail($id);
+        
+        $pendingPayment = Payment::where('order_id', $order->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+
+        if (!$pendingPayment) {
+            return response()->json([
+                'message' => 'No pending payments found for this order.',
+            ], 404);
+        }
+
+        // Just internally delegate to the manual verify route handler for the specific Tx reference.
+        return $this->verify($pendingPayment->chapa_tx_ref, $chapaService, $paymentService);
+    }
+
+    /**
      * Handle Chapa callback GET redirect after customer payment completes.
      *
      * GET /api/payments/callback

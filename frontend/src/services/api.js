@@ -178,6 +178,10 @@ export const api = {
         return request(`/payments/verify/${txRef}`)
     },
 
+    async verifyPendingPaymentForOrder(orderId) {
+        return request(`/orders/${orderId}/verify-payment`, { method: 'POST' })
+    },
+
     async verifyDeliveryPin(orderId, pin) {
         return request(`/orders/${orderId}/verify-delivery-pin`, {
             method: 'POST',
