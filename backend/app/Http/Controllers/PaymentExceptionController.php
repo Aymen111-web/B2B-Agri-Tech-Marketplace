@@ -238,9 +238,9 @@ class PaymentExceptionController extends Controller
 
         $validated = $request->validated();
 
-        if (! in_array($exception->status, ['open', 'investigating'], true)) {
+        if (! in_array($exception->status, ['open', 'investigating', 'resolved'], true)) {
             return response()->json([
-                'message' => 'Only open or investigating exceptions can be resolved.',
+                'message' => 'Only open, investigating, or resolved exceptions can be processed.',
             ], 422);
         }
 
@@ -346,9 +346,9 @@ class PaymentExceptionController extends Controller
 
         $validated = $request->validated();
 
-        if (! in_array($exception->status, ['open', 'investigating'], true)) {
+        if (! in_array($exception->status, ['open', 'investigating', 'resolved'], true)) {
             return response()->json([
-                'message' => 'Only open or investigating exceptions can be rejected.',
+                'message' => 'Only open, investigating, or resolved exceptions can be rejected.',
             ], 422);
         }
 
