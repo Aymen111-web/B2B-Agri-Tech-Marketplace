@@ -12,13 +12,13 @@
  * NOTE: These images are ONLY used for category photos, NOT as default/fallback photos for crop listings.
  */
 
-import coffeeImg from '@/assets/cofee.jpg'
-import fruitsImg from '@/assets/fruits.png'
-import grainsImg from '@/assets/grains.jpg'
-import oilseedImg from '@/assets/oilseed.jpg'
-import pulsesImg from '@/assets/pulses.jpg'
-import spicesImg from '@/assets/spices.jpg'
-import vegetablesImg from '@/assets/vegtable.png'
+import coffeeImg from '@/assets/categories/coffee.jpg'
+import fruitsImg from '@/assets/categories/fruits.png'
+import grainsImg from '@/assets/categories/grains.jpg'
+import oilseedImg from '@/assets/categories/oilseeds.jpg'
+import pulsesImg from '@/assets/categories/pulses.jpg'
+import spicesImg from '@/assets/categories/spices.jpg'
+import vegetablesImg from '@/assets/categories/vegetables.png'
 
 export const CATEGORY_PHOTOS = {
     coffee: coffeeImg,

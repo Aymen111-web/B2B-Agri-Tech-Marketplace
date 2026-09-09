@@ -1,8 +1,6 @@
 import { ref, onMounted, watch } from 'vue'
 import { api, getAuthToken } from '@/services/api'
 
-const INITIAL_ORDERS = []
-
 function getCurrentUserData() {
     try {
         const saved = localStorage.getItem('agri_user_data')
@@ -197,7 +195,7 @@ export function useOrders() {
                 const now = new Date()
                 return {
                     ...order,
-                    status: 'delivered',
+                    status: 'completed',
                     escrowStatus: 'released',
                     deliveredAt: now,
                     completedAt: now,

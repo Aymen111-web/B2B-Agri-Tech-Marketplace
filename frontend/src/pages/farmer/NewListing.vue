@@ -292,6 +292,7 @@ import { useRouter } from 'vue-router'
 import { ArrowLeft, Camera, UploadCloud, Sparkles, Loader2, AlertCircle, CheckCircle2, Wheat, MapPin, Coins, Calendar } from 'lucide-vue-next'
 import { useListings } from '@/composables/useListings'
 import { useAuth } from '@/composables/useAuth'
+import { useAlertModal } from '@/composables/useAlertModal'
 import { formatETB } from '@/utils/helpers'
 import { compressImageFiles } from '@/utils/imageCompressor'
 import { CATEGORY_PHOTOS } from '@/utils/categoryImages'
@@ -299,6 +300,7 @@ import { CATEGORY_PHOTOS } from '@/utils/categoryImages'
 const router = useRouter()
 const { addListing } = useListings()
 const { user } = useAuth()
+const { showAlert } = useAlertModal()
 
 const cropName = ref('')
 const category = ref('coffee')
@@ -335,7 +337,11 @@ const handleFileSelect = async (event) => {
   if (!files.length) return
   
   if (photos.value.length + files.length > 5) {
-    alert('Maximum 5 produce photos allowed per listing.')
+    showAlert({
+      title: 'Photo Upload Limit',
+      message: 'Maximum 5 produce photos allowed per listing.',
+      type: 'warning'
+    })
   }
   
   const remainingSlots = 5 - photos.value.length

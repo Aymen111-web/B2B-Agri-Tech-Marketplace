@@ -6,7 +6,7 @@
         <span class="text-[11px] font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('orders.timeline') }}</span>
       </div>
       <span class="text-[10px] font-semibold text-[#5A6270] dark:text-[#8B949E]">
-        {{ $t('auth.stepOf') }} {{ activeStepIndex + 1 }} / {{ steps.length }}
+        {{ $t('auth.stepOf') }} {{ isCompletedState ? steps.length : activeStepIndex + 1 }} / {{ steps.length }}
       </span>
     </div>
 
@@ -128,6 +128,8 @@ const statusStepMap = {
 
 const activeStepIndex = computed(() => statusStepMap[props.status] ?? 0)
 
-const isDone = (idx) => idx < activeStepIndex.value || props.status === 'completed'
-const isActive = (idx) => idx === activeStepIndex.value && props.status !== 'completed'
+const isCompletedState = computed(() => props.status === 'completed' || props.status === 'delivered')
+
+const isDone = (idx) => isCompletedState.value ? idx <= activeStepIndex.value : idx < activeStepIndex.value
+const isActive = (idx) => isCompletedState.value ? false : idx === activeStepIndex.value
 </script>

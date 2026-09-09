@@ -102,7 +102,7 @@ Route::middleware('auth:sanctum')->group(function () {
 ////// Payments — Buyer (authenticated, requires buyer capability) /////
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/orders/{id}/payment',      [PaymentController::class, 'show']);
+    Route::get('/orders/{id}/payment',  [PaymentController::class, 'show']);
     Route::get('/payments/verify/{txRef}',  [PaymentController::class, 'verify']);
     Route::post('/payments/cancel/{txRef}', [PaymentController::class, 'cancel']);
 });

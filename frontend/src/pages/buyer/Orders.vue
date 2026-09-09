@@ -117,7 +117,7 @@
                     #{{ order.displayId }}
                   </span>
                   <span :class="['px-2 py-0.5 rounded-full text-[10px] font-black capitalize border shadow-2xs', statusBadgeClass(order.status || 'placed')]">
-                    {{ (order.status || 'placed').replace('_', ' ') }}
+                    {{ formatStatusLabel(order.status) }}
                   </span>
                 </div>
                 
@@ -380,12 +380,14 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw, ExternalLink, FileText } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
+import { useAlertModal } from '@/composables/useAlertModal'
 import { formatETB } from '@/utils/helpers'
 import { api } from '@/services/api'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
 const { orders, confirmDelivery, refreshOrders } = useOrders()
+const { showAlert } = useAlertModal()
 
 const activeTab = ref('all')
 const searchQuery = ref('')
@@ -474,16 +476,35 @@ const statusBadgeClass = (status) => {
   return map[status] || 'bg-gray-100 dark:bg-[#21262D] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-[#30363D]'
 }
 
+const formatStatusLabel = (status) => {
+  const map = {
+    delivered: 'Completed Handoff',
+    completed: 'Completed Handoff',
+    paid_in_escrow: 'Paid in Escrow',
+    awaiting_buyer_payment: 'Awaiting Payment',
+    pending_payment: 'Pending Payment',
+    in_transit: 'In Transit',
+    dispatched: 'Dispatched',
+  }
+  return map[status] || (status || 'placed').replace(/_/g, ' ')
+}
+
 const openDeliveryModal = (order) => {
   selectedOrderForPIN.value = order
   deliveryPin.value = ''
 }
 
-const submitDeliveryPin = () => {
+const submitDeliveryPin = async () => {
   if (selectedOrderForPIN.value) {
-    confirmDelivery(selectedOrderForPIN.value.id, deliveryPin.value)
+    const targetOrder = selectedOrderForPIN.value
+    await confirmDelivery(targetOrder.id, deliveryPin.value)
+    if (typeof targetOrder === 'object') {
+      targetOrder.status = 'completed'
+      targetOrder.escrowStatus = 'released'
+    }
     selectedOrderForPIN.value = null
     deliveryPin.value = ''
+    await refreshOrders()
   }
 }
 
@@ -598,7 +619,7 @@ const verifyPayment = async (order) => {
   try {
     const res = await api.verifyPendingPaymentForOrder(targetId)
     if (res && res.message) {
-      alert(res.message)
+      showAlert({ title: 'Payment Verification', message: res.message, type: 'success' })
     }
     if (typeof order === 'object') {
       order.status = 'paid_in_escrow'
@@ -606,7 +627,11 @@ const verifyPayment = async (order) => {
     }
     await refreshOrders()
   } catch (err) {
-    alert(err.message || "Payment is not yet verified. Please complete payment in the Chapa tester and try again.")
+    showAlert({ 
+      title: 'Payment Verification Status', 
+      message: err.message || 'Payment is not yet verified. Please complete payment in the Chapa tester and try again.', 
+      type: 'warning' 
+    })
   } finally {
     isVerifyingPayment.value = null
   }
@@ -642,8 +667,11 @@ const handlePayment = async (order) => {
       alert(res?.message || 'Payment initiation failed. Please try again.')
     }
   } catch (err) {
-    if (paymentTab && !paymentTab.closed) paymentTab.close()
-    alert(err.message || 'Payment initiation failed. Please try again.')
+    showAlert({ 
+      title: 'Payment Initiation Error', 
+      message: err.message || 'Payment initiation failed. Please try again.', 
+      type: 'error' 
+    })
   } finally {
     isProcessingPayment.value = null
   }

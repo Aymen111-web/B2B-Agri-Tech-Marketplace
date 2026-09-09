@@ -1,4 +1,5 @@
 import { ref, computed, watch } from 'vue'
+import { api, getAuthToken } from '@/services/api'
 
 const cartItems = ref([])
 const isLoaded = ref(false)
