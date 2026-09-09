@@ -6,7 +6,7 @@
         <span class="text-[11px] font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('orders.timeline') }}</span>
       </div>
       <span class="text-[10px] font-semibold text-[#5A6270] dark:text-[#8B949E]">
-        {{ $t('auth.stepOf') }} {{ activeStepIndex + 1 }} / {{ steps.length }}
+        {{ $t('auth.stepOf') }} {{ isCompletedState ? steps.length : activeStepIndex + 1 }} / {{ steps.length }}
       </span>
     </div>
 
