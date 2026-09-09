@@ -110,6 +110,28 @@
             </div>
           </div>
 
+          <!-- Admin Fraud / Resolution Verdict Banner for Farmer -->
+          <div v-if="order.dispute" class="mt-3 p-3.5 rounded-xl bg-rose-50/60 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 space-y-1.5 animate-in fade-in duration-200">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5 font-extrabold text-xs text-rose-800 dark:text-rose-300">
+                <ShieldAlert class="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                <span>Admin Arbitrage Report & Verdict</span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+                Status: {{ order.dispute.status }}
+              </span>
+            </div>
+            
+            <p v-if="order.dispute.description" class="text-xs text-[#1E2328] dark:text-[#F0F6FC]">
+              <strong>Buyer Claim:</strong> {{ order.dispute.description }}
+            </p>
+
+            <div v-if="order.dispute.resolutionNotes" class="p-2.5 bg-white dark:bg-[#161B22] rounded-lg border border-rose-100 dark:border-rose-900/30 text-xs space-y-0.5">
+              <span class="block font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider text-[9px]">Official Admin Arbitrage Finding & Audit Notes</span>
+              <p class="font-medium text-[#1E2328] dark:text-[#F0F6FC]">{{ order.dispute.resolutionNotes }}</p>
+            </div>
+          </div>
+
           <!-- Collapsible Timeline Drawer -->
           <div v-if="expandedOrderIds[order.id]" class="mt-3 pt-3 border-t border-gray-100 dark:border-[#30363D] space-y-2 animate-in fade-in duration-200">
             <OrderTimeline :status="order.status" />
