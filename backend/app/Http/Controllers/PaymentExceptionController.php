@@ -12,6 +12,7 @@ use App\Models\Payment;
 use App\Models\PaymentException;
 use App\Models\Payout;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PaymentExceptionController extends Controller
