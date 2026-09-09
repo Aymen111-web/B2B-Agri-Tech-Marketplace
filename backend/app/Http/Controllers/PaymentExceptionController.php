@@ -38,33 +38,57 @@ class PaymentExceptionController extends Controller
 
         $validated = $request->validated();
 
-        $payment = Payment::with('order')->findOrFail($validated['payment_id']);
-        $order   = $payment->order;
+        $payment = null;
+        $order   = null;
 
-        if (! $order) {
+        if (! empty($validated['payment_id'])) {
+            $payment = Payment::with('order')->find($validated['payment_id']);
+            if ($payment) {
+                $order = $payment->order;
+            }
+        }
+
+        if (! $order && ! empty($validated['order_id'])) {
+            $order = Order::with('payment', 'payments')->find($validated['order_id']);
+            if ($order) {
+                $payment = $order->payment ?? $order->payments()->latest()->first();
+            }
+        }
+
+        // If no payment record exists for this order yet, auto-create an escrow payment record!
+        if ($order && ! $payment) {
+            $payment = Payment::create([
+                'order_id'       => $order->id,
+                'buyer_id'       => $order->buyer_id,
+                'amount'         => $order->total_amount,
+                'currency'       => 'ETB',
+                'status'         => 'escrow_held',
+                'payment_method' => 'chapa',
+                'chapa_tx_ref'   => 'CHP-TX-' . $order->id . '-' . time(),
+            ]);
+        }
+
+        if (! $order || ! $payment) {
             return response()->json([
-                'message' => 'The payment is not associated with a valid order.',
+                'message' => 'Unable to locate a valid order or payment for this dispute.',
             ], 422);
         }
 
         // Only the buyer or a farmer assigned to a fulfillment on this order may raise an exception.
-        // This participant check is a business-logic concern that requires the order context,
-        // so it remains here rather than in the policy.
         if (! $this->isOrderParticipant($user, $order)) {
             return response()->json([
                 'message' => 'You are not authorized to raise an exception for this payment.',
             ], 403);
         }
 
-        // Prevent duplicate open exceptions of the same type for the same payment.
+        // Prevent duplicate open exceptions for the same payment.
         $existingOpen = PaymentException::where('payment_id', $payment->id)
-            ->where('type', $validated['type'])
             ->whereIn('status', ['open', 'investigating'])
             ->exists();
 
         if ($existingOpen) {
             return response()->json([
-                'message' => 'An open exception of this type already exists for this payment.',
+                'message' => 'An open dispute already exists for this order.',
             ], 409);
         }
 
@@ -80,7 +104,7 @@ class PaymentExceptionController extends Controller
         return response()->json([
             'message'           => 'Payment exception raised successfully.',
             'payment_exception' => new PaymentExceptionResource($exception->load([
-                'payment', 'order', 'raisedBy',
+                'payment', 'order', 'raisedBy', 'resolvedBy',
             ])),
         ], 201);
     }
