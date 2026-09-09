@@ -213,4 +213,42 @@ class MarketplaceEnhancementsTest extends TestCase
         $expiredResult = $pricingService->validateItemPricing($this->listing, 10.000);
         $this->assertFalse($expiredResult['valid']);
     }
+
+    public function test_listing_supports_custom_region_zone_process_and_multi_item_checkout()
+    {
+        $listing2 = Listing::create([
+            'farmer_id'              => $this->farmer->id,
+            'category_id'            => $this->category->id,
+            'title'                  => 'Amhara White Teff Batch',
+            'unit'                   => 'kg',
+            'price_per_unit'         => 120.00,
+            'quantity_available'     => 500.000,
+            'status'                 => 'active',
+            'quality_grade'          => 'Grade 1',
+            'region'                 => 'Amhara',
+            'zone'                   => 'Awi Zone',
+            'process'                => 'Natural',
+        ]);
+
+        $this->assertEquals('Amhara', $listing2->region);
+        $this->assertEquals('Awi Zone', $listing2->zone);
+        $this->assertEquals('Natural', $listing2->process);
+
+        $response = $this->actingAs($this->buyer, 'sanctum')
+            ->postJson('/api/orders/checkout', [
+                'items' => [
+                    ['listing_id' => $this->listing->id, 'quantity_kg' => 10],
+                    ['listing_id' => $listing2->id, 'quantity_kg' => 20],
+                ]
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('message', 'Order placed successfully. Stock reserved for 15 minutes.');
+
+        $this->listing->refresh();
+        $listing2->refresh();
+
+        $this->assertEquals(90.000, $this->listing->quantity_available);
+        $this->assertEquals(480.000, $listing2->quantity_available);
+    }
 }

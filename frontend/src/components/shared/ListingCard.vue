@@ -78,7 +78,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ShoppingCart, Check } from 'lucide-vue-next'
 import VerifiedBadge from './VerifiedBadge.vue'
 import GradeBadge from './GradeBadge.vue'
@@ -95,6 +95,7 @@ const props = defineProps({
 
 const emit = defineEmits(['addToCart'])
 const router = useRouter()
+const route = useRoute()
 const { cartItems, addToCart, removeFromCart } = useCart()
 const { isAuthenticated } = useAuth()
 
@@ -137,7 +138,11 @@ const getCategoryGradient = (category) => {
 }
 
 const handleClick = () => {
-  router.push(`/listing/${props.listing.id}`)
+  if (route.path.startsWith('/buyer')) {
+    router.push(`/buyer/listing/${props.listing.id}`)
+  } else {
+    router.push(`/listing/${props.listing.id}`)
+  }
 }
 
 const handleCartClick = (e) => {

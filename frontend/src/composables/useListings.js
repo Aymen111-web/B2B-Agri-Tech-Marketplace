@@ -17,12 +17,20 @@ function mapRawListingToFrontend(item) {
                     ? img
                     : `http://127.0.0.1:8000/storage/${img.replace(/^\/?storage\//, '')}`
             }
+            if (img instanceof File || img instanceof Blob) {
+                return URL.createObjectURL(img)
+            }
             if (img && img.image_path) {
-                return img.image_path.startsWith('http') || img.image_path.startsWith('blob:')
+                return img.image_path.startsWith('http') || img.image_path.startsWith('blob:') || img.image_path.startsWith('data:')
                     ? img.image_path
                     : `http://127.0.0.1:8000/storage/${img.image_path.replace(/^\/?storage\//, '')}`
             }
-            return img
+            if (img && img.url) {
+                return img.url.startsWith('http') || img.url.startsWith('blob:') || img.url.startsWith('data:')
+                    ? img.url
+                    : `http://127.0.0.1:8000/storage/${img.url.replace(/^\/?storage\//, '')}`
+            }
+            return null
         }).filter(Boolean)
     }
 
@@ -31,6 +39,10 @@ function mapRawListingToFrontend(item) {
             ? item.image_path
             : `http://127.0.0.1:8000/storage/${item.image_path.replace(/^\/?storage\//, '')}`)
         : null)
+
+    if (primaryImg && (primaryImg instanceof File || primaryImg instanceof Blob)) {
+        primaryImg = URL.createObjectURL(primaryImg)
+    }
 
     if (!primaryImg && imagesList.length > 0) {
         primaryImg = imagesList[0]
@@ -58,9 +70,9 @@ function mapRawListingToFrontend(item) {
         cropEmoji: item.crop_emoji || item.cropEmoji || '🌾',
         category: item.category?.slug || item.category || 'grains',
         grade: item.grade || item.quality_grade || 'Grade 1',
-        region: item.region || 'Sidama',
+        region: item.region || item.farmer?.region || 'Ethiopia',
         zone: item.zone || 'Zone 1',
-        process: item.process || 'Sun-dried',
+        process: item.process || 'Natural',
         pricePerKg: Number(item.price_per_unit ?? item.pricePerKg ?? 50),
         availableQty: Number(item.quantity_available ?? item.availableQty ?? 1000),
         minOrderQty: Number(item.min_order_qty ?? item.min_order_quantity ?? item.minOrderQty ?? 100),
@@ -139,8 +151,8 @@ export function useListings() {
     const addListing = async (newListingData) => {
         const token = getAuthToken()
 
-        const filesToUpload = newListingData.rawFiles || 
-                              (newListingData.images || []).filter(f => typeof window !== 'undefined' && (f instanceof File || f instanceof Blob))
+        const filesToUpload = newListingData.rawFiles ||
+            (newListingData.images || []).filter(f => typeof window !== 'undefined' && (f instanceof File || f instanceof Blob))
 
         const stringImages = (newListingData.images || []).map(img => {
             if (typeof img === 'string') return img
@@ -185,6 +197,9 @@ export function useListings() {
                     } catch { /* ignore */ }
                 }
                 if (newListingData.grade) formData.append('quality_grade', newListingData.grade)
+                if (newListingData.region) formData.append('region', newListingData.region)
+                if (newListingData.zone) formData.append('zone', newListingData.zone)
+                if (newListingData.process) formData.append('process', newListingData.process)
 
                 if (filesToUpload && filesToUpload.length > 0) {
                     filesToUpload.forEach((file) => {
@@ -205,12 +220,31 @@ export function useListings() {
             }
         }
 
-        // Local creation with uploaded photos
+        const mappedImages = (await Promise.all((newListingData.images || []).map(async img => {
+            if (img instanceof File || img instanceof Blob) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader()
+                    reader.onloadend = () => resolve(reader.result)
+                    reader.onerror = () => resolve(URL.createObjectURL(img))
+                    reader.readAsDataURL(img)
+                })
+            }
+            return typeof img === 'string' ? img : null;
+        }))).filter(Boolean)
+
+        const finalImages = mappedImages.length > 0
+            ? mappedImages
+            : (stringImages.length > 0 ? stringImages : (primaryUploadedImg ? [primaryUploadedImg] : []))
+
+        const finalPrimary = mappedImages.length > 0
+            ? mappedImages[0]
+            : (primaryUploadedImg || (finalImages.length > 0 ? finalImages[0] : null))
+
         const created = {
             ...newListingData,
             id: `listing-${Date.now()}`,
-            primaryImage: primaryUploadedImg,
-            images: stringImages.length > 0 ? stringImages : (primaryUploadedImg ? [primaryUploadedImg] : []),
+            primaryImage: finalPrimary,
+            images: finalImages,
             createdAt: new Date(),
             viewCount: 1,
         }

@@ -271,18 +271,23 @@ const handleCheckout = async () => {
   isProcessing.value = true
 
   try {
-    const firstListing = checkoutItems.value[0]?.listing
-    const rawId = firstListing?.id ? String(firstListing.id).replace(/[^0-9]/g, '') : ''
-    const cleanListingId = parseInt(rawId) || 2
-    const targetQty = checkoutItems.value[0]?.quantityKg ?? 500
+    const formattedItems = checkoutItems.value.map(item => {
+      const rawId = item.listing?.id ? String(item.listing.id).replace(/[^0-9]/g, '') : ''
+      const cleanListingId = parseInt(rawId) || 1
+      return {
+        listing_id: cleanListingId,
+        quantity_kg: item.quantityKg || 100
+      }
+    })
 
-    // 1. Reserve stock & create order on backend
+    // 1. Reserve stock & create orders on backend for all items
     let orderId = null
     const checkoutRes = await api.checkoutOrder({ 
-      listing_id: cleanListingId, 
-      quantity_kg: targetQty
+      items: formattedItems,
+      listing_id: formattedItems[0]?.listing_id,
+      quantity_kg: formattedItems[0]?.quantity_kg
     }).catch((err) => {
-      throw err // Properly throw error up to catch block for alerting
+      throw err
     })
 
     if (checkoutRes?.order?.id) {
@@ -296,14 +301,9 @@ const handleCheckout = async () => {
       }
     })
 
-    // 3. Route directly to the orders tracking page to await Farmer acceptance
-    if (orderId) {
-      clearCart()
-      router.push('/buyer/orders')
-      return
-    }
-
-    throw new Error('Order Placement Failed: Order could not be created.')
+    // 3. Clear cart & route to orders tracking page
+    clearCart()
+    router.push('/buyer/orders')
   } catch (err) {
     alert(err.message || 'Order initiation failed.')
   } finally {

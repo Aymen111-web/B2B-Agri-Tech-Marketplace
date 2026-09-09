@@ -22,7 +22,7 @@ class ReservationService
         $buyerId = ($buyer instanceof User) ? $buyer->id : (int) $buyer;
 
         return DB::transaction(function () use ($buyerId, $cartItems) {
-            $totalAmount = 0;
+            $totalProduceAmount = 0;
 
             // Generate cryptographically secure 6-digit handoff PIN
             $deliveryPin = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -35,6 +35,9 @@ class ReservationService
                 'delivery_status'        => 'pending',
                 'inspection_status'      => 'pending',
                 'payout_status'          => 'locked',
+                'produce_amount'         => 0,
+                'platform_fee'           => 0,
+                'fee_rate'               => 0.0150,
                 'total_amount'           => 0,
                 'currency'               => 'ETB',
                 'delivery_pin'           => $deliveryPin,
@@ -69,7 +72,7 @@ class ReservationService
                 $listing->increment('quantity_reserved', $quantity);
 
                 $itemSubtotal = $quantity * $unitPrice;
-                $totalAmount += $itemSubtotal;
+                $totalProduceAmount += $itemSubtotal;
 
                 $farmerId = $listing->farmer_id;
                 if (! isset($fulfillments[$farmerId])) {
@@ -80,11 +83,16 @@ class ReservationService
                         'inspection_status'  => 'pending',
                         'payout_status'      => 'locked',
                         'subtotal_amount'    => 0,
+                        'produce_amount'     => 0,
+                        'platform_fee'       => 0,
+                        'farmer_net_payout'  => 0,
                     ]);
                 }
 
                 $fulfillment = $fulfillments[$farmerId];
                 $fulfillment->increment('subtotal_amount', $itemSubtotal);
+                $fulfillment->increment('produce_amount', $itemSubtotal);
+                $fulfillment->increment('farmer_net_payout', $itemSubtotal);
 
                 OrderItem::create([
                     'order_id'             => $order->id,
@@ -96,7 +104,25 @@ class ReservationService
                 ]);
             }
 
-            $order->update(['total_amount' => $totalAmount]);
+            // Calculate 1.5% Platform Service Fee
+            $platformFee = round($totalProduceAmount * 0.0150, 2);
+            $totalBuyerAmount = round($totalProduceAmount + $platformFee, 2);
+
+            // Update fulfillment platform fees
+            foreach ($fulfillments as $ful) {
+                $fulProduce = (float) $ful->fresh()->produce_amount;
+                $fulFee = round($fulProduce * 0.0150, 2);
+                $ful->update([
+                    'platform_fee'      => $fulFee,
+                    'farmer_net_payout' => $fulProduce,
+                ]);
+            }
+
+            $order->update([
+                'produce_amount' => $totalProduceAmount,
+                'platform_fee'   => $platformFee,
+                'total_amount'   => $totalBuyerAmount,
+            ]);
 
             return $order->fresh(['fulfillments.items', 'items']);
         });

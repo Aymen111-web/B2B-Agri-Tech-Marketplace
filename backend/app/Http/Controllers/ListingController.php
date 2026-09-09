@@ -125,6 +125,9 @@ class ListingController extends Controller
                 'batch_number'           => $validated['batch_number'] ?? null,
                 'harvest_date'           => $validated['harvest_date'] ?? null,
                 'quality_grade'          => $validated['quality_grade'] ?? null,
+                'region'                 => $validated['region'] ?? null,
+                'zone'                   => $validated['zone'] ?? null,
+                'process'                => $validated['process'] ?? null,
                 'minimum_order_quantity' => !empty($validated['minimum_order_quantity']) ? $validated['minimum_order_quantity'] : 1.000,
             ]);
 

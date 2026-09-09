@@ -57,7 +57,7 @@
             <!-- Left: Image/Emoji & Title/Grade -->
             <div class="flex items-center gap-3 min-w-0">
               <div class="w-10 h-10 rounded-xl bg-gray-50 dark:bg-[#21262D] border border-orange-100 dark:border-[#30363D] flex items-center justify-center text-xl shrink-0 shadow-2xs overflow-hidden">
-                <img v-if="item.primaryImage || (item.images && item.images.length > 0)" :src="item.primaryImage || item.images[0]" class="w-full h-full object-cover" />
+                <img v-if="getListingImage(item)" :src="getListingImage(item)" class="w-full h-full object-cover" />
                 <span v-else>{{ item.cropEmoji }}</span>
               </div>
               <div class="min-w-0">
@@ -71,7 +71,7 @@
                   </span>
                 </div>
                 <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E] mt-0.5 font-medium">
-                  {{ $t(farmer?.region) || 'Sidama' }} {{ $t('Region') }} · {{ $t(item.grade) || 'Grade 1' }}
+                  {{ $t(farmer?.region) || item.region || 'Sidama' }} {{ $t('Region') }} · {{ $t(item.grade) || 'Grade 1' }}
                 </p>
               </div>
             </div>
@@ -146,6 +146,19 @@ const handleDelete = async (id) => {
   if (confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
     await deleteListing(id)
   }
+}
+
+const getListingImage = (item) => {
+  const img = item.primaryImage || 
+              (item.images && item.images.length > 0 ? item.images[0] : null) || 
+              item.image_url || 
+              item.image_path
+  if (!img) return null
+  if (typeof img === 'string') {
+    if (img.startsWith('http') || img.startsWith('blob:') || img.startsWith('data:')) return img
+    return `http://127.0.0.1:8000/storage/${img.replace(/^\/?storage\//, '')}`
+  }
+  return null
 }
 
 const farmerListings = computed(() => {
