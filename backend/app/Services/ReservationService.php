@@ -41,7 +41,7 @@ class ReservationService
                 'total_amount'           => 0,
                 'currency'               => 'ETB',
                 'delivery_pin'           => $deliveryPin,
-                'reservation_expires_at' => now()->addMinutes(config('marketplace.reservation_minutes', 15)),
+                'reservation_expires_at' => now()->addMinutes(config('marketplace.reservation_minutes', 120)),
                 'placed_at'              => now(),
             ]);
 
