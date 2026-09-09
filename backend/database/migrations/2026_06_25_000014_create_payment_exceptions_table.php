@@ -24,6 +24,7 @@ return new class extends Migration
             $table->text('description');
 
             $table->enum('status', ['open', 'investigating', 'resolved', 'rejected'])->default('open');
+            $table->text('farmer_response')->nullable();
             $table->text('resolution_notes')->nullable();
             $table->foreignId('resolved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('resolved_at')->nullable();

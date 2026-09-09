@@ -126,6 +126,18 @@
               <strong>Buyer Claim:</strong> {{ order.dispute.description }}
             </p>
 
+            <div v-if="order.dispute.farmerResponse" class="p-2.5 bg-amber-50/70 dark:bg-amber-950/40 rounded-lg border border-amber-200/60 dark:border-amber-900/40 text-xs space-y-0.5">
+              <span class="block font-black text-amber-800 dark:text-amber-300 uppercase tracking-wider text-[9px]">Your Submitted Counter-Statement / Response</span>
+              <p class="font-medium text-[#1E2328] dark:text-[#F0F6FC]">{{ order.dispute.farmerResponse }}</p>
+            </div>
+
+            <div v-else-if="['open', 'investigating'].includes(order.dispute.status)" class="pt-1">
+              <button @click="openResponseModal(order.dispute)" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
+                <MessageSquare class="w-3.5 h-3.5" />
+                <span>Submit Counter-Statement to Admin</span>
+              </button>
+            </div>
+
             <div v-if="order.dispute.resolutionNotes" class="p-2.5 bg-white dark:bg-[#161B22] rounded-lg border border-rose-100 dark:border-rose-900/30 text-xs space-y-0.5">
               <span class="block font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider text-[9px]">Official Admin Arbitrage Finding & Audit Notes</span>
               <p class="font-medium text-[#1E2328] dark:text-[#F0F6FC]">{{ order.dispute.resolutionNotes }}</p>
@@ -152,21 +164,107 @@
         @update:currentPage="currentPage = $event" 
       />
     </div>
+
+    <!-- FARMER DISPUTE COUNTER-STATEMENT MODAL -->
+    <div v-if="selectedDisputeForResponse" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="max-w-md w-full bg-white dark:bg-[#161B22] border border-gray-100 dark:border-[#30363D] rounded-3xl p-6 shadow-2xl space-y-4 text-[#1E2328] dark:text-[#F0F6FC]">
+        <div class="flex items-center justify-between border-b dark:border-[#30363D] pb-3">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-800/40">
+              <MessageSquare class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">Submit Counter-Statement</h3>
+              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">Provide your explanation or defense to the Admin</p>
+            </div>
+          </div>
+          <button @click="selectedDisputeForResponse = null" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="p-3 bg-gray-50 dark:bg-[#0D1117] rounded-xl border border-gray-200 dark:border-[#30363D]">
+            <span class="block font-bold text-gray-500 dark:text-gray-400 text-[10px] uppercase">Buyer's Claim:</span>
+            <p class="italic text-gray-700 dark:text-gray-300 mt-0.5">{{ selectedDisputeForResponse.description || 'No description provided.' }}</p>
+          </div>
+
+          <div class="space-y-1">
+            <label class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">Your Explanation / Excuse to Admin</label>
+            <textarea v-model="farmerResponseText" rows="4" placeholder="Explain produce quality at harvest, weather/transport delays, or evidence..."
+              class="w-full p-3 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] rounded-xl text-xs font-medium focus:outline-none focus:border-amber-500 dark:text-[#F0F6FC]"></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2 border-t border-gray-100 dark:border-[#30363D]">
+          <button @click="selectedDisputeForResponse = null" class="flex-1 py-2.5 border border-gray-200 dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] rounded-xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D]">
+            Cancel
+          </button>
+          <button @click="submitFarmerResponse" :disabled="isSubmittingResponse" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer">
+            <Loader2 v-if="isSubmittingResponse" class="w-4 h-4 animate-spin" />
+            <span>Send to Admin</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check, ShieldAlert } from 'lucide-vue-next'
+import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check, ShieldAlert, MessageSquare, Loader2, X } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
+import { useAlertModal } from '@/composables/useAlertModal'
 import { formatETB, formatDate } from '@/utils/helpers'
+import { api } from '@/services/api'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
-const { orders, dispatchOrder, updateOrderStatus } = useOrders()
+const { orders, dispatchOrder, updateOrderStatus, refreshOrders } = useOrders()
+const { showAlert } = useAlertModal()
 
 const expandedOrderIds = ref({})
 const copiedPin = ref(null)
+const selectedDisputeForResponse = ref(null)
+const farmerResponseText = ref('')
+const isSubmittingResponse = ref(false)
+
+const openResponseModal = (dispute) => {
+  selectedDisputeForResponse.value = dispute
+  farmerResponseText.value = ''
+}
+
+const submitFarmerResponse = async () => {
+  if (!selectedDisputeForResponse.value) return
+  if (!farmerResponseText.value.trim()) {
+    showAlert({ title: 'Response Required', message: 'Please enter your explanation or excuse for the admin.', type: 'warning' })
+    return
+  }
+
+  isSubmittingResponse.value = true
+  try {
+    const disputeId = selectedDisputeForResponse.value.id
+    await api.respondToPaymentException(disputeId, farmerResponseText.value)
+
+    showAlert({
+      title: 'Counter-Statement Submitted',
+      message: 'Your explanation has been sent to the Admin for dispute review.',
+      type: 'success'
+    })
+
+    selectedDisputeForResponse.value = null
+    farmerResponseText.value = ''
+    await refreshOrders()
+  } catch (err) {
+    showAlert({
+      title: 'Submission Error',
+      message: err.message || 'Failed to submit counter-statement to admin.',
+      type: 'error'
+    })
+  } finally {
+    isSubmittingResponse.value = false
+  }
+}
 
 const toggleTimeline = (orderId) => {
   expandedOrderIds.value[orderId] = !expandedOrderIds.value[orderId]

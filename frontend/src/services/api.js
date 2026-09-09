@@ -208,6 +208,13 @@ export const api = {
         })
     },
 
+    async respondToPaymentException(id, farmerResponse) {
+        return request(`/payment-exceptions/${id}/respond`, {
+            method: 'POST',
+            body: JSON.stringify({ farmer_response: farmerResponse }),
+        })
+    },
+
     async fetchMyPaymentExceptions() {
         return request('/payment-exceptions/my')
     },

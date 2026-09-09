@@ -343,6 +343,41 @@ class PaymentExceptionController extends Controller
     }
 
     /**
+     * Respond to a payment exception (Farmer / Counter-Statement).
+     *
+     * POST /api/payment-exceptions/{id}/respond
+     */
+    public function respondToException(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'farmer_response' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $exception = PaymentException::findOrFail($id);
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (! $this->isOrderParticipant($user, $exception->order)) {
+            return response()->json([
+                'message' => 'Unauthorized to respond to this dispute.',
+            ], 403);
+        }
+
+        $exception->update([
+            'farmer_response' => $request->input('farmer_response'),
+            'status'          => $exception->status === 'open' ? 'investigating' : $exception->status,
+        ]);
+
+        return response()->json([
+            'message'           => 'Counter-statement submitted to Admin.',
+            'payment_exception' => new PaymentExceptionResource($exception->fresh()->load([
+                'payment', 'order', 'raisedBy', 'resolvedBy',
+            ])),
+        ]);
+    }
+
+    /**
      * Check whether the given user is a participant in the order
      * (either the buyer or a farmer assigned to a fulfillment).
      *

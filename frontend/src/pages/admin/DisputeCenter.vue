@@ -91,6 +91,15 @@
                 {{ d.description || $t('admin.noDetailedDescription') }}
               </p>
             </div>
+
+            <!-- Farmer Counter-Statement Box -->
+            <div v-if="d.farmer_response" class="mt-3 bg-amber-50/60 dark:bg-amber-950/20 p-4 rounded-xl border border-amber-200/60 dark:border-amber-900/40 relative overflow-hidden">
+              <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 to-amber-600"></div>
+              <span class="block font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider text-[9px] mb-1">Farmer Counter-Statement & Defense</span>
+              <p class="text-[13px] font-medium text-[#1E2328] dark:text-[#F0F6FC] leading-relaxed">
+                {{ d.farmer_response }}
+              </p>
+            </div>
           </div>
         </div>
 

@@ -41,6 +41,7 @@ function mapRawOrderToFrontend(item) {
         type: rawException.type || 'dispute',
         status: rawException.status || 'open',
         description: rawException.description || '',
+        farmerResponse: rawException.farmer_response || rawException.farmerResponse || '',
         resolutionNotes: rawException.resolution_notes || rawException.resolutionNotes || '',
         resolvedAt: rawException.resolved_at || rawException.resolvedAt || null,
     } : null
