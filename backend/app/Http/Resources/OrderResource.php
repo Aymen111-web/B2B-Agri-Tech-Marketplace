@@ -41,6 +41,7 @@ class OrderResource extends JsonResource
             'items'        => OrderItemResource::collection($this->whenLoaded('items')),
             'fulfillments' => OrderFulfillmentResource::collection($this->whenLoaded('fulfillments')),
             'payment'      => new PaymentResource($this->whenLoaded('payment')),
+            'payment_exceptions' => PaymentExceptionResource::collection($this->whenLoaded('paymentExceptions')),
         ];
     }
 }

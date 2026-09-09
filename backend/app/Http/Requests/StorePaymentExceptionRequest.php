@@ -17,11 +17,20 @@ class StorePaymentExceptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'order_id'    => ['required_without:payment_id', 'nullable'],
-            'payment_id'  => ['required_without:order_id', 'nullable'],
-            'type'        => ['required', 'string', 'in:produce_damaged,quality_mismatch,delivery_delay,wrong_quantity,dispute,mismatch,failed_payment_review,refund_request,other'],
+            'payment_id'  => ['nullable', 'integer', 'exists:payments,id'],
+            'order_id'    => ['nullable', 'integer', 'exists:orders,id'],
+            'type'        => ['required', 'string', 'in:dispute,mismatch,quality_mismatch,transport_delay,delivery_delay,produce_damaged,wrong_quantity,failed_payment_review,refund_request,other'],
             'description' => ['required', 'string', 'max:2000'],
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if (!$this->filled('payment_id') && !$this->filled('order_id')) {
+                $validator->errors()->add('order_id', 'Either an order_id or payment_id must be provided.');
+            }
+        });
     }
 
     /**
@@ -30,8 +39,10 @@ class StorePaymentExceptionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'type.in'         => 'Claim type must be one of: produce_damaged, quality_mismatch, delivery_delay, wrong_quantity, dispute, other.',
-            'description.max' => 'Description must not exceed 2000 characters.',
+            'payment_id.exists' => 'The specified payment does not exist.',
+            'order_id.exists'   => 'The specified order does not exist.',
+            'type.in'           => 'Exception type must be a valid dispute category.',
+            'description.max'   => 'Description must not exceed 2000 characters.',
         ];
     }
 }

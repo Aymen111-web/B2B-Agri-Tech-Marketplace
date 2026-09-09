@@ -37,8 +37,9 @@ class OrderFulfillmentController extends Controller
 
         $fulfillments = $user->orderFulfillments()
             ->with([
-                'order:id,order_number,buyer_id,status,delivery_status,inspection_status,payout_status,total_amount,currency,placed_at,delivery_pin',
+                'order',
                 'order.buyer:id,first_name,second_name',
+                'order.paymentExceptions',
                 'items.listing:id,title,unit',
             ])
             ->when(isset($validated['status']), function ($query) use ($validated) {
@@ -58,8 +59,9 @@ class OrderFulfillmentController extends Controller
     public function show(int $id): JsonResponse
     {
         $fulfillment = OrderFulfillment::with([
-            'order:id,order_number,buyer_id,status,delivery_status,inspection_status,payout_status,total_amount,currency,placed_at,delivery_pin',
+            'order',
             'order.buyer:id,first_name,second_name',
+            'order.paymentExceptions',
             'items.listing:id,title,unit,price_per_unit',
         ])->findOrFail($id);
 

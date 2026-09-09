@@ -117,9 +117,10 @@ Route::get('/payments/currencies',                  [PaymentController::class, '
 ////// Payment Exceptions — Authenticated users (buyer/farmer) /////
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/payment-exceptions',         [PaymentExceptionController::class, 'store']);
-    Route::get('/payment-exceptions/my',       [PaymentExceptionController::class, 'my']);
-    Route::get('/payment-exceptions/{id}',     [PaymentExceptionController::class, 'show']);
+    Route::post('/payment-exceptions',                 [PaymentExceptionController::class, 'store']);
+    Route::post('/payment-exceptions/{id}/respond',    [PaymentExceptionController::class, 'respondToException']);
+    Route::get('/payment-exceptions/my',               [PaymentExceptionController::class, 'my']);
+    Route::get('/payment-exceptions/{id}',             [PaymentExceptionController::class, 'show']);
 });
 
 ////// Admin — Payment Exceptions /////

@@ -52,6 +52,7 @@
 
       <!-- Right: Profile dropdown -->
       <div class="flex items-center gap-3 relative" ref="dropdownRef">
+        <NotificationBell :variant="isFarmerTheme ? 'farmer' : 'default'" />
         <LanguageToggle :variant="isFarmerTheme ? 'farmer' : 'default'" />
         <ThemeToggle />
 
@@ -203,6 +204,7 @@ import { useAuth } from '@/composables/useAuth'
 import QelemMedaLogo from '@/components/common/QelemMedaLogo.vue'
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import LanguageToggle from '@/components/common/LanguageToggle.vue'
+import NotificationBell from '@/components/common/NotificationBell.vue'
 import { useLanguage } from '@/composables/useLanguage'
 
 const props = defineProps({

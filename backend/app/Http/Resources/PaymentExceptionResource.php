@@ -21,6 +21,7 @@ class PaymentExceptionResource extends JsonResource
             'raised_by'        => $this->raised_by,
             'type'             => $this->type,
             'description'      => $this->description,
+            'farmer_response'  => $this->farmer_response,
             'status'           => $this->status,
             'resolution_notes' => $this->resolution_notes,
             'resolved_by'      => $this->resolved_by,

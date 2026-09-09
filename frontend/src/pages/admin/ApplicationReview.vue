@@ -336,6 +336,76 @@
         </div>
       </div>
     </div>
+
+    <!-- IN-APP DOCUMENT PREVIEW MODAL -->
+    <div v-if="isDocPreviewOpen" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="max-w-3xl w-full bg-white dark:bg-[#161B22] rounded-3xl p-6 shadow-2xl space-y-4 text-[#1E2328] dark:text-[#F0F6FC] border border-gray-100 dark:border-[#30363D] animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#30363D] pb-3 shrink-0">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-800/50 shrink-0">
+              <FileText class="w-5 h-5" />
+            </div>
+            <div class="min-w-0">
+              <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC] truncate">
+                {{ previewDocName }}
+              </h3>
+              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E] font-medium truncate" v-if="previewApp">
+                {{ $t('admin.applicant') }}: <strong>{{ getApplicantName(previewApp) }}</strong> ({{ previewApp.user?.phone || 'N/A' }})
+              </p>
+            </div>
+          </div>
+          <button @click="isDocPreviewOpen = false" class="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#21262D] rounded-xl transition-colors cursor-pointer shrink-0">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Preview Body Container -->
+        <div class="flex-1 overflow-auto bg-gray-50 dark:bg-[#0D1117] p-4 rounded-2xl border border-gray-200 dark:border-[#30363D] min-h-[350px] flex items-center justify-center relative">
+          <!-- Image Document Preview -->
+          <template v-if="previewDocType === 'image'">
+            <img :src="previewDocUrl" :alt="previewDocName" class="max-h-[500px] w-auto object-contain rounded-xl shadow-md border border-gray-200 dark:border-[#30363D]" />
+          </template>
+
+          <!-- PDF Document Preview -->
+          <template v-else-if="previewDocType === 'pdf'">
+            <div class="w-full h-[500px] flex flex-col items-center justify-center">
+              <iframe :src="previewDocUrl" class="w-full h-full rounded-xl border border-gray-200 dark:border-[#30363D]"></iframe>
+            </div>
+          </template>
+
+          <!-- Other Files / Fallback -->
+          <template v-else>
+            <div class="text-center py-10 space-y-3">
+              <div class="w-16 h-16 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto border border-blue-200 dark:border-blue-800">
+                <FileText class="w-8 h-8" />
+              </div>
+              <h4 class="text-sm font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ previewDocName }}</h4>
+              <p class="text-xs text-[#5A6270] dark:text-[#8B949E] max-w-sm mx-auto">
+                Attached verification file ready for audit inspection. Click download below to review on your computer.
+              </p>
+            </div>
+          </template>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex items-center justify-between gap-3 pt-2 border-t border-gray-100 dark:border-[#30363D] shrink-0">
+          <button @click="openExternalWindow" class="px-4 py-2.5 border border-gray-200 dark:border-[#30363D] text-gray-700 dark:text-[#8B949E] hover:bg-gray-50 dark:hover:bg-[#21262D] rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5">
+            <ExternalLink class="w-4 h-4" />
+            <span>Open in New Tab</span>
+          </button>
+          <div class="flex items-center gap-2">
+            <button @click="isDocPreviewOpen = false" class="px-4 py-2.5 border border-gray-200 dark:border-[#30363D] text-gray-700 dark:text-[#8B949E] hover:bg-gray-50 dark:hover:bg-[#21262D] rounded-xl text-xs font-bold transition-colors cursor-pointer">
+              {{ $t('common.close') || 'Close' }}
+            </button>
+            <button @click="downloadPreviewDoc" class="px-5 py-2.5 bg-[#1E9444] hover:bg-[#0F5C2A] text-white rounded-xl text-xs font-black transition-colors shadow-sm cursor-pointer flex items-center gap-2">
+              <Download class="w-4 h-4" />
+              <span>Download File</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -344,7 +414,7 @@ import { ref, computed, onMounted } from 'vue'
 import { 
   FileText, Check, Loader2, Phone, Calendar, CheckCircle, 
   RefreshCcw, CheckCircle2, XCircle, Eye, Building2, Sprout, X, AlertCircle,
-  Paperclip, ExternalLink
+  Paperclip, ExternalLink, Download
 } from 'lucide-vue-next'
 import { adminApi } from '@/services/adminService'
 import { formatDate } from '@/utils/helpers'
@@ -471,7 +541,13 @@ const getDocUrl = (doc) => {
   return `http://127.0.0.1:8000/storage/${target}`
 }
 
-const openDoc = (doc, app = null) => {
+const isDocPreviewOpen = ref(false)
+const previewDocUrl = ref('')
+const previewDocName = ref('')
+const previewDocType = ref('pdf')
+const previewApp = ref(null)
+
+const openDoc = async (doc, app = null) => {
   const url = getDocUrl(doc)
   const docName = getDocName(doc)
 
@@ -484,7 +560,22 @@ const openDoc = (doc, app = null) => {
     return
   }
 
-  // Base64 Data URL conversion to Blob URL for easy browser viewing/opening
+  previewDocName.value = docName
+  previewApp.value = app
+
+  // Detect file type
+  const lowerUrl = url.toLowerCase()
+  const lowerName = docName.toLowerCase()
+
+  if (lowerUrl.startsWith('data:image/') || lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp') || lowerName.endsWith('.svg')) {
+    previewDocType.value = 'image'
+  } else if (lowerUrl.startsWith('data:application/pdf') || lowerName.endsWith('.pdf') || lowerUrl.includes('.pdf')) {
+    previewDocType.value = 'pdf'
+  } else {
+    previewDocType.value = 'other'
+  }
+
+  // Handle Base64 Data URLs and HTTP URLs cleanly as Blob URLs
   if (url.startsWith('data:')) {
     try {
       const arr = url.split(',')
@@ -497,30 +588,43 @@ const openDoc = (doc, app = null) => {
         u8arr[n] = bstr.charCodeAt(n)
       }
       const blob = new Blob([u8arr], { type: mime })
-      const blobUrl = URL.createObjectURL(blob)
-
-      const win = window.open(blobUrl, '_blank')
-      if (!win) {
-        const a = document.createElement('a')
-        a.href = blobUrl
-        a.download = docName
-        a.click()
-      }
-      return
+      previewDocUrl.value = URL.createObjectURL(blob)
     } catch (e) {
       console.error('Failed to parse base64 document blob:', e)
+      previewDocUrl.value = url
     }
+  } else if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const resp = await fetch(url)
+      if (!resp.ok) throw new Error(`HTTP error ${resp.status}`)
+      const rawBlob = await resp.blob()
+      const pdfBlob = new Blob([rawBlob], { type: previewDocType.value === 'pdf' ? 'application/pdf' : rawBlob.type })
+      previewDocUrl.value = URL.createObjectURL(pdfBlob)
+    } catch (err) {
+      console.warn('Direct blob fetch failed, falling back to direct URL:', err)
+      previewDocUrl.value = url
+    }
+  } else {
+    previewDocUrl.value = url
   }
 
-  // Direct open in new tab
-  const win = window.open(url, '_blank')
-  if (!win || win.closed || typeof win.closed === 'undefined') {
-    const a = document.createElement('a')
-    a.href = url
-    a.target = '_blank'
-    a.download = docName
-    a.click()
-  }
+  isDocPreviewOpen.value = true
+}
+
+const downloadPreviewDoc = () => {
+  if (!previewDocUrl.value) return
+  const a = document.createElement('a')
+  a.href = previewDocUrl.value
+  a.download = previewDocName.value || 'document'
+  a.target = '_blank'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
+
+const openExternalWindow = () => {
+  if (!previewDocUrl.value) return
+  window.open(previewDocUrl.value, '_blank')
 }
 
 const getDocsList = (app) => {

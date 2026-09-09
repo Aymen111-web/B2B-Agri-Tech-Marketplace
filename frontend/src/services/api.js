@@ -208,6 +208,24 @@ export const api = {
         return request('/payouts')
     },
 
+    async createPaymentException(data) {
+        return request('/payment-exceptions', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        })
+    },
+
+    async respondToPaymentException(id, farmerResponse) {
+        return request(`/payment-exceptions/${id}/respond`, {
+            method: 'POST',
+            body: JSON.stringify({ farmer_response: farmerResponse }),
+        })
+    },
+
+    async fetchMyPaymentExceptions() {
+        return request('/payment-exceptions/my')
+    },
+
     async logout() {
         try {
             return await request('/auth/logout', { method: 'POST' })

@@ -187,6 +187,15 @@
                 </span>
               </div>
 
+              <!-- Dispute Escrow Button for Paid/In-Transit/Delivered Orders -->
+              <button v-if="['paid_in_escrow', 'in_transit', 'dispatched', 'delivered', 'completed', 'inspection_rejected'].includes(order.status)"
+                @click="openDisputeModal(order)"
+                class="px-2.5 py-1.5 border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-xl text-xs font-bold transition-colors shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
+                title="Report Quality/Delivery Issue">
+                <AlertTriangle class="w-3.5 h-3.5" />
+                <span>Dispute Escrow</span>
+              </button>
+
               <!-- Payment Needed -->
               <div v-else-if="['pending_payment', 'awaiting_buyer_payment', 'placed'].includes(order.status)" class="flex items-center gap-1.5 shrink-0">
                 <button @click="verifyPayment(order)" 
@@ -207,6 +216,24 @@
                 :title="expandedLifecycleOrders[order.id] ? 'Hide Progress' : 'View Order Lifecycle'">
                 <ChevronDown :class="['w-4 h-4 transition-transform duration-200', expandedLifecycleOrders[order.id] ? 'rotate-180' : '']" />
               </button>
+            </div>
+          </div>
+
+          <!-- Admin Fraud / Resolution Verdict Banner for Buyer -->
+          <div v-if="order.dispute" class="mt-3 p-3.5 rounded-xl bg-rose-50/60 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 space-y-1.5 animate-in fade-in duration-200">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5 font-extrabold text-xs text-rose-800 dark:text-rose-300">
+                <ShieldAlert class="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                <span>Admin Dispute Inspection & Verdict</span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+                Status: {{ order.dispute.status }}
+              </span>
+            </div>
+
+            <div v-if="order.dispute.resolutionNotes" class="p-2.5 bg-white dark:bg-[#161B22] rounded-lg border border-rose-100 dark:border-rose-900/30 text-xs space-y-0.5">
+              <span class="block font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider text-[9px]">Official Admin Findings & Resolution Notes</span>
+              <p class="font-medium text-[#1E2328] dark:text-[#F0F6FC]">{{ order.dispute.resolutionNotes }}</p>
             </div>
           </div>
 
@@ -281,17 +308,17 @@
       </div>
     </div>
 
-    <!-- Escrow Quality Dispute Modal -->
-    <div v-if="selectedOrderForDispute" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div class="max-w-md w-full bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-6 shadow-2xl space-y-4 text-[#1E2328] dark:text-[#F0F6FC]">
-        <div class="flex items-center justify-between border-b border-[#E2E4E7] dark:border-[#30363D] pb-3">
+    <!-- FILE DISPUTE / ESCROW EXCEPTION MODAL -->
+    <div v-if="selectedOrderForDispute" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="max-w-md w-full bg-white dark:bg-[#161B22] border border-gray-100 dark:border-[#30363D] rounded-3xl p-6 shadow-2xl space-y-4 text-[#1E2328] dark:text-[#F0F6FC]">
+        <div class="flex items-center justify-between border-b dark:border-[#30363D] pb-3">
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400">
-              <AlertTriangle class="w-4 h-4" />
+            <div class="p-2 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-100 dark:border-rose-800/40">
+              <ShieldAlert class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="text-base font-bold">Dispute Escrow Payment</h3>
-              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">Freeze funds for admin arbitration</p>
+              <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">Report Issue / Dispute Escrow</h3>
+              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">Order #{{ selectedOrderForDispute.displayId || selectedOrderForDispute.id }}</p>
             </div>
           </div>
           <button @click="closeDisputeModal" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer">
@@ -299,48 +326,38 @@
           </button>
         </div>
 
-        <div class="p-3 bg-[#F8F9FA] dark:bg-[#21262D] rounded-xl border border-gray-100 dark:border-[#30363D] space-y-1 text-xs">
-          <div class="flex justify-between font-semibold">
-            <span class="text-[#5A6270] dark:text-[#8B949E]">Order Reference:</span>
-            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">#{{ selectedOrderForDispute.displayId || selectedOrderForDispute.id }}</span>
+        <div class="space-y-3 text-xs">
+          <div class="space-y-1">
+            <label class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">Claim Category</label>
+            <select v-model="disputeCategory" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] rounded-xl font-bold dark:text-[#F0F6FC]">
+              <option value="produce_damaged">Produce Damaged / Spoiled in Transit</option>
+              <option value="quality_mismatch">Produce Quality Mismatch / Damaged Batch</option>
+              <option value="delivery_delay">Major Delivery Delay / Non-Arrival</option>
+              <option value="wrong_quantity">Quantity Shortfall / Weight Deficit</option>
+              <option value="dispute">General Financial Dispute</option>
+              <option value="other">Other Transport Exception</option>
+            </select>
           </div>
-          <div class="flex justify-between font-semibold">
-            <span class="text-[#5A6270] dark:text-[#8B949E]">Escrow Protected Total:</span>
-            <span class="text-[#0B57D0] dark:text-blue-400 font-black">{{ formatETB(selectedOrderForDispute.totalAmountETB || selectedOrderForDispute.total_amount || 0) }}</span>
+
+          <div class="space-y-1">
+            <label class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">Incident Description & Audit Evidence</label>
+            <textarea v-model="disputeDescription" rows="4" placeholder="Provide detailed explanation of the produce condition, photos, or delivery failure..."
+              class="w-full p-3 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] rounded-xl text-xs font-medium focus:outline-none focus:border-rose-500 dark:text-[#F0F6FC]"></textarea>
           </div>
         </div>
 
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-[#1E2328] dark:text-[#F0F6FC]">Dispute Reason</label>
-          <select v-model="disputeCategory" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#0D1117] border border-gray-300 dark:border-[#30363D] rounded-xl text-xs font-bold text-[#1E2328] dark:text-[#F0F6FC] focus:outline-none focus:border-red-500">
-            <option value="produce_damaged">Produce Damaged / Spoiled in Transit</option>
-            <option value="quality_mismatch">Quality / Grade Mismatch</option>
-            <option value="wrong_quantity">Wrong Quantity / Weight Discrepancy</option>
-            <option value="delivery_delay">Severe Delivery Delay</option>
-            <option value="other">Other Issue</option>
-          </select>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="text-xs font-bold text-[#1E2328] dark:text-[#F0F6FC]">Description of Issue</label>
-          <textarea v-model="disputeDescription" rows="3" placeholder="Provide specific details regarding the produce quality inspection or delivery issue..." class="w-full px-3 py-2 bg-gray-50 dark:bg-[#0D1117] border border-gray-300 dark:border-[#30363D] rounded-xl text-xs font-medium text-[#1E2328] dark:text-[#F0F6FC] focus:outline-none focus:border-red-500"></textarea>
-        </div>
-
-        <div class="p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl text-amber-800 dark:text-amber-300 text-[11px] leading-relaxed">
-          Filing a dispute immediately freezes the escrow funds and halts automated release to the farmer pending admin arbitrage.
-        </div>
-
-        <div class="flex gap-2 pt-1">
-          <button @click="closeDisputeModal" :disabled="isSubmittingDispute" class="flex-1 py-2.5 border border-gray-300 dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] rounded-xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D] cursor-pointer">
+        <div class="flex gap-2 pt-2 border-t border-gray-100 dark:border-[#30363D]">
+          <button @click="closeDisputeModal" class="flex-1 py-2.5 border border-gray-200 dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] rounded-xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D] cursor-pointer">
             Cancel
           </button>
-          <button @click="submitDispute" :disabled="isSubmittingDispute" class="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-bold text-xs hover:bg-red-700 shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50">
-            <RefreshCw v-if="isSubmittingDispute" class="w-3.5 h-3.5 animate-spin" />
-            <span>{{ isSubmittingDispute ? 'Freezing Escrow...' : 'Freeze Escrow & Dispute' }}</span>
+          <button @click="submitDispute" :disabled="isSubmittingDispute" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer">
+            <Loader2 v-if="isSubmittingDispute" class="w-4 h-4 animate-spin" />
+            <span>{{ isSubmittingDispute ? 'Freezing Escrow...' : 'Submit Dispute Claim' }}</span>
           </button>
         </div>
       </div>
     </div>
+
 
     <!-- Chapa Payment Progress & Live Verification Modal -->
     <div v-if="activePaymentOrder" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -467,12 +484,13 @@
 
       </div>
     </div>
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw, ExternalLink, FileText, AlertTriangle, AlertCircle } from 'lucide-vue-next'
+import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw, ExternalLink, FileText, AlertTriangle, AlertCircle, ShieldAlert, Loader2 } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { useAlertModal } from '@/composables/useAlertModal'
 import { formatETB } from '@/utils/helpers'

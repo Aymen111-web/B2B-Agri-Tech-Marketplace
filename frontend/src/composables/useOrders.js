@@ -34,7 +34,19 @@ function mapRawOrderToFrontend(item) {
 
     const escrowRef = item.payment?.chapa_tx_ref || item.escrow_reference || item.escrowReference || `CHP-TX-${Math.floor(10000000 + Math.random() * 90000000)}`
 
-    const isDisputed = item.status === 'disputed' || item.order?.status === 'disputed'
+    const exceptionsArr = item.payment_exceptions || item.paymentExceptions || item.order?.payment_exceptions || []
+    const rawException = exceptionsArr[0] || item.dispute || null
+    const disputeData = rawException ? {
+        id: rawException.id,
+        type: rawException.type || 'dispute',
+        status: rawException.status || 'open',
+        description: rawException.description || '',
+        farmerResponse: rawException.farmer_response || rawException.farmerResponse || '',
+        resolutionNotes: rawException.resolution_notes || rawException.resolutionNotes || '',
+        resolvedAt: rawException.resolved_at || rawException.resolvedAt || null,
+    } : null
+
+    const isDisputed = item.status === 'disputed' || item.order?.status === 'disputed' || (disputeData && disputeData.status === 'open')
     const rawStatus = isDisputed ? 'disputed' : (item.status || item.order?.status || 'placed')
     const deliveryPin = item.order?.delivery_pin || item.delivery_pin || item.deliveryPin || null
 
@@ -87,6 +99,7 @@ function mapRawOrderToFrontend(item) {
         payoutStatus: item.payout_status || item.order?.payout_status || (isEscrowReleased ? 'released' : 'pending'),
         escrowStatus: isEscrowReleased ? 'released' : (['paid_in_escrow', 'dispatched', 'in_transit', 'completed', 'disputed'].includes(rawStatus) ? 'held' : 'pending'),
         escrowReference: escrowRef,
+        dispute: disputeData,
         placedAt: item.placed_at ? new Date(item.placed_at) : (item.created_at ? new Date(item.created_at) : new Date()),
         deliveryPin: deliveryPin,
         isDisputed: isDisputed,

@@ -12,6 +12,7 @@ class PaymentException extends Model
         'raised_by',
         'type',
         'description',
+        'farmer_response',
         'status',
         'resolution_notes',
         'resolved_by',

@@ -332,7 +332,7 @@ class PaymentFlowTest extends TestCase
         $this->assertEquals('resolved', $exception->status);
 
         $this->assertDatabaseHas('audit_logs', [
-            'action' => 'dispute.resolved_refund_buyer',
+            'action' => 'escrow_refunded_to_buyer',
         ]);
     }
 
@@ -373,7 +373,7 @@ class PaymentFlowTest extends TestCase
         $this->assertEquals('resolved', $exception->status);
 
         $this->assertDatabaseHas('audit_logs', [
-            'action' => 'dispute.resolved_release_farmer',
+            'action' => 'escrow_released_to_farmer',
         ]);
     }
 }

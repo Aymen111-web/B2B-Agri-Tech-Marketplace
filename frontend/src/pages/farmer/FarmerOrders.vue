@@ -58,8 +58,9 @@
             <!-- Middle / Right: Escrow + Price + Action Buttons -->
             <div class="flex items-center justify-between lg:justify-end gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100 dark:border-[#30363D]">
               <!-- Escrow Status Pill -->
-              <span v-if="order.status === 'disputed' || order.isDisputed" class="px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/40 text-[11px] font-bold capitalize">
-                {{ $t('Escrow') }}: Frozen
+              <span v-if="order.status === 'disputed' || order.escrowStatus === 'disputed' || order.isDisputed" class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/80 text-[11px] font-bold flex items-center gap-1">
+                <ShieldAlert class="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                Escrow Disputed
               </span>
               <span v-else class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40 text-[11px] font-bold capitalize">
                 {{ $t('Escrow') }}: {{ $t(order.escrowStatus || 'held') }}
@@ -106,7 +107,7 @@
                 <span>{{ $t('Dispatch Produce') }}</span>
               </button>
 
-              <span v-else-if="order.status === 'dispatched' || order.status === 'in_transit'" 
+              <span v-if="order.status === 'dispatched' || order.status === 'in_transit'" 
                 class="px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/50 dark:border-amber-800/40 rounded-xl flex items-center gap-1 shrink-0">
                 <Truck class="w-3.5 h-3.5 text-amber-600 animate-pulse" />
                 <span>In Transit</span>
@@ -117,6 +118,24 @@
                 <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
                 <span>Payout Released</span>
               </span>
+
+              <!-- See & Answer Issue Button (if dispute exists) -->
+              <button v-if="order.dispute"
+                @click="openDisputeInitiationModal(order)"
+                class="px-2.5 py-1.5 rounded-xl border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 bg-rose-50/80 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-xs font-black flex items-center gap-1 shadow-2xs cursor-pointer animate-pulse"
+                title="View buyer dispute claim and submit answer to admin">
+                <ShieldAlert class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                <span>See & Answer Issue</span>
+              </button>
+
+              <!-- Report Issue Button (if no dispute exists) -->
+              <button v-else-if="['paid_in_escrow', 'dispatched', 'in_transit', 'delivered'].includes(order.status)"
+                @click="openDisputeInitiationModal(order)"
+                class="px-2.5 py-1.5 rounded-xl border border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                title="Report issue or send dispute statement to Admin">
+                <ShieldAlert class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>Report Issue</span>
+              </button>
 
               <!-- Timeline Toggle -->
               <button @click="toggleTimeline(order.id)" 
@@ -156,21 +175,196 @@
         @update:currentPage="currentPage = $event" 
       />
     </div>
+
+    <!-- FARMER DISPUTE COUNTER-STATEMENT & ISSUE INSPECTION MODAL -->
+    <div v-if="selectedDisputeForResponse" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="max-w-lg w-full bg-white dark:bg-[#161B22] border border-gray-100 dark:border-[#30363D] rounded-3xl p-6 shadow-2xl space-y-4 text-[#1E2328] dark:text-[#F0F6FC] animate-in fade-in zoom-in-95 duration-200">
+        <div class="flex items-center justify-between border-b dark:border-[#30363D] pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2.5 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-2xl border border-rose-100 dark:border-rose-900/40">
+              <ShieldAlert class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">Dispute Inspection & Counter-Statement</h3>
+              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">Order #{{ selectedDisputeForResponse.orderId }} · Review claim & answer Admin</p>
+            </div>
+          </div>
+          <button @click="selectedDisputeForResponse = null" class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#21262D] text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs max-h-[60vh] overflow-y-auto pr-1">
+          <!-- Buyer Claim Box -->
+          <div class="p-3.5 bg-rose-50/60 dark:bg-rose-950/30 rounded-2xl border border-rose-200/60 dark:border-rose-900/40 space-y-1">
+            <span class="block font-black text-rose-800 dark:text-rose-300 text-[10px] uppercase tracking-wider">Buyer Claim / Incident Report</span>
+            <p class="text-xs font-semibold text-[#1E2328] dark:text-[#F0F6FC]">{{ selectedDisputeForResponse.description || 'No description provided.' }}</p>
+          </div>
+
+          <!-- Official Admin Resolution Notes (if any) -->
+          <div v-if="selectedDisputeForResponse.resolutionNotes" class="p-3.5 bg-emerald-50/70 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200/60 dark:border-emerald-900/40 space-y-1">
+            <span class="block font-black text-emerald-800 dark:text-emerald-300 text-[10px] uppercase tracking-wider">Official Admin Findings & Verdict</span>
+            <p class="text-xs font-semibold text-[#1E2328] dark:text-[#F0F6FC]">{{ selectedDisputeForResponse.resolutionNotes }}</p>
+          </div>
+
+          <!-- Farmer Submitted Response Box -->
+          <div v-if="selectedDisputeForResponse.farmerResponse" class="p-3.5 bg-amber-50/70 dark:bg-amber-950/30 rounded-2xl border border-amber-200/60 dark:border-amber-900/40 space-y-1">
+            <span class="block font-black text-amber-800 dark:text-amber-300 text-[10px] uppercase tracking-wider">Your Previously Submitted Statement</span>
+            <p class="text-xs font-semibold text-[#1E2328] dark:text-[#F0F6FC]">{{ selectedDisputeForResponse.farmerResponse }}</p>
+          </div>
+
+          <!-- Input Textarea for Counter-Statement -->
+          <div class="space-y-1.5 pt-1">
+            <label class="font-extrabold text-xs text-[#1E2328] dark:text-[#F0F6FC] flex items-center gap-1.5">
+              <MessageSquare class="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span>Write / Update Your Reply to Admin:</span>
+            </label>
+            <textarea v-model="farmerResponseText" rows="4" placeholder="Explain harvest inspection, weather delays, transport logs, or produce quality defense..."
+              class="w-full p-3 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-[#F0F6FC]"></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2 border-t border-gray-100 dark:border-[#30363D]">
+          <button @click="selectedDisputeForResponse = null" class="flex-1 py-2.5 border border-gray-200 dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] rounded-2xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D] cursor-pointer">
+            Close
+          </button>
+          <button @click="submitFarmerResponse" :disabled="isSubmittingResponse" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-black text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer">
+            <Loader2 v-if="isSubmittingResponse" class="w-4 h-4 animate-spin" />
+            <Send v-else class="w-4 h-4" />
+            <span>Send Reply to Admin</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check, AlertTriangle, Clock } from 'lucide-vue-next'
+import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check, AlertTriangle, Clock, ShieldAlert, MessageSquare, Loader2, X, Send } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
+import { useAlertModal } from '@/composables/useAlertModal'
 import { formatETB, formatDate } from '@/utils/helpers'
+import { api } from '@/services/api'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
-const { orders, dispatchOrder, updateOrderStatus } = useOrders()
+const { orders, dispatchOrder, updateOrderStatus, refreshOrders } = useOrders()
+const { showAlert } = useAlertModal()
 
 const expandedOrderIds = ref({})
 const copiedPin = ref(null)
+const selectedDisputeForResponse = ref(null)
+const farmerResponseText = ref('')
+const isSubmittingResponse = ref(false)
+
+const activeInlineReplyOrderIds = ref({})
+const inlineReplyTexts = ref({})
+const submittingInlineReply = ref({})
+
+const toggleInlineReply = (orderId, existingReply = '') => {
+  activeInlineReplyOrderIds.value[orderId] = !activeInlineReplyOrderIds.value[orderId]
+  if (activeInlineReplyOrderIds.value[orderId]) {
+    inlineReplyTexts.value[orderId] = existingReply || ''
+  }
+}
+
+const submitInlineFarmerReply = async (order) => {
+  const replyText = inlineReplyTexts.value[order.id]
+  if (!replyText || !replyText.trim()) {
+    showAlert({ title: 'Reply Required', message: 'Please type your reply or defense for the admin.', type: 'warning' })
+    return
+  }
+
+  submittingInlineReply.value[order.id] = true
+  try {
+    if (order.dispute && order.dispute.id) {
+      await api.respondToPaymentException(order.dispute.id, replyText.trim())
+    } else {
+      await api.createPaymentException({
+        order_id: Number(order.displayId || order.id),
+        type: 'dispute',
+        description: replyText.trim()
+      })
+    }
+
+    showAlert({
+      title: 'Reply Sent to Admin',
+      message: 'Your explanation has been submitted to the Admin for dispute review.',
+      type: 'success'
+    })
+
+    activeInlineReplyOrderIds.value[order.id] = false
+    inlineReplyTexts.value[order.id] = ''
+    await refreshOrders()
+  } catch (err) {
+    showAlert({
+      title: 'Submission Error',
+      message: err.message || 'Failed to submit reply to admin.',
+      type: 'error'
+    })
+  } finally {
+    submittingInlineReply.value[order.id] = false
+  }
+}
+
+const openResponseModal = (dispute) => {
+  selectedDisputeForResponse.value = dispute
+  farmerResponseText.value = ''
+}
+
+const openDisputeInitiationModal = (order) => {
+  if (order.dispute) {
+    openResponseModal(order.dispute)
+  } else {
+    selectedDisputeForResponse.value = {
+      id: null,
+      orderId: order.displayId || order.id,
+      description: 'Direct Farmer Statement to Admin'
+    }
+    farmerResponseText.value = ''
+  }
+}
+
+const submitFarmerResponse = async () => {
+  if (!selectedDisputeForResponse.value) return
+  if (!farmerResponseText.value.trim()) {
+    showAlert({ title: 'Response Required', message: 'Please enter your explanation or excuse for the admin.', type: 'warning' })
+    return
+  }
+
+  isSubmittingResponse.value = true
+  try {
+    const disputeId = selectedDisputeForResponse.value.id
+    if (disputeId) {
+      await api.respondToPaymentException(disputeId, farmerResponseText.value)
+    } else {
+      await api.createPaymentException({
+        order_id: Number(selectedDisputeForResponse.value.orderId),
+        type: 'dispute',
+        description: farmerResponseText.value
+      })
+    }
+
+    showAlert({
+      title: 'Statement Submitted to Admin',
+      message: 'Your explanation has been sent to the Admin for dispute review.',
+      type: 'success'
+    })
+
+    selectedDisputeForResponse.value = null
+    farmerResponseText.value = ''
+    await refreshOrders()
+  } catch (err) {
+    showAlert({
+      title: 'Submission Error',
+      message: err.message || 'Failed to submit statement to admin.',
+      type: 'error'
+    })
+  } finally {
+    isSubmittingResponse.value = false
+  }
+}
 
 const toggleTimeline = (orderId) => {
   expandedOrderIds.value[orderId] = !expandedOrderIds.value[orderId]
