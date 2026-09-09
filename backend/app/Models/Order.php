@@ -69,6 +69,11 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function paymentExceptions()
     {
         return $this->hasMany(PaymentException::class);
