@@ -103,7 +103,18 @@
           </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t border-gray-100 dark:border-[#30363D] mt-auto">
+        <!-- Finalized Verdict Banner OR Action Buttons -->
+        <div v-if="d.status === 'resolved' || d.status === 'rejected'" class="mt-4 p-3.5 bg-emerald-50/80 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-900/50 space-y-1">
+          <div class="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 font-black text-[11px] uppercase tracking-wider">
+            <CheckCircle2 class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Verdict Finalized & Escrow Decision Logged</span>
+          </div>
+          <p class="text-xs font-semibold text-emerald-950 dark:text-emerald-100 pl-5">
+            {{ d.resolution_notes || 'Case finalized by Administrator.' }}
+          </p>
+        </div>
+
+        <div v-else class="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t border-gray-100 dark:border-[#30363D] mt-auto">
           <button @click="resolveDispute(d.id, 'refund_buyer')" 
             class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl border-2 border-orange-100 dark:border-orange-900/40 text-orange-700 dark:text-orange-300 text-[12px] font-bold hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:border-orange-200 dark:hover:border-orange-800/50 transition-colors shadow-2xs focus:ring-4 focus:ring-orange-100 cursor-pointer">
             {{ $t('admin.refundBuyer') }}
