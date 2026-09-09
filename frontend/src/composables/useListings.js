@@ -56,7 +56,7 @@ function mapRawListingToFrontend(item) {
         farmerId: String(item.farmer_id || item.farmerId || 'farmer-1'),
         farmer: item.farmer ? {
             id: String(item.farmer.id || 'farmer-1'),
-            name: `${item.farmer.first_name || ''} ${item.farmer.second_name || ''}`.trim() || item.farmer.name || 'Dawit Bekele',
+            name: farmerFullName,
             email: item.farmer.email || 'farmer@agri.et',
             phone: item.farmer.phone || '+251 912 345 678',
             role: 'farmer', status: 'verified', region: item.farmer.region || 'SNNPR',
@@ -151,6 +151,16 @@ export function useListings() {
     const addListing = async (newListingData) => {
         const token = getAuthToken()
 
+        const filesToUpload = newListingData.rawFiles ||
+            (newListingData.images || []).filter(f => typeof window !== 'undefined' && (f instanceof File || f instanceof Blob))
+
+        const stringImages = (newListingData.images || []).map(img => {
+            if (typeof img === 'string') return img
+            return null
+        }).filter(Boolean)
+
+        const primaryUploadedImg = newListingData.primaryImage || (stringImages.length > 0 ? stringImages[0] : null)
+
         if (token) {
             try {
                 const formData = new FormData()
@@ -191,11 +201,9 @@ export function useListings() {
                 if (newListingData.zone) formData.append('zone', newListingData.zone)
                 if (newListingData.process) formData.append('process', newListingData.process)
 
-                if (newListingData.images && newListingData.images.length > 0) {
-                    newListingData.images.forEach((file) => {
-                        if (file instanceof File || file instanceof Blob) {
-                            formData.append('images[]', file)
-                        }
+                if (filesToUpload && filesToUpload.length > 0) {
+                    filesToUpload.forEach((file) => {
+                        formData.append('images[]', file)
                     })
                 }
 
@@ -224,14 +232,23 @@ export function useListings() {
             return typeof img === 'string' ? img : null;
         }))).filter(Boolean)
 
+        const finalImages = mappedImages.length > 0
+            ? mappedImages
+            : (stringImages.length > 0 ? stringImages : (primaryUploadedImg ? [primaryUploadedImg] : []))
+
+        const finalPrimary = mappedImages.length > 0
+            ? mappedImages[0]
+            : (primaryUploadedImg || (finalImages.length > 0 ? finalImages[0] : null))
+
         const created = {
             ...newListingData,
-            images: mappedImages.length > 0 ? mappedImages : null,
-            primaryImage: mappedImages.length > 0 ? mappedImages[0] : null,
             id: `listing-${Date.now()}`,
+            primaryImage: finalPrimary,
+            images: finalImages,
             createdAt: new Date(),
             viewCount: 1,
         }
+        delete created.rawFiles
         listings.value = [created, ...listings.value]
         return created
     }

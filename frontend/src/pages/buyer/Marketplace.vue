@@ -1,13 +1,13 @@
 <template>
-  <div :class="[isStandalone ? 'min-h-screen bg-[#F8F9FA] text-[#1E2328] flex flex-col' : '']">
+  <div :class="[isStandalone ? 'min-h-screen bg-[#F8F9FA] dark:bg-[#0D1117] text-[#1E2328] dark:text-[#F0F6FC] flex flex-col' : '']">
     <!-- Standalone Header for Public Visitors -->
-    <header v-if="isStandalone" class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E2E4E7] shadow-2xs">
+    <header v-if="isStandalone" class="sticky top-0 z-40 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-md border-b border-[#E2E4E7] dark:border-[#30363D] shadow-2xs">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <router-link to="/" class="flex items-center gap-3">
           <QelemMedaLogo :size="40" variant="full" />
         </router-link>
 
-        <nav class="hidden md:flex items-center gap-8 text-xs font-bold text-[#5A6270]">
+        <nav class="hidden md:flex items-center gap-8 text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">
           <router-link to="/" class="hover:text-[#1E9444] transition-colors">{{ t('home') }}</router-link>
           <router-link to="/#how-it-works" class="hover:text-[#1E9444] transition-colors">{{ t('howItWorks') }}</router-link>
         </nav>
@@ -17,7 +17,7 @@
           <ThemeToggle />
           <router-link 
             to="/login" 
-            class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] hover:border-[#1E9444] text-[#1E2328] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white"
+            class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] dark:border-[#30363D] hover:border-[#1E9444] text-[#1E2328] dark:text-[#F0F6FC] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white dark:bg-[#161B22]"
           >
             {{ t('login') }}
           </router-link>
@@ -31,9 +31,9 @@
           <button 
             v-if="isAuthenticated"
             @click="goToDashboard" 
-            class="px-4 py-2.5 rounded-xl bg-[#EDFAF2] text-[#0F5C2A] border border-[#C3EFCF] hover:bg-[#D8F6E0] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            class="px-4 py-2.5 rounded-xl bg-[#EDFAF2] dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/60 hover:bg-[#D8F6E0] text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
-            <User class="w-4 h-4 text-[#1E9444]" />
+            <User class="w-4 h-4 text-[#1E9444] dark:text-emerald-400" />
             <span>{{ t('dashboard') }}</span>
           </button>
         </div>
@@ -41,60 +41,66 @@
     </header>
 
     <div :class="[isStandalone ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6' : 'space-y-6 pb-6']">
-      <!-- Top Header & Search -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E4E7] pb-5">
-        <div>
-          <h1 class="text-2xl font-black text-[#1E2328] tracking-tight">
-            {{ t('agriMarketplace') }} 🌾
-          </h1>
-          <p class="text-xs text-[#5A6270] mt-0.5">
-            {{ t('marketplaceSub') }}
-          </p>
-        </div>
-
+      <!-- Top Search Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E4E7] dark:border-[#30363D] pb-5">
         <!-- Search Input -->
         <div class="w-full sm:w-80">
           <div class="relative">
-            <Search class="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+            <Search class="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3.5 top-3" />
             <input 
               type="text" 
               v-model="searchQuery" 
               :placeholder="t('searchPlaceholder')" 
-              class="w-full pl-9 pr-4 py-2 bg-white border border-[#E2E4E7] text-[#1E2328] placeholder-gray-400 rounded-xl text-xs font-bold focus:outline-none focus:border-[#E69500] shadow-2xs" 
+              class="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] placeholder-gray-400 dark:placeholder-gray-500 rounded-xl text-xs font-bold focus:outline-none focus:border-[#E69500] shadow-2xs" 
             />
           </div>
         </div>
       </div>
 
       <!-- Category Filter Chips -->
-      <div class="flex flex-wrap gap-2">
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
         <button 
           v-for="cat in categories" 
           :key="cat.value" 
           @click="activeCategory = cat.value"
-          :class="['px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs', 
+          :class="['px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-2xs group', 
             activeCategory === cat.value 
-              ? 'bg-[#E69500] text-white border-[#E69500] shadow-xs' 
-              : 'bg-white text-[#5A6270] border-[#E2E4E7] hover:border-[#E69500] hover:text-[#1E2328]']"
+              ? 'bg-[#1E9444] text-white border-[#1E9444] shadow-xs' 
+              : 'bg-white dark:bg-[#161B22] text-[#5A6270] dark:text-[#8B949E] border-[#E2E4E7] dark:border-[#30363D] hover:border-[#1E9444] hover:text-[#1E2328] dark:hover:text-[#F0F6FC]']"
         >
-          <span>{{ cat.emoji }}</span>
+          <div class="w-5 h-5 rounded-full overflow-hidden shrink-0 border border-black/10 bg-gray-100 dark:bg-[#21262D] flex items-center justify-center">
+            <img v-if="cat.image" :src="cat.image" :alt="cat.label" class="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+            <span v-else class="text-[10px]">{{ cat.emoji }}</span>
+          </div>
           <span>{{ t(cat.key, cat.label) }}</span>
         </button>
       </div>
 
       <!-- Listings Grid -->
-      <div v-if="filteredListings.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <ListingCard 
-          v-for="listing in filteredListings" 
-          :key="listing.id" 
-          :listing="listing" 
-          @addToCart="handleCartAction"
+      <div v-if="filteredListings.length > 0" class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ListingCard 
+            v-for="listing in paginatedListings" 
+            :key="listing.id" 
+            :listing="listing" 
+            @addToCart="handleCartAction"
+          />
+        </div>
+
+        <!-- Pagination Controls -->
+        <Pagination 
+          :currentPage="currentPage" 
+          :totalPages="totalPages" 
+          :totalItems="filteredListings.length" 
+          :itemsPerPage="itemsPerPage" 
+          @update:currentPage="currentPage = $event" 
+          @refresh="refreshListings"
         />
       </div>
 
       <!-- Empty State -->
-      <div v-else class="text-center text-[#5A6270] py-12 bg-white rounded-2xl border border-[#E2E4E7] space-y-2">
-        <p class="font-bold text-base text-[#1E2328]">{{ t('noListingsFound') }}</p>
+      <div v-else class="text-center text-[#5A6270] dark:text-[#8B949E] py-12 bg-white dark:bg-[#161B22] rounded-2xl border border-[#E2E4E7] dark:border-[#30363D] space-y-2">
+        <p class="font-bold text-base text-[#1E2328] dark:text-[#F0F6FC]">{{ t('noListingsFound') }}</p>
         <p class="text-xs">{{ t('tryAdjusting') }}</p>
         <button 
           @click="activeCategory = 'all'; searchQuery = ''" 
@@ -134,10 +140,12 @@ import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import LanguageToggle from '@/components/common/LanguageToggle.vue'
 import ListingCard from '@/components/shared/ListingCard.vue'
 import BuyerAuthModal from '@/components/shared/BuyerAuthModal.vue'
+import Pagination from '@/components/common/Pagination.vue'
+import { CATEGORY_PHOTOS } from '@/utils/categoryImages'
 
 const route = useRoute()
 const router = useRouter()
-const { filterListings } = useListings()
+const { filterListings, refreshListings } = useListings()
 const { isAuthenticated, user } = useAuth()
 const { t } = useLanguage()
 
@@ -145,15 +153,20 @@ const activeCategory = ref('all')
 const searchQuery = ref('')
 const showAuthModal = ref(false)
 
+const currentPage = ref(1)
+const itemsPerPage = 6
+
 const isStandalone = computed(() => !route.path.startsWith('/buyer'))
 
 const categories = [
-  { value: 'all', key: 'allCrops', label: 'All Crops', emoji: '🌍' },
-  { value: 'coffee', key: 'coffee', label: 'Coffee', emoji: '☕' },
-  { value: 'grains', key: 'grains', label: 'Grains', emoji: '🌾' },
-  { value: 'spices', key: 'spices', label: 'Spices', emoji: '🌶️' },
-  { value: 'oilseeds', key: 'oilseeds', label: 'Oilseeds', emoji: '🌱' },
-  { value: 'pulses', key: 'pulses', label: 'Pulses', emoji: '🫘' },
+  { value: 'all', key: 'allCrops', label: 'All Crops', emoji: '🌾', image: null },
+  { value: 'coffee', key: 'coffee', label: 'Coffee', emoji: '☕', image: CATEGORY_PHOTOS.coffee },
+  { value: 'grains', key: 'grains', label: 'Grains', emoji: '🌾', image: CATEGORY_PHOTOS.grains },
+  { value: 'spices', key: 'spices', label: 'Spices', emoji: '🌶️', image: CATEGORY_PHOTOS.spices },
+  { value: 'oilseeds', key: 'oilseeds', label: 'Oilseeds', emoji: '🥜', image: CATEGORY_PHOTOS.oilseeds },
+  { value: 'pulses', key: 'pulses', label: 'Pulses', emoji: '🫘', image: CATEGORY_PHOTOS.pulses },
+  { value: 'vegetables', key: 'vegetables', label: 'Vegetables', emoji: '🥬', image: CATEGORY_PHOTOS.vegetables },
+  { value: 'fruits', key: 'fruits', label: 'Fruits', emoji: '🍋', image: CATEGORY_PHOTOS.fruits },
 ]
 
 const setCategoryFromQuery = () => {
@@ -169,6 +182,18 @@ onMounted(setCategoryFromQuery)
 watch(() => route.query.category, setCategoryFromQuery)
 
 const filteredListings = computed(() => filterListings(activeCategory.value, searchQuery.value))
+
+const totalPages = computed(() => Math.ceil(filteredListings.value.length / itemsPerPage) || 1)
+
+const paginatedListings = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return filteredListings.value.slice(start, start + itemsPerPage)
+})
+
+// Reset pagination to page 1 whenever search or category changes
+watch([searchQuery, activeCategory], () => {
+  currentPage.value = 1
+})
 
 function goToDashboard() {
   if (user.value?.role === 'farmer') router.push('/farmer')

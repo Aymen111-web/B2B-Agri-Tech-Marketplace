@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-[#F8F9FA] text-[#1E2328] font-sans flex flex-col selection:bg-[#1E9444] selection:text-white">
+  <div class="min-h-screen bg-[#F8F9FA] dark:bg-[#0D1117] text-[#1E2328] dark:text-[#F0F6FC] font-sans flex flex-col selection:bg-[#1E9444] selection:text-white">
     <!-- NAVBAR -->
-    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E2E4E7] shadow-2xs transition-all">
+    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#161B22]/95 backdrop-blur-md border-b border-[#E2E4E7] dark:border-[#30363D] shadow-2xs transition-all">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <!-- Logo -->
         <router-link to="/" class="flex items-center gap-3 group">
@@ -9,10 +9,10 @@
         </router-link>
 
         <!-- Desktop Navigation Links -->
-        <nav class="hidden md:flex items-center gap-8 text-xs font-bold text-[#5A6270]">
-          <router-link to="/" class="hover:text-[#1E9444] transition-colors text-[#1E9444]">{{ t('home') }}</router-link>
-          <a href="#how-it-works" class="hover:text-[#1E9444] transition-colors">{{ t('howItWorks') }}</a>
-          <a href="#about" class="hover:text-[#1E9444] transition-colors">{{ t('aboutUs') }}</a>
+        <nav class="hidden md:flex items-center gap-8 text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">
+          <router-link to="/" class="hover:text-[#1E9444] dark:hover:text-emerald-400 transition-colors text-[#1E9444] dark:text-emerald-400">{{ t('home') }}</router-link>
+          <a href="#how-it-works" class="hover:text-[#1E9444] dark:hover:text-emerald-400 transition-colors">{{ t('howItWorks') }}</a>
+          <a href="#about" class="hover:text-[#1E9444] dark:hover:text-emerald-400 transition-colors">{{ t('aboutUs') }}</a>
         </nav>
 
         <!-- Right Action Buttons -->
@@ -22,7 +22,7 @@
 
           <router-link 
             to="/login" 
-            class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] hover:border-[#1E9444] text-[#1E2328] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white"
+            class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] dark:border-[#30363D] hover:border-[#1E9444] dark:hover:border-emerald-500 text-[#1E2328] dark:text-[#F0F6FC] hover:text-[#1E9444] dark:hover:text-emerald-400 text-xs font-extrabold transition-all cursor-pointer bg-white dark:bg-[#21262D]"
           >
             {{ t('login') }}
           </router-link>
@@ -150,17 +150,17 @@
     </section>
 
     <!-- TRUST / VALUE SECTION -->
-    <section class="py-16 bg-white border-b border-[#E2E4E7]">
+    <section class="py-16 bg-white dark:bg-[#0D1117] border-b border-[#E2E4E7] dark:border-[#30363D]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div class="text-center max-w-3xl mx-auto space-y-3 mb-12">
-          <span class="text-xs font-black text-[#1E9444] uppercase tracking-wider bg-[#EDFAF2] px-3.5 py-1 rounded-full border border-[#C3EFCF]">
+          <span class="text-xs font-black text-[#1E9444] dark:text-emerald-400 uppercase tracking-wider bg-[#EDFAF2] dark:bg-emerald-950/40 px-3.5 py-1 rounded-full border border-[#C3EFCF] dark:border-emerald-800">
             {{ t('builtForAgri') }}
           </span>
-          <h2 class="text-2xl sm:text-3xl font-black text-[#1E2328] tracking-tight">
+          <h2 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">
             {{ t('empoweringFarmers') }}
           </h2>
-          <p class="text-xs sm:text-sm text-[#5A6270] leading-relaxed">
+          <p class="text-xs sm:text-sm text-[#5A6270] dark:text-[#8B949E] leading-relaxed">
             {{ t('empoweringDesc') }}
           </p>
         </div>
@@ -168,19 +168,19 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           
           <!-- Farmer Value Box -->
-          <div class="bg-[#F8F9FA] border border-[#E2E4E7] rounded-3xl p-8 space-y-6 hover:border-[#1E9444] transition-all shadow-2xs relative overflow-hidden group">
-            <div class="w-12 h-12 rounded-2xl bg-[#EDFAF2] text-[#1E9444] border border-[#C3EFCF] flex items-center justify-center font-bold text-xl shrink-0">
+          <div class="bg-[#F8F9FA] dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-3xl p-8 space-y-6 hover:border-[#1E9444] dark:hover:border-emerald-500 transition-all shadow-2xs relative overflow-hidden group">
+            <div class="w-12 h-12 rounded-2xl bg-[#EDFAF2] dark:bg-emerald-950/50 text-[#1E9444] dark:text-emerald-400 border border-[#C3EFCF] dark:border-emerald-800 flex items-center justify-center font-bold text-xl shrink-0">
               <Tractor class="w-6 h-6 stroke-[2.2]" />
             </div>
 
             <div class="space-y-2">
-              <h3 class="text-xl font-black text-[#1E2328]">{{ t('forFarmersCooperatives') }}</h3>
-              <p class="text-xs text-[#5A6270] leading-relaxed">
+              <h3 class="text-xl font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ t('forFarmersCooperatives') }}</h3>
+              <p class="text-xs text-[#5A6270] dark:text-[#8B949E] leading-relaxed">
                 {{ t('forFarmersFullDesc') }}
               </p>
             </div>
 
-            <ul class="space-y-3 text-xs text-[#1E2328] font-bold">
+            <ul class="space-y-3 text-xs text-[#1E2328] dark:text-[#F0F6FC] font-bold">
               <li class="flex items-center gap-2.5">
                 <div class="w-5 h-5 rounded-full bg-[#1E9444] text-white flex items-center justify-center text-[10px]">✓</div>
                 <span>{{ t('farmerBenefit1') }}</span>
@@ -196,7 +196,7 @@
             </ul>
 
             <div class="pt-2">
-              <router-link to="/register?role=farmer" class="inline-flex items-center gap-2 text-xs font-black text-[#1E9444] hover:text-[#0F5C2A]">
+              <router-link to="/register?role=farmer" class="inline-flex items-center gap-2 text-xs font-black text-[#1E9444] dark:text-emerald-400 hover:text-[#0F5C2A] dark:hover:text-emerald-300">
                 <span>{{ t('registerFarmerCoop') }}</span>
                 <ArrowRight class="w-4 h-4" />
               </router-link>
@@ -204,19 +204,19 @@
           </div>
 
           <!-- Buyer Value Box -->
-          <div class="bg-[#F8F9FA] border border-[#E2E4E7] rounded-3xl p-8 space-y-6 hover:border-[#0B57D0] transition-all shadow-2xs relative overflow-hidden group">
-            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#0B57D0] border border-blue-200 flex items-center justify-center font-bold text-xl shrink-0">
+          <div class="bg-[#F8F9FA] dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-3xl p-8 space-y-6 hover:border-[#0B57D0] dark:hover:border-blue-400 transition-all shadow-2xs relative overflow-hidden group">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0B57D0] dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex items-center justify-center font-bold text-xl shrink-0">
               <Building2 class="w-6 h-6 stroke-[2.2]" />
             </div>
 
             <div class="space-y-2">
-              <h3 class="text-xl font-black text-[#1E2328]">{{ t('forCommercialBuyersExporters') }}</h3>
-              <p class="text-xs text-[#5A6270] leading-relaxed">
+              <h3 class="text-xl font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ t('forCommercialBuyersExporters') }}</h3>
+              <p class="text-xs text-[#5A6270] dark:text-[#8B949E] leading-relaxed">
                 {{ t('forBuyersFullDesc') }}
               </p>
             </div>
 
-            <ul class="space-y-3 text-xs text-[#1E2328] font-bold">
+            <ul class="space-y-3 text-xs text-[#1E2328] dark:text-[#F0F6FC] font-bold">
               <li class="flex items-center gap-2.5">
                 <div class="w-5 h-5 rounded-full bg-[#0B57D0] text-white flex items-center justify-center text-[10px]">✓</div>
                 <span>{{ t('buyerBenefit1') }}</span>
@@ -232,7 +232,7 @@
             </ul>
 
             <div class="pt-2">
-              <router-link to="/register?role=buyer" class="inline-flex items-center gap-2 text-xs font-black text-[#0B57D0] hover:text-[#0842A0]">
+              <router-link to="/register?role=buyer" class="inline-flex items-center gap-2 text-xs font-black text-[#0B57D0] dark:text-blue-400 hover:text-[#0842A0] dark:hover:text-blue-300">
                 <span>{{ t('registerCommercialBuyer') }}</span>
                 <ArrowRight class="w-4 h-4" />
               </router-link>
@@ -244,46 +244,46 @@
     </section>
 
     <!-- HOW IT WORKS SECTION -->
-    <section id="how-it-works" class="py-16 bg-white border-y border-[#E2E4E7]">
+    <section id="how-it-works" class="py-16 bg-white dark:bg-[#0D1117] border-y border-[#E2E4E7] dark:border-[#30363D]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         <div class="text-center max-w-2xl mx-auto space-y-2">
-          <span class="text-xs font-black text-[#1E9444] uppercase tracking-wider">{{ t('simpleProcess') }}</span>
-          <h2 class="text-2xl sm:text-3xl font-black text-[#1E2328] tracking-tight">{{ t('howMarketplaceWorks') }}</h2>
-          <p class="text-xs sm:text-sm text-[#5A6270]">{{ t('howMarketplaceWorksDesc') }}</p>
+          <span class="text-xs font-black text-[#1E9444] dark:text-emerald-400 uppercase tracking-wider">{{ t('simpleProcess') }}</span>
+          <h2 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">{{ t('howMarketplaceWorks') }}</h2>
+          <p class="text-xs sm:text-sm text-[#5A6270] dark:text-[#8B949E]">{{ t('howMarketplaceWorksDesc') }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           <!-- Step 1 -->
-          <div class="bg-[#F8F9FA] border border-[#E2E4E7] rounded-3xl p-6 text-center space-y-4 relative">
+          <div class="bg-[#F8F9FA] dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-3xl p-6 text-center space-y-4 relative">
             <div class="w-12 h-12 rounded-2xl bg-[#062E15] text-[#E69500] font-black text-xl flex items-center justify-center mx-auto shadow-xs">
               1
             </div>
-            <h3 class="text-lg font-black text-[#1E2328]">{{ t('step1Title') }}</h3>
-            <p class="text-xs text-[#5A6270] leading-relaxed">
+            <h3 class="text-lg font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ t('step1Title') }}</h3>
+            <p class="text-xs text-[#5A6270] dark:text-[#8B949E] leading-relaxed">
               {{ t('step1Desc') }}
             </p>
           </div>
 
           <!-- Step 2 -->
-          <div class="bg-[#F8F9FA] border border-[#E2E4E7] rounded-3xl p-6 text-center space-y-4 relative">
+          <div class="bg-[#F8F9FA] dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-3xl p-6 text-center space-y-4 relative">
             <div class="w-12 h-12 rounded-2xl bg-[#062E15] text-[#E69500] font-black text-xl flex items-center justify-center mx-auto shadow-xs">
               2
             </div>
-            <h3 class="text-lg font-black text-[#1E2328]">{{ t('step2Title') }}</h3>
-            <p class="text-xs text-[#5A6270] leading-relaxed">
+            <h3 class="text-lg font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ t('step2Title') }}</h3>
+            <p class="text-xs text-[#5A6270] dark:text-[#8B949E] leading-relaxed">
               {{ t('step2Desc') }}
             </p>
           </div>
 
           <!-- Step 3 -->
-          <div class="bg-[#F8F9FA] border border-[#E2E4E7] rounded-3xl p-6 text-center space-y-4 relative">
+          <div class="bg-[#F8F9FA] dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-3xl p-6 text-center space-y-4 relative">
             <div class="w-12 h-12 rounded-2xl bg-[#062E15] text-[#E69500] font-black text-xl flex items-center justify-center mx-auto shadow-xs">
               3
             </div>
-            <h3 class="text-lg font-black text-[#1E2328]">{{ t('step3Title') }}</h3>
-            <p class="text-xs text-[#5A6270] leading-relaxed">
+            <h3 class="text-lg font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ t('step3Title') }}</h3>
+            <p class="text-xs text-[#5A6270] dark:text-[#8B949E] leading-relaxed">
               {{ t('step3Desc') }}
             </p>
           </div>

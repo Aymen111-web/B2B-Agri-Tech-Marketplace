@@ -33,6 +33,8 @@ export default {
     spices: 'Spices',
     oilseeds: 'Oilseeds',
     pulses: 'Pulses',
+    vegetables: 'Vegetables',
+    fruits: 'Fruits',
     save: 'Save',
     cancel: 'Cancel',
     signOut: 'Sign Out',

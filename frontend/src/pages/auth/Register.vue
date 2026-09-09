@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-[#EEF2F6] flex items-center justify-center p-4">
-    <div class="w-full max-w-[480px] bg-white border border-[#E2E8F0] rounded-[24px] shadow-xl overflow-hidden relative">
+  <div class="min-h-screen bg-[#EEF2F6] dark:bg-[#0D1117] flex items-center justify-center p-4">
+    <div class="w-full max-w-[480px] bg-white dark:bg-[#161B22] border border-[#E2E8F0] dark:border-[#30363D] rounded-[24px] shadow-xl overflow-hidden relative">
       <!-- Top Color Accent Bar -->
       <div class="h-[5px] w-full bg-gradient-to-r from-[#0B57D0] via-[#F3A712] to-[#E69500]" />
       
@@ -21,18 +21,18 @@
         </div>
 
         <!-- Header Title & Step Indicator -->
-        <div class="pt-1 border-t border-gray-100 flex items-center justify-between">
+        <div class="pt-1 border-t border-gray-100 dark:border-[#30363D] flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="w-[5px] h-6 bg-[#E69500] rounded-full" />
-            <h1 class="text-[17px] font-extrabold text-[#0B57D0]">{{ $t('auth.registerTitle') }}</h1>
+            <h1 class="text-[17px] font-extrabold text-[#0B57D0] dark:text-blue-400">{{ $t('auth.registerTitle') }}</h1>
           </div>
-          <span v-if="step <= 4" class="text-[11px] font-bold text-[#5A6270] bg-[#EEF2F6] px-2.5 py-1 rounded-full">
+          <span v-if="step <= 4" class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] bg-[#EEF2F6] dark:bg-[#21262D] px-2.5 py-1 rounded-full">
             {{ $t('auth.stepOf') }} {{ step }} / 4
           </span>
         </div>
 
         <!-- Error & Notice Alerts -->
-        <div v-if="regError" class="bg-red-50 border border-red-200 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-red-700">
+        <div v-if="regError" class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-red-700 dark:text-red-300">
           <AlertCircle class="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
           <div>
             <span class="font-bold block">{{ $t('auth.regAlert') }}</span>
@@ -40,7 +40,7 @@
           </div>
         </div>
 
-        <div v-if="otpNotice" class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-emerald-800">
+        <div v-if="otpNotice" class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-3.5 flex items-start gap-2.5 text-xs text-emerald-800 dark:text-emerald-300">
           <ShieldCheck class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
           <div>
             <span class="font-bold block">{{ $t('auth.smsSent') }}</span>
@@ -51,7 +51,7 @@
         <!-- STEP 1: Select Account Type -->
         <div v-if="step === 1" class="space-y-4">
           <div class="text-center py-1">
-            <span class="text-[12px] font-bold text-[#0B57D0] bg-[#EEF2F6] px-3 py-1 rounded-full uppercase tracking-wider inline-block">
+            <span class="text-[12px] font-bold text-[#0B57D0] dark:text-blue-400 bg-[#EEF2F6] dark:bg-[#21262D] px-3 py-1 rounded-full uppercase tracking-wider inline-block">
               {{ $t('auth.chooseAccountType') }}
             </span>
           </div>
@@ -61,17 +61,17 @@
             <div 
               @click="role = 'farmer'" 
               :class="['p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3.5', 
-                role === 'farmer' ? 'border-[#0B57D0] bg-[#EEF2F6]' : 'border-[#E2E8F0] bg-white hover:border-[#0B57D0]']"
+                role === 'farmer' ? 'border-[#0B57D0] dark:border-blue-500 bg-[#EEF2F6] dark:bg-blue-950/20' : 'border-[#E2E8F0] dark:border-[#30363D] bg-white dark:bg-[#161B22] hover:border-[#0B57D0] dark:hover:border-blue-400']"
             >
               <div class="w-10 h-10 rounded-xl bg-[#0B57D0] text-white flex items-center justify-center shrink-0">
                 <Tractor class="w-5 h-5" />
               </div>
               <div class="flex-1">
                 <div class="flex items-center justify-between">
-                  <h4 class="text-[14px] font-bold text-[#1E2328]">{{ $t('auth.agriculturalFarmerCoop') }}</h4>
-                  <input type="radio" name="accountRole" :checked="role === 'farmer'" />
+                  <h4 class="text-[14px] font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('auth.agriculturalFarmerCoop') }}</h4>
+                  <input type="radio" name="accountRole" :checked="role === 'farmer'" class="accent-[#0B57D0]" />
                 </div>
-                <p class="text-[12px] text-[#5A6270] mt-0.5">
+                <p class="text-[12px] text-[#5A6270] dark:text-[#8B949E] mt-0.5">
                   {{ $t('auth.farmerCoopDesc') }}
                 </p>
               </div>
@@ -81,17 +81,17 @@
             <div 
               @click="role = 'buyer'" 
               :class="['p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3.5', 
-                role === 'buyer' ? 'border-[#0B57D0] bg-[#EEF2F6]' : 'border-[#E2E8F0] bg-white hover:border-[#0B57D0]']"
+                role === 'buyer' ? 'border-[#0B57D0] dark:border-blue-500 bg-[#EEF2F6] dark:bg-blue-950/20' : 'border-[#E2E8F0] dark:border-[#30363D] bg-white dark:bg-[#161B22] hover:border-[#0B57D0] dark:hover:border-blue-400']"
             >
               <div class="w-10 h-10 rounded-xl bg-[#0B57D0] text-white flex items-center justify-center shrink-0">
                 <ShoppingBag class="w-5 h-5" />
               </div>
               <div class="flex-1">
                 <div class="flex items-center justify-between">
-                  <h4 class="text-[14px] font-bold text-[#1E2328]">{{ $t('auth.commercialBuyer') }}</h4>
-                  <input type="radio" name="accountRole" :checked="role === 'buyer'" />
+                  <h4 class="text-[14px] font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('auth.commercialBuyer') }}</h4>
+                  <input type="radio" name="accountRole" :checked="role === 'buyer'" class="accent-[#0B57D0]" />
                 </div>
-                <p class="text-[12px] text-[#5A6270] mt-0.5">
+                <p class="text-[12px] text-[#5A6270] dark:text-[#8B949E] mt-0.5">
                   {{ $t('auth.buyerDesc') }}
                 </p>
               </div>
@@ -110,7 +110,7 @@
         <!-- STEP 2: Capability & Ownership Info Form (Immediately after choosing account type) -->
         <form v-if="step === 2" @submit.prevent="handleStep2Submit" class="space-y-4">
           <div class="text-center py-1">
-            <span class="text-[12px] font-bold text-[#0B57D0] bg-[#EEF2F6] px-3 py-1 rounded-full uppercase tracking-wider inline-block">
+            <span class="text-[12px] font-bold text-[#0B57D0] dark:text-blue-400 bg-[#EEF2F6] dark:bg-[#21262D] px-3 py-1 rounded-full uppercase tracking-wider inline-block">
               {{ role === 'farmer' ? $t('auth.farmDetails') : $t('auth.businessDetails') }}
             </span>
           </div>
@@ -118,7 +118,7 @@
           <!-- FARMER CAPABILITY FORM -->
           <template v-if="role === 'farmer'">
             <div>
-              <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('auth.farmSizeHectares') }}</label>
+              <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ $t('auth.farmSizeHectares') }}</label>
               <input 
                 type="number" 
                 required 
@@ -126,24 +126,24 @@
                 step="0.5"
                 v-model.number="farmSize" 
                 placeholder="e.g. 12.5" 
-                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]" 
+                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]" 
               />
             </div>
 
             <div>
-              <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('auth.primaryCrops') }}</label>
+              <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ $t('auth.primaryCrops') }}</label>
               <input 
                 type="text" 
                 required 
                 v-model="primaryCrops" 
                 placeholder="e.g. Sidama Coffee, White Teff, Sesame" 
-                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]" 
+                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]" 
               />
             </div>
 
             <div>
-              <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('auth.selectRegion') }}</label>
-              <select v-model="region" class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]">
+              <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ $t('auth.selectRegion') }}</label>
+              <select v-model="region" class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]">
                 <option value="SNNPR">{{ $t('SNNPR') }}</option>
                 <option value="Oromia">{{ $t('Oromia') }}</option>
                 <option value="Amhara">{{ $t('Amhara') }}</option>
@@ -160,19 +160,19 @@
           <!-- BUYER CAPABILITY FORM -->
           <template v-else>
             <div>
-              <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('auth.companyName') }}</label>
+              <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ $t('auth.companyName') }}</label>
               <input 
                 type="text" 
                 required 
                 v-model="companyName" 
                 placeholder="e.g. Addis Grain Processing Co." 
-                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]" 
+                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]" 
               />
             </div>
 
             <div>
-              <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('auth.businessType') }}</label>
-              <select v-model="businessType" class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]">
+              <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ $t('auth.businessType') }}</label>
+              <select v-model="businessType" class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]">
                 <option value="exporter">{{ $t('Agricultural Exporter') }}</option>
                 <option value="processor">{{ $t('Food Processor / Mill') }}</option>
                 <option value="wholesaler">{{ $t('Bulk Wholesaler') }}</option>
@@ -183,8 +183,8 @@
             </div>
 
             <div>
-              <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('auth.selectRegion') }}</label>
-              <select v-model="region" class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]">
+              <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ $t('auth.selectRegion') }}</label>
+              <select v-model="region" class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]">
                 <option value="Addis Ababa">{{ $t('Addis Ababa') }}</option>
                 <option value="Oromia">{{ $t('Oromia') }}</option>
                 <option value="Amhara">{{ $t('Amhara') }}</option>
@@ -199,7 +199,7 @@
             <button 
               type="button" 
               @click="step = 1" 
-              class="w-1/3 py-3.5 rounded-xl border border-[#E2E8F0] text-[#5A6270] font-bold text-[13px] hover:bg-[#EEF2F6] cursor-pointer"
+              class="w-1/3 py-3.5 rounded-xl border border-[#E2E8F0] dark:border-[#30363D] text-[#5A6270] dark:text-[#8B949E] font-bold text-[13px] hover:bg-[#EEF2F6] dark:hover:bg-[#21262D] cursor-pointer"
             >
               {{ $t('Back') }}
             </button>
@@ -216,57 +216,57 @@
         <!-- STEP 3: Account Credentials & Contact -->
         <form v-if="step === 3" @submit.prevent="handleSendOtp" class="space-y-4">
           <div class="text-center py-1">
-            <span class="text-[12px] font-bold text-[#0B57D0] bg-[#EEF2F6] px-3 py-1 rounded-full uppercase tracking-wider inline-block">
+            <span class="text-[12px] font-bold text-[#0B57D0] dark:text-blue-400 bg-[#EEF2F6] dark:bg-[#21262D] px-3 py-1 rounded-full uppercase tracking-wider inline-block">
               {{ $t('auth.phonePassword') }}
             </span>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('auth.firstName') }}</label>
+              <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ $t('auth.firstName') }}</label>
               <input 
                 type="text" 
                 required 
                 v-model="firstName" 
                 placeholder="e.g. Abebe" 
-                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]" 
+                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]" 
               />
             </div>
             <div>
-              <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('auth.secondName') }}</label>
+              <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ $t('auth.secondName') }}</label>
               <input 
                 type="text" 
                 required 
                 v-model="secondName" 
                 placeholder="e.g. Girma" 
-                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]" 
+                class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]" 
               />
             </div>
           </div>
 
           <div>
-            <label class="text-[12px] font-bold text-[#1E2328] block mb-1 flex items-center justify-between">
+            <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] mb-1 flex items-center justify-between">
               <span>{{ $t('auth.mobilePhone') }}</span>
-              <Phone class="w-3.5 h-3.5 text-[#0B57D0]" />
+              <Phone class="w-3.5 h-3.5 text-[#0B57D0] dark:text-blue-400" />
             </label>
             <input 
               type="tel" 
               required 
               v-model="phone" 
               placeholder="0911234567" 
-              class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-semibold text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]" 
+              class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-semibold text-[#1E2328] dark:text-[#F0F6FC] placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]" 
             />
           </div>
 
           <div>
-            <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ $t('auth.password') }}</label>
+            <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ $t('auth.password') }}</label>
             <input 
               type="password" 
               required 
               minlength="6" 
               v-model="password" 
               placeholder="••••••••••••" 
-              class="w-full px-3.5 py-2.5 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] focus:outline-none focus:bg-white focus:border-[#0B57D0]" 
+              class="w-full px-3.5 py-2.5 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0]" 
             />
           </div>
 
@@ -274,7 +274,7 @@
             <button 
               type="button" 
               @click="step = 2" 
-              class="w-1/3 py-3.5 rounded-xl border border-[#E2E8F0] text-[#5A6270] font-bold text-[13px] hover:bg-[#EEF2F6] cursor-pointer"
+              class="w-1/3 py-3.5 rounded-xl border border-[#E2E8F0] dark:border-[#30363D] text-[#5A6270] dark:text-[#8B949E] font-bold text-[13px] hover:bg-[#EEF2F6] dark:hover:bg-[#21262D] cursor-pointer"
             >
               {{ $t('Back') }}
             </button>
@@ -296,17 +296,17 @@
         <!-- STEP 4: SMS OTP Verification & Registration -->
         <form v-if="step === 4" @submit.prevent="handleSubmitRegistration" class="space-y-4">
           <div class="text-center py-1">
-            <span class="text-[12px] font-bold text-[#0B57D0] bg-[#EEF2F6] px-3 py-1 rounded-full uppercase tracking-wider inline-block">
+            <span class="text-[12px] font-bold text-[#0B57D0] dark:text-blue-400 bg-[#EEF2F6] dark:bg-[#21262D] px-3 py-1 rounded-full uppercase tracking-wider inline-block">
               {{ $t('auth.smsVerification') }}
             </span>
           </div>
 
-          <div class="bg-[#EEF2F6] p-4 rounded-xl text-center space-y-3">
+          <div class="bg-[#EEF2F6] dark:bg-[#21262D] p-4 rounded-xl text-center space-y-3">
             <div class="w-10 h-10 rounded-full bg-[#0B57D0] text-white flex items-center justify-center mx-auto">
               <KeyRound class="w-5 h-5" />
             </div>
-            <p class="text-xs font-semibold text-[#5A6270]">
-              {{ $t('A 6-digit SMS verification code was sent to') }} <strong class="text-[#0B57D0]">{{ phone }}</strong>
+            <p class="text-xs font-semibold text-[#5A6270] dark:text-[#8B949E]">
+              {{ $t('A 6-digit SMS verification code was sent to') }} <strong class="text-[#0B57D0] dark:text-blue-400">{{ phone }}</strong>
             </p>
             <input 
               type="text" 
@@ -314,18 +314,18 @@
               maxlength="6" 
               v-model="otpCode" 
               :placeholder="$t('auth.enterOtpCode')" 
-              class="w-full text-center tracking-[8px] text-[20px] font-black py-3 bg-white border border-[#0B57D0] rounded-xl text-[#0B57D0] focus:outline-none shadow-xs" 
+              class="w-full text-center tracking-[8px] text-[20px] font-black py-3 bg-white dark:bg-[#161B22] border border-[#0B57D0] dark:border-blue-500 rounded-xl text-[#0B57D0] dark:text-blue-400 focus:outline-none shadow-xs" 
             />
-            <div class="text-xs text-[#5A6270]">
+            <div class="text-xs text-[#5A6270] dark:text-[#8B949E]">
               <button 
                 v-if="canResend" 
                 type="button" 
                 @click="handleSendOtp" 
-                class="text-[#0B57D0] font-bold hover:underline cursor-pointer"
+                class="text-[#0B57D0] dark:text-blue-400 font-bold hover:underline cursor-pointer"
               >
                 {{ $t('auth.resendOtp') }}
               </button>
-              <span v-else>{{ $t('Resend code in') }} <strong class="text-[#E69500]">{{ timer }}s</strong></span>
+              <span v-else>{{ $t('Resend code in') }} <strong class="text-[#E69500] dark:text-amber-400">{{ timer }}s</strong></span>
             </div>
           </div>
 
@@ -333,7 +333,7 @@
             <button 
               type="button" 
               @click="step = 3" 
-              class="w-1/3 py-3.5 rounded-xl border border-[#E2E8F0] text-[#5A6270] font-bold text-[13px] hover:bg-[#EEF2F6] cursor-pointer"
+              class="w-1/3 py-3.5 rounded-xl border border-[#E2E8F0] dark:border-[#30363D] text-[#5A6270] dark:text-[#8B949E] font-bold text-[13px] hover:bg-[#EEF2F6] dark:hover:bg-[#21262D] cursor-pointer"
             >
               {{ $t('Back') }}
             </button>
@@ -354,11 +354,11 @@
 
         <!-- STEP 5: Success & Portal Entry -->
         <div v-if="step === 5" class="text-center space-y-4 py-3">
-          <div class="w-14 h-14 rounded-full bg-[#EEF2F6] text-[#0B57D0] flex items-center justify-center mx-auto border-2 border-[#0B57D0]">
+          <div class="w-14 h-14 rounded-full bg-[#EEF2F6] dark:bg-[#21262D] text-[#0B57D0] dark:text-blue-400 flex items-center justify-center mx-auto border-2 border-[#0B57D0] dark:border-blue-500">
             <CheckCircle2 class="w-8 h-8 stroke-[2.5]" />
           </div>
-          <h3 class="text-[18px] font-bold text-[#1E2328]">{{ $t('auth.regSuccessTitle') }}</h3>
-          <p class="text-[13px] text-[#5A6270] max-w-xs mx-auto leading-relaxed">
+          <h3 class="text-[18px] font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('auth.regSuccessTitle') }}</h3>
+          <p class="text-[13px] text-[#5A6270] dark:text-[#8B949E] max-w-xs mx-auto leading-relaxed">
             {{ $t('auth.regSuccessDesc') }}
           </p>
           <button 
@@ -370,7 +370,7 @@
         </div>
 
         <div class="text-center text-[12px] pt-2">
-          <router-link to="/login" class="text-[#0B57D0] hover:underline font-bold">
+          <router-link to="/login" class="text-[#0B57D0] dark:text-blue-400 hover:underline font-bold">
             {{ $t('auth.alreadyAccount') }} {{ $t('auth.signIn') }}
           </router-link>
         </div>

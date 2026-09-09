@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-[#EEF2F6] flex items-center justify-center p-4">
-    <div class="w-full max-w-[430px] bg-white rounded-[24px] shadow-xl overflow-hidden border border-[#E2E8F0] relative">
+  <div class="min-h-screen bg-[#EEF2F6] dark:bg-[#0D1117] flex items-center justify-center p-4">
+    <div class="w-full max-w-[430px] bg-white dark:bg-[#161B22] rounded-[24px] shadow-xl overflow-hidden border border-[#E2E8F0] dark:border-[#30363D] relative">
       <div class="h-[5px] w-full bg-gradient-to-r from-[#0B57D0] via-[#F3A712] to-[#E69500]" />
       <div class="p-6 md:p-8 space-y-6">
         <!-- Top Navigation Row: Back Button (Top-Left) & Color Dots (Top-Right) -->
@@ -15,35 +15,35 @@
         <div class="pt-1">
           <QelemMedaLogo :size="58" variant="full" :showTagline="true" />
         </div>
-        <div class="flex items-center gap-2 pt-1 border-t border-gray-100">
+        <div class="flex items-center gap-2 pt-1 border-t border-gray-100 dark:border-[#30363D]">
           <div class="w-[5px] h-6 bg-[#E69500] rounded-full" />
-          <h1 class="text-[18px] font-extrabold text-[#0B57D0]">{{ t('signInTitle') }}</h1>
+          <h1 class="text-[18px] font-extrabold text-[#0B57D0] dark:text-blue-400">{{ t('signInTitle') }}</h1>
         </div>
 
-        <div v-if="authError" class="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2 text-xs text-red-700">
-          <AlertCircle class="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+        <div v-if="authError" class="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/50 rounded-xl p-3 flex items-start gap-2 text-xs text-red-700 dark:text-red-300">
+          <AlertCircle class="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
           <span>{{ authError }}</span>
         </div>
 
         <form @submit.prevent="handleLogin" class="space-y-4">
           <div>
-            <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ t('mobilePhone') }}</label>
+            <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ t('mobilePhone') }}</label>
             <input type="text" required placeholder="0911234567 or +251..." v-model="phoneOrEmail"
-              class="w-full px-4 py-3 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] placeholder-[#9BA1AA] focus:outline-none focus:bg-white focus:border-[#0B57D0] transition-all" />
+              class="w-full px-4 py-3 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] placeholder-[#9BA1AA] dark:placeholder-[#8B949E] focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0] dark:focus:border-blue-400 transition-all" />
           </div>
           <div>
-            <label class="text-[12px] font-bold text-[#1E2328] block mb-1">{{ t('password') }}</label>
+            <label class="text-[12px] font-bold text-[#1E2328] dark:text-[#F0F6FC] block mb-1">{{ t('password') }}</label>
             <div class="relative">
               <input :type="showPassword ? 'text' : 'password'" required minlength="6" placeholder="••••••••" v-model="password"
-                class="w-full pl-4 pr-11 py-3 bg-[#F0F3F7] border border-transparent rounded-xl text-[14px] font-medium text-[#1E2328] placeholder-[#9BA1AA] focus:outline-none focus:bg-white focus:border-[#0B57D0] transition-all" />
-              <button type="button" @click="showPassword = !showPassword" class="absolute right-3.5 top-3.5 text-[#0B57D0] hover:opacity-80">
+                class="w-full pl-4 pr-11 py-3 bg-[#F0F3F7] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl text-[14px] font-medium text-[#1E2328] dark:text-[#F0F6FC] placeholder-[#9BA1AA] dark:placeholder-[#8B949E] focus:outline-none focus:bg-white dark:focus:bg-[#161B22] focus:border-[#0B57D0] dark:focus:border-blue-400 transition-all" />
+              <button type="button" @click="showPassword = !showPassword" class="absolute right-3.5 top-3.5 text-[#0B57D0] dark:text-blue-400 hover:opacity-80">
                 <EyeOff v-if="showPassword" class="w-4 h-4" />
                 <Eye v-else class="w-4 h-4" />
               </button>
             </div>
           </div>
           <button type="submit" :disabled="isLoading"
-            class="w-full py-3.5 rounded-xl bg-[#0B57D0] text-white font-bold text-[15px] shadow-md hover:bg-[#0842A0] disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+            class="w-full py-3.5 rounded-xl bg-[#0B57D0] dark:bg-blue-600 text-white font-bold text-[15px] shadow-md hover:bg-[#0842A0] dark:hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer">
             <template v-if="isLoading">
               <Loader2 class="w-4 h-4 animate-spin" /> {{ t('authenticating') }}
             </template>
@@ -52,9 +52,9 @@
         </form>
 
         <div class="text-center pt-2 text-[13px]">
-          <p class="text-[#5A6270]">
+          <p class="text-[#5A6270] dark:text-[#8B949E]">
             {{ t('noAccount') }}
-            <router-link to="/register" class="text-[#0B57D0] font-bold hover:underline">{{ t('registerNewAccount') }}</router-link>
+            <router-link to="/register" class="text-[#0B57D0] dark:text-blue-400 font-bold hover:underline">{{ t('registerNewAccount') }}</router-link>
           </p>
         </div>
       </div>

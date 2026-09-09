@@ -1,11 +1,11 @@
 <template>
-  <div :class="['w-full bg-[#F8F9FA] rounded-2xl p-4 border border-[#E2E4E7]', className]">
-    <div class="flex items-center justify-between pb-3 border-b border-[#E2E4E7] mb-3">
+  <div :class="['w-full bg-[#F8F9FA] dark:bg-[#161B22] rounded-2xl p-4 border border-[#E2E4E7] dark:border-[#30363D]', className]">
+    <div class="flex items-center justify-between pb-3 border-b border-[#E2E4E7] dark:border-[#30363D] mb-3">
       <div class="flex items-center gap-2">
-        <ShieldCheck class="w-4 h-4 text-[#1E9444]" />
-        <span class="text-xs font-bold text-[#1E2328]">{{ $t('orders.timeline') }}</span>
+        <ShieldCheck class="w-4 h-4 text-[#1E9444] dark:text-emerald-400" />
+        <span class="text-xs font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('orders.timeline') }}</span>
       </div>
-      <span class="text-[11px] font-semibold text-[#5A6270]">
+      <span class="text-[11px] font-semibold text-[#5A6270] dark:text-[#8B949E]">
         {{ $t('auth.stepOf') }} {{ activeStepIndex + 1 }} / {{ steps.length }}
       </span>
     </div>
@@ -13,15 +13,15 @@
     <!-- Vertical Timeline List -->
     <div class="relative pl-6 space-y-4">
       <!-- Vertical connecting line -->
-      <div class="absolute top-2 bottom-2 left-2.5 w-0.5 bg-[#E2E4E7] -z-0" />
+      <div class="absolute top-2 bottom-2 left-2.5 w-0.5 bg-[#E2E4E7] dark:bg-[#30363D] -z-0" />
 
       <div v-for="(step, idx) in steps" :key="step.key" class="relative z-10 flex items-start justify-between gap-3 group">
         <!-- Step Icon / Indicator -->
         <div :class="[
           'absolute -left-6 top-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border transition-all',
           isDone(idx) ? 'bg-[#1E9444] border-[#1E9444] text-white shadow-xs' :
-          isActive(idx) ? 'bg-white border-[#1E9444] text-[#1E9444] ring-4 ring-emerald-100' :
-          'bg-white border-[#E2E4E7] text-gray-400'
+          isActive(idx) ? 'bg-white dark:bg-[#161B22] border-[#1E9444] text-[#1E9444] dark:text-emerald-400 ring-4 ring-emerald-100 dark:ring-emerald-950/50' :
+          'bg-white dark:bg-[#21262D] border-[#E2E4E7] dark:border-[#30363D] text-gray-400 dark:text-gray-500'
         ]">
           <Check v-if="isDone(idx)" class="w-3 h-3 stroke-[3]" />
           <span v-else-if="isActive(idx)" class="w-2 h-2 rounded-full bg-[#1E9444] animate-pulse" />
@@ -30,27 +30,27 @@
 
         <div class="flex-1 space-y-0.5">
           <div class="flex items-center gap-2">
-            <h5 :class="['text-xs font-bold', (isDone(idx) || isActive(idx)) ? 'text-[#1E2328]' : 'text-gray-400']">
+            <h5 :class="['text-xs font-bold', (isDone(idx) || isActive(idx)) ? 'text-[#1E2328] dark:text-[#F0F6FC]' : 'text-gray-400 dark:text-gray-500']">
               {{ step.title }}
             </h5>
-            <span v-if="isActive(idx)" class="px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+            <span v-if="isActive(idx)" class="px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">
               {{ $t('common.active') }}
             </span>
           </div>
-          <p :class="['text-[11px]', (isDone(idx) || isActive(idx)) ? 'text-[#5A6270]' : 'text-gray-400']">
+          <p :class="['text-[11px]', (isDone(idx) || isActive(idx)) ? 'text-[#5A6270] dark:text-[#8B949E]' : 'text-gray-400 dark:text-gray-500']">
             {{ step.description }}
           </p>
         </div>
 
         <!-- Right Side Badge / Detail -->
         <div class="shrink-0 text-right">
-          <span v-if="isDone(idx)" class="text-[10px] font-bold text-[#1E9444] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+          <span v-if="isDone(idx)" class="text-[10px] font-bold text-[#1E9444] dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/60">
             {{ $t('common.completed') }}
           </span>
-          <span v-else-if="isActive(idx)" class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+          <span v-else-if="isActive(idx)" class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/60">
             {{ $t('common.processing') }}
           </span>
-          <span v-else class="text-[10px] font-medium text-gray-400">
+          <span v-else class="text-[10px] font-medium text-gray-400 dark:text-gray-500">
             {{ $t('common.pending') }}
           </span>
         </div>

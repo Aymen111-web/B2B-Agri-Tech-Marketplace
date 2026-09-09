@@ -1,19 +1,19 @@
 <template>
   <div class="space-y-6 max-w-2xl mx-auto pb-12">
     <!-- Header -->
-    <div class="flex items-center justify-between border-b border-[#E2E4E7] pb-3">
+    <div class="flex items-center justify-between border-b border-[#E2E4E7] dark:border-[#30363D] pb-3">
       <div class="flex items-center gap-3">
-        <router-link to="/buyer/cart" class="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-colors">
+        <router-link to="/buyer/cart" class="p-2 hover:bg-gray-100 dark:hover:bg-[#21262D] rounded-xl text-gray-500 dark:text-gray-400 transition-colors">
           <ArrowLeft class="w-5 h-5" />
         </router-link>
         <div>
-          <h1 class="text-lg font-black text-[#1E2328]">Procurement Batch Checkout</h1>
-          <p class="text-xs text-[#5A6270]">Review selected produce batches & total Chapa Escrow payable</p>
+          <h1 class="text-lg font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('checkout.title') }}</h1>
+          <p class="text-xs text-[#5A6270] dark:text-[#8B949E]">{{ $t('checkout.subtitle') }}</p>
         </div>
       </div>
 
-      <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-[#1E9444] border border-emerald-200 text-[11px] font-bold flex items-center gap-1">
-        <ShieldCheck class="w-3.5 h-3.5" /> Chapa Protected
+      <span class="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 text-[11px] font-bold flex items-center gap-1">
+        <ShieldCheck class="w-3.5 h-3.5" /> {{ $t('badges.escrowProtected') }}
       </span>
     </div>
 
@@ -21,58 +21,58 @@
     <div v-if="checkoutItems.length > 0" class="space-y-6">
       
       <!-- Selected Produce Batches List Card -->
-      <div class="bg-white border border-[#E2E4E7] rounded-2xl p-5 shadow-2xs space-y-4">
-        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-          <span class="text-xs font-black text-[#1E2328] uppercase tracking-wider">
-            Selected Produce Batches ({{ checkoutItems.length }})
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-5 shadow-2xs space-y-4">
+        <div class="flex justify-between items-center border-b border-gray-100 dark:border-[#21262D] pb-3">
+          <span class="text-xs font-black text-[#1E2328] dark:text-[#F0F6FC] uppercase tracking-wider">
+            {{ $t('cart.selectedItems') }} ({{ checkoutItems.length }})
           </span>
-          <router-link to="/buyer/cart" class="text-xs font-bold text-[#0B57D0] hover:underline">
-            Edit Cart Items
+          <router-link to="/buyer/cart" class="text-xs font-bold text-[#0B57D0] dark:text-blue-400 hover:underline">
+            {{ $t('cart.title') }}
           </router-link>
         </div>
 
-        <div class="space-y-4 divide-y divide-gray-100">
+        <div class="space-y-4 divide-y divide-gray-100 dark:divide-[#21262D]">
           <div 
             v-for="item in checkoutItems" 
             :key="item.id || item.listing?.id"
             class="pt-3 first:pt-0 space-y-3"
           >
             <div class="flex items-start gap-3">
-              <div class="w-12 h-12 bg-[#F8F9FA] border border-gray-100 rounded-xl flex items-center justify-center text-2xl shrink-0">
+              <div class="w-12 h-12 bg-[#F8F9FA] dark:bg-[#21262D] border border-gray-100 dark:border-[#30363D] rounded-xl flex items-center justify-center text-2xl shrink-0">
                 {{ item.listing?.cropEmoji || '🌾' }}
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-0.5">
-                  <span class="px-2 py-0.5 rounded bg-blue-50 text-[#0B57D0] text-[10px] font-bold">
+                  <span class="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 text-[10px] font-bold">
                     {{ item.listing?.grade || 'Grade 1' }}
                   </span>
                 </div>
-                <h3 class="text-sm font-bold text-[#1E2328] truncate">{{ item.listing?.cropName }}</h3>
-                <p class="text-[11px] text-[#5A6270]">
+                <h3 class="text-sm font-bold text-[#1E2328] dark:text-[#F0F6FC] truncate">{{ item.listing?.cropName }}</h3>
+                <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">
                   {{ item.listing?.farmer?.name || 'Producer' }} · {{ item.listing?.region || 'Ethiopia' }}
                 </p>
               </div>
 
               <div class="text-right shrink-0">
-                <span class="text-xs font-black text-[#1E9444]">
+                <span class="text-xs font-black text-[#1E9444] dark:text-emerald-400">
                   {{ formatETB((item.listing?.pricePerKg || 0) * (item.quantityKg || 100)) }}
                 </span>
-                <span class="text-[10px] text-gray-400 block">
-                  {{ formatETB(item.listing?.pricePerKg) }}/kg
+                <span class="text-[10px] text-gray-400 dark:text-gray-500 block">
+                  {{ formatETB(item.listing?.pricePerKg) }}{{ $t('common.perKg') }}
                 </span>
               </div>
             </div>
 
             <!-- Quantity Controls per Item -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-[#F8F9FA] p-3 rounded-xl border border-gray-100 text-xs gap-3">
-              <span class="text-gray-500 font-medium">Sourcing Volume:</span>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-[#F8F9FA] dark:bg-[#21262D] p-3 rounded-xl border border-gray-100 dark:border-[#30363D] text-xs gap-3">
+              <span class="text-gray-500 dark:text-gray-400 font-medium">{{ $t('common.quantity') }}:</span>
               <div class="flex items-center gap-2">
                 <!-- Minus Button -->
                 <button 
                   type="button"
                   @click="updateQty(item, (item.quantityKg || 1) - 1)"
                   :disabled="(item.quantityKg || 1) <= 1"
-                  class="w-10 h-10 bg-white hover:bg-gray-100 text-gray-800 border border-gray-300 disabled:opacity-40 rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                  class="w-10 h-10 bg-white dark:bg-[#161B22] hover:bg-gray-100 dark:hover:bg-[#30363D] text-gray-800 dark:text-[#F0F6FC] border border-gray-300 dark:border-[#30363D] disabled:opacity-40 rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
                   title="Decrease volume by 1"
                 >
                   -
@@ -86,7 +86,7 @@
                   min="1"
                   :max="item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? Math.max(item.listing.availableQty, 1) : 100000"
                   step="1"
-                  class="w-20 py-2 bg-white border border-[#E2E4E7] focus:border-[#0B57D0] focus:outline-none font-black text-[#1E2328] text-center rounded-xl text-sm shadow-2xs"
+                  class="w-20 py-2 bg-white dark:bg-[#0D1117] border border-[#E2E4E7] dark:border-[#30363D] focus:border-[#0B57D0] dark:focus:border-blue-500 focus:outline-none font-black text-[#1E2328] dark:text-[#F0F6FC] text-center rounded-xl text-sm shadow-2xs"
                 />
 
                 <!-- Plus Button -->
@@ -94,7 +94,7 @@
                   type="button"
                   @click="updateQty(item, (item.quantityKg || 1) + 1)"
                   :disabled="(item.quantityKg || 1) >= (item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? item.listing.availableQty : 100000)"
-                  class="w-10 h-10 bg-[#0B57D0]/10 text-[#0B57D0] hover:bg-[#0B57D0] hover:text-white border border-[#0B57D0]/30 disabled:opacity-40 rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                  class="w-10 h-10 bg-[#0B57D0]/10 dark:bg-blue-900/30 text-[#0B57D0] dark:text-blue-400 hover:bg-[#0B57D0] dark:hover:bg-blue-600 hover:text-white dark:hover:text-white border border-[#0B57D0]/30 dark:border-blue-700/50 disabled:opacity-40 rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
                   title="Increase volume by 1"
                 >
                   +
@@ -104,7 +104,7 @@
                 <select 
                   :value="item.unit || 'KG'" 
                   @change="handleUnitChange(item, $event.target.value)"
-                  class="px-2.5 py-2 bg-white border border-[#E2E4E7] focus:border-[#0B57D0] focus:outline-none font-bold text-[#1E2328] rounded-xl text-xs shadow-2xs cursor-pointer"
+                  class="px-2.5 py-2 bg-white dark:bg-[#0D1117] border border-[#E2E4E7] dark:border-[#30363D] focus:border-[#0B57D0] dark:focus:border-blue-500 focus:outline-none font-bold text-[#1E2328] dark:text-[#F0F6FC] rounded-xl text-xs shadow-2xs cursor-pointer"
                 >
                   <option value="KG">KG</option>
                   <option value="Quintals">Quintals (100 KG)</option>
@@ -117,11 +117,11 @@
       </div>
 
       <!-- Target Delivery Logistics Hub Selector -->
-      <div class="bg-white border border-[#E2E4E7] rounded-2xl p-5 shadow-2xs space-y-2">
-        <label class="text-xs font-bold text-[#1E2328]">Target Delivery Hub</label>
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-5 shadow-2xs space-y-2">
+        <label class="text-xs font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('checkout.deliveryInformation') }}</label>
         <select 
           v-model="selectedHub" 
-          class="w-full px-3.5 py-2.5 bg-[#F8F9FA] border border-[#E2E4E7] rounded-xl text-xs font-semibold text-[#1E2328] focus:border-[#0B57D0] focus:outline-none"
+          class="w-full px-3.5 py-2.5 bg-[#F8F9FA] dark:bg-[#0D1117] border border-[#E2E4E7] dark:border-[#30363D] rounded-xl text-xs font-semibold text-[#1E2328] dark:text-[#F0F6FC] focus:border-[#0B57D0] dark:focus:border-blue-500 focus:outline-none cursor-pointer"
         >
           <option value="" disabled>Select Delivery Destination (Loading...)</option>
           <option v-for="hub in availableHubs" :key="hub.id" :value="hub.id">{{ hub.name }}</option>
@@ -129,37 +129,37 @@
       </div>
 
       <!-- Financial Breakdown Box -->
-      <div class="bg-white border border-[#E2E4E7] rounded-2xl p-5 shadow-2xs space-y-3">
-        <h4 class="text-xs font-bold text-[#1E2328] uppercase border-b border-gray-100 pb-2">Financial Breakdown</h4>
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-5 shadow-2xs space-y-3">
+        <h4 class="text-xs font-bold text-[#1E2328] dark:text-[#F0F6FC] uppercase border-b border-gray-100 dark:border-[#21262D] pb-2">{{ $t('cart.orderSummary') }}</h4>
 
         <div class="space-y-2 text-xs">
           <div 
             v-for="item in checkoutItems" 
             :key="`sum-${item.id || item.listing?.id}`"
-            class="flex justify-between text-[#5A6270]"
+            class="flex justify-between text-[#5A6270] dark:text-[#8B949E]"
           >
             <span>{{ item.listing?.cropName }} ({{ (item.quantityKg || 1).toLocaleString() }} {{ item.unit || 'KG' }})</span>
-            <span class="font-bold text-[#1E2328]">
+            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">
               {{ formatETB(getItemSubtotal(item)) }}
             </span>
           </div>
 
-          <div class="flex justify-between text-[#5A6270]">
-            <span>Chapa Escrow Fee & Inspection</span>
-            <span class="font-bold text-emerald-600">Included</span>
+          <div class="flex justify-between text-[#5A6270] dark:text-[#8B949E]">
+            <span>{{ $t('cart.escrowFee') }}</span>
+            <span class="font-bold text-emerald-600 dark:text-emerald-400">0%</span>
           </div>
 
-          <div class="border-t border-dashed border-gray-200 pt-3 flex justify-between items-center text-sm font-black">
-            <span class="text-[#1E2328]">Total Payable ETB</span>
-            <span class="text-[#1E9444] text-xl">{{ formatETB(totalPayableETB) }}</span>
+          <div class="border-t border-dashed border-gray-200 dark:border-[#30363D] pt-3 flex justify-between items-center text-sm font-black">
+            <span class="text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('cart.totalPayable') }}</span>
+            <span class="text-[#1E9444] dark:text-emerald-400 text-xl">{{ formatETB(totalPayableETB) }}</span>
           </div>
         </div>
       </div>
 
       <!-- Chapa Escrow Protection Banner -->
-      <p class="text-[11px] text-[#5A6270] flex items-center gap-2 bg-[#EDFAF2] p-3.5 rounded-xl border border-[#C3EFCF]">
-        <Lock class="w-4 h-4 text-[#1E9444] shrink-0" />
-        <span>Funds locked in Chapa Escrow. Payment released to farmers ONLY after driver delivery PIN handoff.</span>
+      <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E] flex items-center gap-2 bg-[#EDFAF2] dark:bg-emerald-950/40 p-3.5 rounded-xl border border-[#C3EFCF] dark:border-emerald-800/60">
+        <Lock class="w-4 h-4 text-[#1E9444] dark:text-emerald-400 shrink-0" />
+        <span>{{ $t('checkout.termsAcceptance') }}</span>
       </p>
 
       <!-- Pay Action Button -->
@@ -178,10 +178,10 @@
     </div>
 
     <!-- Empty State -->
-    <div v-else class="text-center py-12 bg-white border border-[#E2E4E7] rounded-2xl p-6 text-[#5A6270] space-y-3">
-      <p>No produce batches selected for checkout.</p>
-      <router-link to="/buyer/marketplace" class="text-[#0B57D0] font-bold text-xs hover:underline">
-        Browse Produce Marketplace
+    <div v-else class="text-center py-12 bg-white dark:bg-[#161B22] border border-[#E2E8F0] dark:border-[#30363D] rounded-2xl p-6 text-[#5A6270] dark:text-[#8B949E] space-y-3">
+      <p>{{ $t('cart.emptyCartTitle') }}</p>
+      <router-link to="/buyer/marketplace" class="text-[#0B57D0] dark:text-blue-400 font-bold text-xs hover:underline">
+        {{ $t('marketplace.browseMarketplace') }}
       </router-link>
     </div>
   </div>

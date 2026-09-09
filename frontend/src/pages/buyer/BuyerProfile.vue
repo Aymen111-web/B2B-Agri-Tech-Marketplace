@@ -1,24 +1,24 @@
 <template>
   <div class="space-y-6 max-w-4xl pb-6">
     <!-- Top Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E4E7] pb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E4E7] dark:border-[#30363D] pb-4">
       <div>
-        <h1 class="text-2xl font-black text-[#1E2328] tracking-tight">
+        <h1 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">
           {{ $t('buyer.profileTitle') }} 👤
         </h1>
-        <p class="text-xs text-[#5A6270] mt-0.5">
+        <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-0.5">
           {{ $t('buyer.profileSub') }}
         </p>
       </div>
 
       <div class="flex items-center gap-2">
         <button @click="openEditModal" 
-          class="px-4 py-2 bg-white border border-[#E2E4E7] hover:border-[#0B57D0] text-[#1E2328] hover:text-[#0B57D0] rounded-xl text-xs font-extrabold transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
-          <Edit3 class="w-3.5 h-3.5 text-[#0B57D0]" />
+          class="px-4 py-2 bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] hover:border-[#0B57D0] text-[#1E2328] dark:text-[#F0F6FC] hover:text-[#0B57D0] rounded-xl text-xs font-extrabold transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
+          <Edit3 class="w-3.5 h-3.5 text-[#0B57D0] dark:text-blue-400" />
           <span>{{ $t('Edit Profile') }}</span>
         </button>
         <button @click="openLogoutModal" 
-          class="px-4 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 rounded-xl text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer">
+          class="px-4 py-2 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/60 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer">
           <LogOut class="w-3.5 h-3.5" />
           <span>{{ $t('Sign Out') }}</span>
         </button>
@@ -26,16 +26,16 @@
     </div>
 
     <!-- Success Toast Notification -->
-    <div v-if="successMsg" class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center justify-between">
+    <div v-if="successMsg" class="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-bold rounded-xl flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
+        <CheckCircle2 class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
         <span>{{ $t(successMsg) }}</span>
       </div>
-      <button @click="successMsg = ''" class="text-emerald-700 hover:text-emerald-900 font-extrabold text-sm">&times;</button>
+      <button @click="successMsg = ''" class="text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 font-extrabold text-sm">&times;</button>
     </div>
 
     <!-- Identity Header Card -->
-    <div class="bg-white border border-[#E2E4E7] rounded-2xl p-6 shadow-2xs space-y-4">
+    <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-6 shadow-2xs space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center gap-5">
         <!-- Avatar with Interactive Photo Upload Button -->
         <div class="relative group cursor-pointer" @click="triggerPhotoUpload">
@@ -62,32 +62,32 @@
 
         <div class="space-y-1.5 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
-            <h2 class="text-xl font-black text-[#1E2328] tracking-tight">{{ user?.name || $t('buyer.portalBadge') }}</h2>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-              <ShieldCheck class="w-3.5 h-3.5 text-[#1E9444]" />
+            <h2 class="text-xl font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">{{ user?.name || $t('buyer.portalBadge') }}</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
+              <ShieldCheck class="w-3.5 h-3.5 text-[#1E9444] dark:text-emerald-400" />
               <span>{{ $t('badges.verifiedBuyer') }}</span>
             </span>
           </div>
 
-          <p class="text-xs text-[#5A6270] flex items-center gap-2 font-semibold flex-wrap">
-            <Phone class="w-3.5 h-3.5 text-[#0B57D0]" />
+          <p class="text-xs text-[#5A6270] dark:text-[#8B949E] flex items-center gap-2 font-semibold flex-wrap">
+            <Phone class="w-3.5 h-3.5 text-[#0B57D0] dark:text-blue-400" />
             <span>{{ user?.phone || $t('No phone set') }}</span>
             <span>•</span>
-            <span class="text-[#1E2328]">{{ $t(user?.region) || 'Addis Ababa' }}</span>
+            <span class="text-[#1E2328] dark:text-[#F0F6FC]">{{ $t(user?.region) || 'Addis Ababa' }}</span>
             <span>•</span>
-            <button @click="triggerPhotoUpload" class="text-[11px] font-extrabold text-[#0B57D0] hover:underline">
+            <button @click="triggerPhotoUpload" class="text-[11px] font-extrabold text-[#0B57D0] dark:text-blue-400 hover:underline">
               {{ $t('Change Photo') }}
             </button>
           </p>
 
           <!-- Badges -->
           <div class="pt-1 flex items-center gap-2 flex-wrap">
-            <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-blue-50 text-[#0B57D0] border border-blue-200 flex items-center gap-1">
-              <Wallet class="w-3 h-3 text-[#0B57D0]" />
+            <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 border border-blue-200 dark:border-blue-800/60 flex items-center gap-1">
+              <Wallet class="w-3 h-3 text-[#0B57D0] dark:text-blue-400" />
               <span>{{ $t('badges.escrowProtected') }}</span>
             </span>
 
-            <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-amber-50 text-[#E69500] border border-amber-200 flex items-center gap-1">
+            <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-amber-50 dark:bg-amber-950/40 text-[#E69500] dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1">
               <Clock class="w-3 h-3 text-[#E69500]" />
               <span>{{ $t('Verified Account') }}</span>
             </span>
@@ -98,64 +98,64 @@
 
     <!-- Commercial & Logistics Information Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="bg-white border border-[#E2E4E7] rounded-2xl p-5 shadow-2xs space-y-4">
-        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-5 shadow-2xs space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#21262D] pb-3">
           <div class="flex items-center gap-2">
-            <Building2 class="w-4 h-4 text-[#0B57D0]" />
-            <h3 class="text-sm font-bold text-[#1E2328]">{{ $t('Commercial Sourcing Identity') }}</h3>
+            <Building2 class="w-4 h-4 text-[#0B57D0] dark:text-blue-400" />
+            <h3 class="text-sm font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('Commercial Sourcing Identity') }}</h3>
           </div>
-          <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">{{ $t('Verified') }}</span>
+          <span class="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">{{ $t('Verified') }}</span>
         </div>
 
         <div class="space-y-3 text-xs">
-          <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">{{ $t('Registered Full Name') }}:</span>
-            <span class="font-bold text-[#1E2328]">{{ user?.name || $t('Not set') }}</span>
+          <div class="flex justify-between py-1.5 border-b border-gray-50 dark:border-[#21262D]">
+            <span class="text-[#5A6270] dark:text-[#8B949E] font-semibold">{{ $t('Registered Full Name') }}:</span>
+            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ user?.name || $t('Not set') }}</span>
           </div>
-          <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">{{ $t('auth.mobilePhone') }}:</span>
-            <span class="font-bold text-[#1E2328]">{{ user?.phone || $t('Not set') }}</span>
+          <div class="flex justify-between py-1.5 border-b border-gray-50 dark:border-[#21262D]">
+            <span class="text-[#5A6270] dark:text-[#8B949E] font-semibold">{{ $t('auth.mobilePhone') }}:</span>
+            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ user?.phone || $t('Not set') }}</span>
           </div>
-          <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">{{ $t('buyer.companyName') }}:</span>
-            <span class="font-bold text-[#1E2328]">{{ user?.businessName || $t('Not specified') }}</span>
+          <div class="flex justify-between py-1.5 border-b border-gray-50 dark:border-[#21262D]">
+            <span class="text-[#5A6270] dark:text-[#8B949E] font-semibold">{{ $t('buyer.companyName') }}:</span>
+            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ user?.businessName || $t('Not specified') }}</span>
           </div>
-          <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">{{ $t('buyer.tinNumber') }}:</span>
-            <span class="font-mono font-bold text-[#1E2328]">{{ user?.tinNumber || $t('Not specified') }}</span>
+          <div class="flex justify-between py-1.5 border-b border-gray-50 dark:border-[#21262D]">
+            <span class="text-[#5A6270] dark:text-[#8B949E] font-semibold">{{ $t('buyer.tinNumber') }}:</span>
+            <span class="font-mono font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ user?.tinNumber || $t('Not specified') }}</span>
           </div>
           <div class="flex justify-between py-1.5">
-            <span class="text-[#5A6270] font-semibold">{{ $t('Primary Commercial Region') }}:</span>
-            <span class="font-bold text-[#0B57D0]">{{ $t(user?.region) || 'Addis Ababa' }}</span>
+            <span class="text-[#5A6270] dark:text-[#8B949E] font-semibold">{{ $t('Primary Commercial Region') }}:</span>
+            <span class="font-bold text-[#0B57D0] dark:text-blue-400">{{ $t(user?.region) || 'Addis Ababa' }}</span>
           </div>
         </div>
       </div>
 
-      <div class="bg-white border border-[#E2E4E7] rounded-2xl p-5 shadow-2xs space-y-4">
-        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-5 shadow-2xs space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#21262D] pb-3">
           <div class="flex items-center gap-2">
             <CreditCard class="w-4 h-4 text-[#E69500]" />
-            <h3 class="text-sm font-bold text-[#1E2328]">{{ $t('Logistics & Security') }}</h3>
+            <h3 class="text-sm font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('Logistics & Security') }}</h3>
           </div>
-          <span class="text-[10px] font-extrabold text-[#E69500] bg-amber-50 px-2 py-0.5 rounded-md">{{ $t('Active') }}</span>
+          <span class="text-[10px] font-extrabold text-[#E69500] dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md">{{ $t('Active') }}</span>
         </div>
 
         <div class="space-y-3 text-xs">
-          <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">{{ $t('buyer.warehouseAddress') }}:</span>
-            <span class="font-bold text-[#1E2328]">{{ user?.deliveryHub || 'Kality Central Hub' }}</span>
+          <div class="flex justify-between py-1.5 border-b border-gray-50 dark:border-[#21262D]">
+            <span class="text-[#5A6270] dark:text-[#8B949E] font-semibold">{{ $t('buyer.warehouseAddress') }}:</span>
+            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ user?.deliveryHub || 'Kality Central Hub' }}</span>
           </div>
-          <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">{{ $t('Escrow Security') }}:</span>
-            <span class="font-bold text-[#1E9444]">{{ $t('Chapa Escrow Protected') }}</span>
+          <div class="flex justify-between py-1.5 border-b border-gray-50 dark:border-[#21262D]">
+            <span class="text-[#5A6270] dark:text-[#8B949E] font-semibold">{{ $t('Escrow Security') }}:</span>
+            <span class="font-bold text-[#1E9444] dark:text-emerald-400">{{ $t('Chapa Escrow Protected') }}</span>
           </div>
-          <div class="flex justify-between py-1.5 border-b border-gray-50">
-            <span class="text-[#5A6270] font-semibold">{{ $t('Settlement Currency') }}:</span>
-            <span class="font-bold text-[#1E2328]">{{ $t('ETB (Ethiopian Birr)') }}</span>
+          <div class="flex justify-between py-1.5 border-b border-gray-50 dark:border-[#21262D]">
+            <span class="text-[#5A6270] dark:text-[#8B949E] font-semibold">{{ $t('Settlement Currency') }}:</span>
+            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('ETB (Ethiopian Birr)') }}</span>
           </div>
           <div class="flex justify-between py-1.5">
-            <span class="text-[#5A6270] font-semibold">{{ $t('Handover Auth') }}:</span>
-            <span class="font-bold text-[#0B57D0]">{{ $t('4-Digit Dynamic PIN') }}</span>
+            <span class="text-[#5A6270] dark:text-[#8B949E] font-semibold">{{ $t('Handover Auth') }}:</span>
+            <span class="font-bold text-[#0B57D0] dark:text-blue-400">{{ $t('4-Digit Dynamic PIN') }}</span>
           </div>
         </div>
       </div>
@@ -163,30 +163,30 @@
 
     <!-- Edit Profile Modal with Tabbed Sections -->
     <div v-if="showEditModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div class="max-w-lg w-full bg-white rounded-3xl p-6 shadow-2xl space-y-5 text-[#1E2328] border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+      <div class="max-w-lg w-full bg-white dark:bg-[#161B22] rounded-3xl p-6 shadow-2xl space-y-5 text-[#1E2328] dark:text-[#F0F6FC] border border-gray-100 dark:border-[#30363D] animate-in fade-in zoom-in-95 duration-150">
         <!-- Modal Header -->
-        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#21262D] pb-3">
           <div class="flex items-center gap-2.5">
-            <div class="p-2 bg-blue-50 text-[#0B57D0] rounded-xl">
+            <div class="p-2 bg-blue-50 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 rounded-xl">
               <UserCheck class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="text-base font-black text-[#1E2328]">{{ $t('Edit Buyer Profile') }}</h3>
-              <p class="text-[11px] text-[#5A6270]">{{ $t('Manage credentials, security, & commercial info') }}</p>
+              <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('Edit Buyer Profile') }}</h3>
+              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">{{ $t('Manage credentials, security, & commercial info') }}</p>
             </div>
           </div>
-          <button @click="showEditModal = false" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
+          <button @click="showEditModal = false" class="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#21262D] rounded-xl transition-colors">
             <X class="w-5 h-5" />
           </button>
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="flex border-b border-gray-100 text-xs font-bold gap-4">
+        <div class="flex border-b border-gray-100 dark:border-[#21262D] text-xs font-bold gap-4">
           <button 
             @click="activeTab = 'credentials'" 
             :class="[
               'pb-2.5 border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer',
-              activeTab === 'credentials' ? 'border-[#0B57D0] text-[#0B57D0]' : 'border-transparent text-gray-500 hover:text-gray-800'
+              activeTab === 'credentials' ? 'border-[#0B57D0] dark:border-blue-400 text-[#0B57D0] dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
             ]"
           >
             <User class="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@
             @click="activeTab = 'commercial'" 
             :class="[
               'pb-2.5 border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer',
-              activeTab === 'commercial' ? 'border-[#0B57D0] text-[#0B57D0]' : 'border-transparent text-gray-500 hover:text-gray-800'
+              activeTab === 'commercial' ? 'border-[#0B57D0] dark:border-blue-400 text-[#0B57D0] dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
             ]"
           >
             <Building2 class="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@
         </div>
 
         <!-- Error Alert -->
-        <div v-if="modalError" class="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl flex items-center gap-2">
+        <div v-if="modalError" class="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 text-red-700 dark:text-red-400 text-xs font-bold rounded-xl flex items-center gap-2">
           <AlertCircle class="w-4 h-4 text-red-600 shrink-0" />
           <span>{{ $t(modalError) }}</span>
         </div>
@@ -214,47 +214,47 @@
         <div v-if="activeTab === 'credentials'" class="space-y-4 text-xs">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.firstName') }}</label>
+              <label class="block font-extrabold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('auth.firstName') }}</label>
               <input type="text" v-model="form.first_name" :placeholder="$t('auth.firstName')"
-                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+                class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all" />
             </div>
             <div>
-              <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.secondName') }}</label>
+              <label class="block font-extrabold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('auth.secondName') }}</label>
               <input type="text" v-model="form.second_name" :placeholder="$t('auth.secondName')"
-                class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+                class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all" />
             </div>
           </div>
 
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.mobilePhone') }}</label>
+            <label class="block font-extrabold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('auth.mobilePhone') }}</label>
             <div class="relative">
-              <Phone class="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <Phone class="w-4 h-4 text-gray-400 dark:text-gray-500 absolute left-3 top-3" />
               <input type="text" v-model="form.phone" placeholder="+251 911 000 000"
-                class="w-full pl-9 pr-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+                class="w-full pl-9 pr-3.5 py-2.5 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all" />
             </div>
           </div>
 
-          <div class="pt-2 border-t border-gray-100">
-            <h4 class="font-black text-[#1E2328] mb-2 flex items-center gap-1.5">
-              <Key class="w-3.5 h-3.5 text-[#0B57D0]" />
+          <div class="pt-2 border-t border-gray-100 dark:border-[#21262D]">
+            <h4 class="font-black text-[#1E2328] dark:text-[#F0F6FC] mb-2 flex items-center gap-1.5">
+              <Key class="w-3.5 h-3.5 text-[#0B57D0] dark:text-blue-400" />
               <span>{{ $t('Change Password (Optional)') }}</span>
             </h4>
             <div class="space-y-2.5">
               <div>
-                <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('Current Password') }}</label>
+                <label class="block text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">{{ $t('Current Password') }}</label>
                 <input type="password" v-model="form.current_password" :placeholder="$t('Enter current password if changing')"
-                  class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+                  class="w-full px-3.5 py-2 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all" />
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                  <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('New Password') }}</label>
+                  <label class="block text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">{{ $t('New Password') }}</label>
                   <input type="password" v-model="form.new_password" placeholder="At least 6 chars"
-                    class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+                    class="w-full px-3.5 py-2 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all" />
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-gray-600 mb-1">{{ $t('auth.confirmPassword') }}</label>
+                  <label class="block text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">{{ $t('auth.confirmPassword') }}</label>
                   <input type="password" v-model="form.confirm_password" placeholder="Re-type new password"
-                    class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+                    class="w-full px-3.5 py-2 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-semibold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all" />
                 </div>
               </div>
             </div>
@@ -264,20 +264,20 @@
         <!-- Tab 2: Commercial & Logistics -->
         <div v-if="activeTab === 'commercial'" class="space-y-3.5 text-xs">
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('buyer.companyName') }}</label>
+            <label class="block font-extrabold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('buyer.companyName') }}</label>
             <input type="text" v-model="form.businessName" placeholder="e.g. Addis Supermarket PLC"
-              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+              class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all" />
           </div>
 
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('buyer.tinNumber') }}</label>
+            <label class="block font-extrabold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('buyer.tinNumber') }}</label>
             <input type="text" v-model="form.tinNumber" placeholder="e.g. 0098765432"
-              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+              class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-mono font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all" />
           </div>
 
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('auth.selectRegion') }}</label>
-            <select v-model="form.region" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all">
+            <label class="block font-extrabold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('auth.selectRegion') }}</label>
+            <select v-model="form.region" class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all">
               <option value="Addis Ababa">{{ $t('Addis Ababa') }}</option>
               <option value="Oromia">{{ $t('Oromia') }}</option>
               <option value="Amhara">{{ $t('Amhara') }}</option>
@@ -290,15 +290,15 @@
           </div>
 
           <div>
-            <label class="block font-extrabold text-[#1E2328] mb-1">{{ $t('buyer.warehouseAddress') }}</label>
+            <label class="block font-extrabold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('buyer.warehouseAddress') }}</label>
             <input type="text" v-model="form.deliveryHub" placeholder="e.g. Kality Central Logistics Depot"
-              class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white transition-all" />
+              class="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] dark:text-[#F0F6FC] rounded-xl font-bold text-xs focus:outline-none focus:border-[#0B57D0] focus:bg-white dark:focus:bg-[#0D1117] transition-all" />
           </div>
         </div>
 
         <!-- Modal Actions -->
-        <div class="flex gap-2.5 pt-3 border-t border-gray-100">
-          <button @click="showEditModal = false" class="flex-1 py-2.5 border border-gray-200 rounded-xl font-bold text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+        <div class="flex gap-2.5 pt-3 border-t border-gray-100 dark:border-[#21262D]">
+          <button @click="showEditModal = false" class="flex-1 py-2.5 border border-gray-200 dark:border-[#30363D] rounded-xl font-bold text-xs text-gray-700 dark:text-[#F0F6FC] hover:bg-gray-50 dark:hover:bg-[#21262D] transition-colors">
             {{ $t('Cancel') }}
           </button>
           <button @click="saveProfile" :disabled="isSaving"
