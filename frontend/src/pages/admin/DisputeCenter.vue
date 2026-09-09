@@ -113,7 +113,9 @@
 import { ref, onMounted } from 'vue'
 import { ShieldAlert, Check, Loader2, RefreshCcw, CheckCircle2 } from 'lucide-vue-next'
 import { adminApi } from '@/services/adminService'
+import { useAlertModal } from '@/composables/useAlertModal'
 
+const { showAlert } = useAlertModal()
 const disputes = ref([])
 const isLoading = ref(true)
 
@@ -139,7 +141,11 @@ const resolveDispute = async (id, resolution) => {
       await adminApi.resolvePaymentException(id, notes)
       loadDisputes()
     } catch (err) {
-      alert(err.message || 'Failed to resolve escalation')
+      showAlert({
+        title: 'Escrow Action Error',
+        message: err.message || 'Failed to resolve escalation',
+        type: 'error'
+      })
     }
   }
 }

@@ -254,12 +254,14 @@
 import { ref, computed, watch } from 'vue'
 import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
+import { useAlertModal } from '@/composables/useAlertModal'
 import { formatETB } from '@/utils/helpers'
 import { api } from '@/services/api'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
 const { orders, confirmDelivery, refreshOrders } = useOrders()
+const { showAlert } = useAlertModal()
 
 const activeTab = ref('all')
 const searchQuery = ref('')
@@ -372,7 +374,7 @@ const verifyPayment = async (order) => {
   try {
     const res = await api.verifyPendingPaymentForOrder(targetId)
     if (res && res.message) {
-      alert(res.message)
+      showAlert({ title: 'Payment Verification', message: res.message, type: 'success' })
     }
     if (typeof order === 'object') {
       order.status = 'paid_in_escrow'
@@ -380,7 +382,11 @@ const verifyPayment = async (order) => {
     }
     await refreshOrders()
   } catch (err) {
-    alert(err.message || "Payment is not yet verified. Please complete payment in the Chapa tester and try again.")
+    showAlert({ 
+      title: 'Payment Verification Status', 
+      message: err.message || 'Payment is not yet verified. Please complete payment in the Chapa tester and try again.', 
+      type: 'warning' 
+    })
   } finally {
     isVerifyingPayment.value = null
   }
@@ -397,7 +403,11 @@ const handlePayment = async (order) => {
       window.open(res.checkout_url, '_blank')
     }
   } catch (err) {
-    alert(err.message || 'Payment initiation failed. Please try again.')
+    showAlert({ 
+      title: 'Payment Initiation Error', 
+      message: err.message || 'Payment initiation failed. Please try again.', 
+      type: 'error' 
+    })
   } finally {
     isProcessingPayment.value = null
   }

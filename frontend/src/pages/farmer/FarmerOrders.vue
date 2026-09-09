@@ -62,14 +62,17 @@
                 {{ $t('Escrow') }}: {{ $t(order.escrowStatus || 'held') }}
               </span>
 
-              <!-- Delivery PIN Pill (if active transit/accepted) -->
-              <div v-if="(order.status === 'in_transit' || order.status === 'dispatched' || order.status === 'accepted') && order.deliveryPin"
-                @click="copyPin(order.deliveryPin)"
-                class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/50 rounded-lg text-xs font-mono font-black cursor-pointer hover:bg-emerald-100 transition-colors"
+              <!-- Simple Clean Delivery PIN Pill -->
+              <div v-if="order.deliveryPin"
+                @click.stop="copyPin(order.deliveryPin)"
+                class="flex items-center gap-2 px-3 py-1 bg-[#EDFAF2] dark:bg-emerald-950/60 border border-[#C3EFCF] dark:border-emerald-800/80 rounded-xl cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all shadow-2xs group"
                 :title="$t('Click to copy handover PIN')">
-                <span class="text-[10px] uppercase tracking-wider font-sans opacity-70">PIN:</span>
-                <span>{{ order.deliveryPin }}</span>
-                <span v-if="copiedPin === order.deliveryPin" class="text-[9px] font-sans text-emerald-600 font-bold">✓</span>
+                <span class="text-[11px] font-black uppercase text-[#0F5C2A] dark:text-emerald-300">PIN:</span>
+                <span class="font-mono text-base font-black text-[#1E9444] dark:text-emerald-400 tracking-widest">{{ order.deliveryPin }}</span>
+                <span class="ml-0.5 p-1 rounded-lg bg-[#1E9444] text-white flex items-center justify-center shrink-0">
+                  <Check v-if="copiedPin === order.deliveryPin" class="w-3.5 h-3.5" />
+                  <Copy v-else class="w-3.5 h-3.5" />
+                </span>
               </div>
 
               <!-- Price -->
@@ -106,8 +109,9 @@
           <!-- Collapsible Timeline Drawer -->
           <div v-if="expandedOrderIds[order.id]" class="mt-3 pt-3 border-t border-gray-100 dark:border-[#30363D] space-y-2 animate-in fade-in duration-200">
             <OrderTimeline :status="order.status" />
-            <p v-if="order.deliveryPin" class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">
-              {{ $t('orders.handoffInstruction') }}: <strong class="text-[#0F5C2A] dark:text-emerald-300 font-mono">{{ order.deliveryPin }}</strong>
+            <p v-if="order.deliveryPin" class="text-xs font-medium text-[#5A6270] dark:text-[#8B949E] flex items-center gap-2 pt-1">
+              <span>{{ $t('orders.handoffInstruction') }}:</span>
+              <strong class="font-mono font-black text-sm text-[#1E9444] dark:text-emerald-400 tracking-widest bg-[#EDFAF2] dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-[#C3EFCF] dark:border-emerald-800/50 select-all">{{ order.deliveryPin }}</strong>
             </p>
           </div>
         </div>
@@ -127,7 +131,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Package, Truck, CheckCircle2, ChevronDown } from 'lucide-vue-next'
+import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { formatETB, formatDate } from '@/utils/helpers'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'

@@ -135,9 +135,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { Loader2, Users, RefreshCcw, UserX, Phone, Calendar, Ban, CheckCircle2, Lock, Unlock } from 'lucide-vue-next'
 import { adminApi } from '@/services/adminService'
+import { useAlertModal } from '@/composables/useAlertModal'
 import { formatDate } from '@/utils/helpers'
 import Pagination from '@/components/common/Pagination.vue'
 
+const { showAlert } = useAlertModal()
 const users = ref([])
 const isLoading = ref(true)
 
@@ -174,7 +176,11 @@ const toggleStatus = async (user) => {
     }
     loadUsers()
   } catch (err) {
-    alert(err.message || 'Failed to modify user access')
+    showAlert({
+      title: 'User Management Error',
+      message: err.message || 'Failed to modify user access',
+      type: 'error'
+    })
   }
 }
 </script>

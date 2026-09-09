@@ -174,9 +174,11 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { Loader2, LayoutGrid, ShoppingBasket, RefreshCcw, User, Award, Calendar, PauseCircle, PlayCircle, Search } from 'lucide-vue-next'
 import { adminApi } from '@/services/adminService'
+import { useAlertModal } from '@/composables/useAlertModal'
 import { formatETB, formatDate } from '@/utils/helpers'
 import Pagination from '@/components/common/Pagination.vue'
 
+const { showAlert } = useAlertModal()
 const listings = ref([])
 const isLoading = ref(true)
 const searchQuery = ref('')
@@ -230,7 +232,11 @@ const toggleStatus = async (item) => {
     await adminApi.moderateListing(item.id, newStatus)
     loadListings()
   } catch (err) {
-    alert(err.message || 'Failed to moderate listing')
+    showAlert({
+      title: 'Moderation Error',
+      message: err.message || 'Failed to moderate listing',
+      type: 'error'
+    })
   }
 }
 </script>

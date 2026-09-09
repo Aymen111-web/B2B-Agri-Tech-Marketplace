@@ -128,6 +128,8 @@ const statusStepMap = {
 
 const activeStepIndex = computed(() => statusStepMap[props.status] ?? 0)
 
-const isDone = (idx) => idx < activeStepIndex.value || props.status === 'completed'
-const isActive = (idx) => idx === activeStepIndex.value && props.status !== 'completed'
+const isCompletedState = computed(() => props.status === 'completed' || props.status === 'delivered')
+
+const isDone = (idx) => isCompletedState.value ? idx <= activeStepIndex.value : idx < activeStepIndex.value
+const isActive = (idx) => isCompletedState.value ? false : idx === activeStepIndex.value
 </script>

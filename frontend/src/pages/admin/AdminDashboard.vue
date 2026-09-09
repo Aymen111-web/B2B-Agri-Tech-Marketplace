@@ -221,8 +221,10 @@ import { FileCheck, ListOrdered, ShoppingBag, DollarSign, ShieldAlert, TrendingU
 import { adminApi } from '@/services/adminService'
 import { formatETB, formatDate } from '@/utils/helpers'
 import { useLanguage } from '@/composables/useLanguage'
+import { useAlertModal } from '@/composables/useAlertModal'
 
 const { t } = useLanguage()
+const { showAlert } = useAlertModal()
 
 const kpis = ref(null)
 const recentActivity = ref([])
@@ -255,7 +257,11 @@ const handleQuickApprove = async (id) => {
     setTimeout(() => actionMessage.value = null, 4000)
     loadDashboardData()
   } catch (err) {
-    alert(err.message || 'Failed to approve application.')
+    showAlert({
+      title: 'Approval Error',
+      message: err.message || 'Failed to approve application.',
+      type: 'error'
+    })
   }
 }
 
@@ -268,7 +274,11 @@ const handleQuickReject = async (id) => {
     setTimeout(() => actionMessage.value = null, 4000)
     loadDashboardData()
   } catch (err) {
-    alert(err.message || 'Failed to reject application.')
+    showAlert({
+      title: 'Rejection Error',
+      message: err.message || 'Failed to reject application.',
+      type: 'error'
+    })
   }
 }
 </script>

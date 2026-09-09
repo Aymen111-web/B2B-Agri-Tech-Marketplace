@@ -349,9 +349,11 @@ import {
 import { adminApi } from '@/services/adminService'
 import { formatDate } from '@/utils/helpers'
 import { useLanguage } from '@/composables/useLanguage'
+import { useAlertModal } from '@/composables/useAlertModal'
 import Pagination from '@/components/common/Pagination.vue'
 
 const { t, currentLanguage } = useLanguage()
+const { showAlert } = useAlertModal()
 
 const applications = ref([])
 const isLoading = ref(true)
@@ -396,7 +398,11 @@ const loadApplications = async () => {
     applications.value = res.data || res
   } catch (err) {
     applications.value = []
-    alert(err.message || 'Failed to fetch applications from server.')
+    showAlert({
+      title: 'Fetch Error',
+      message: err.message || 'Failed to fetch applications from server.',
+      type: 'error'
+    })
   } finally {
     isLoading.value = false
   }
@@ -470,7 +476,11 @@ const openDoc = (doc, app = null) => {
   const docName = getDocName(doc)
 
   if (!url || url === '#') {
-    alert('Document file URL is not available.')
+    showAlert({
+      title: 'Document Unavailable',
+      message: 'Document file URL is not available.',
+      type: 'warning'
+    })
     return
   }
 
@@ -598,7 +608,11 @@ const handleApprove = async (id) => {
     await adminApi.approveApplication(id)
     loadApplications()
   } catch (err) {
-    alert(err.message || 'Failed to approve application')
+    showAlert({
+      title: 'Approval Error',
+      message: err.message || 'Failed to approve application',
+      type: 'error'
+    })
   }
 }
 </script>

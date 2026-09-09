@@ -200,6 +200,7 @@ import { useListings } from '@/composables/useListings'
 import { useOrders } from '@/composables/useOrders'
 import { useAuth } from '@/composables/useAuth'
 import { useCart } from '@/composables/useCart'
+import { useAlertModal } from '@/composables/useAlertModal'
 import { api } from '@/services/api'
 import { formatETB } from '@/utils/helpers'
 
@@ -209,6 +210,7 @@ const { getListingById, listings } = useListings()
 const { placeOrder } = useOrders()
 const { user } = useAuth()
 const { selectedItems, cartItems, updateQuantity, updateUnit, getItemSubtotal, clearCart } = useCart()
+const { showAlert } = useAlertModal()
 
 const isProcessing = ref(false)
 const availableHubs = ref([
@@ -324,7 +326,11 @@ const handleCheckout = async () => {
     clearCart()
     router.push('/buyer/orders')
   } catch (err) {
-    alert(err.message || 'Order initiation failed.')
+    showAlert({
+      title: 'Checkout Error',
+      message: err.message || 'Order initiation failed.',
+      type: 'error'
+    })
   } finally {
     isProcessing.value = false
   }
