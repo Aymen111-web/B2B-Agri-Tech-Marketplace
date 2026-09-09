@@ -1,0 +1,1 @@
+SQLSTATE[01000]: Warning: 1265 Data truncated for column 'status' at row 1 (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: farmer_marketdb, SQL: update `order_fulfillments` set `status` = paid_in_escrow, `order_fulfillments`.`updated_at` = 2026-09-09 10:51:39 where `id` = 4)
