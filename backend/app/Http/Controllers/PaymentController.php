@@ -223,12 +223,12 @@ class PaymentController extends Controller
             'order_status'   => $payment->order?->status
         ]);
 
-        // Auto-confirm test transactions or valid local payment records
-        if ($verification['success'] || in_array($payment->status, ['pending', 'confirmed']) || str_starts_with($txRef, 'TX-')) {
+        // Confirm payment ONLY if verification succeeded or payment was already confirmed
+        if ($verification['success'] || $payment->status === 'confirmed') {
             if ($payment->status !== 'confirmed') {
                 try {
                     \Illuminate\Support\Facades\Log::info("ATTEMPTING confirmPayment for $txRef");
-                    $paymentService->confirmPayment($payment, $verification['data'] ?? ['verified_via' => 'test_verification']);
+                    $paymentService->confirmPayment($payment, $verification['data'] ?? ['verified_via' => 'chapa_verification']);
                     \Illuminate\Support\Facades\Log::info("SUCCESS confirmPayment for $txRef - Order Status Now: " . $payment->fresh()->order?->status);
                 } catch (\Exception $e) {
                     \Illuminate\Support\Facades\Log::error("CRASH in confirmPayment for $txRef", ['error' => $e->getMessage()]);

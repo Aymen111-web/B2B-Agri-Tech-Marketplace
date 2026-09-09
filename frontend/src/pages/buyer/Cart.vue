@@ -51,79 +51,83 @@
             </div>
 
             <!-- Item Details -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-2">
-                <h3 class="text-sm font-bold text-[#1E2328] dark:text-[#F0F6FC] truncate">{{ item.listing?.cropName || $t('orders.crop') }}</h3>
-                <button @click="removeFromCart(item.id)" class="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 p-1">
-                  <Trash2 class="w-4 h-4" />
-                </button>
+            <div class="flex-1 min-w-0 space-y-3">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h3 class="text-sm font-bold text-[#1E2328] dark:text-[#F0F6FC] truncate">{{ item.listing?.cropName || $t('orders.crop') }}</h3>
+                  <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">
+                    {{ item.listing?.farmer?.name || 'Producer' }} · {{ item.listing?.region || 'Ethiopia' }} · 
+                    <span class="font-bold text-[#0B57D0] dark:text-blue-400">{{ item.listing?.grade || 'Grade 1' }}</span>
+                  </p>
+                </div>
+
+                <!-- Price displayed prominently above quantity/unit controls -->
+                <div class="flex items-center gap-3 shrink-0">
+                  <div class="flex flex-col items-end text-right leading-tight">
+                    <span class="font-black text-[#1E9444] dark:text-emerald-400 text-base leading-tight">
+                      {{ formatETB(getItemSubtotal(item)) }}
+                    </span>
+                    <span class="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 font-medium leading-tight">
+                      {{ formatETB(item.listing?.pricePerKg) }}{{ $t('common.perKg') }}
+                    </span>
+                  </div>
+                  <button @click="removeFromCart(item.id)" class="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 p-1">
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
-              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E] mb-2">
-                {{ item.listing?.farmer?.name || 'Producer' }} · {{ item.listing?.region || 'Ethiopia' }} · 
-                <span class="font-bold text-[#0B57D0] dark:text-blue-400">{{ item.listing?.grade || 'Grade 1' }}</span>
-              </p>
+              <!-- Quantity Selector & Unit Dropdown (Full width row) -->
+              <div class="flex items-center justify-between gap-3 pt-2 border-t border-gray-100 dark:border-[#21262D] text-xs">
+                <div class="flex items-center gap-2">
+                  <!-- Minus Button -->
+                  <button 
+                    type="button"
+                    @click="updateQuantity(item.id, item.quantityKg - 1)"
+                    :disabled="item.quantityKg <= 1"
+                    class="w-10 h-10 bg-gray-100 dark:bg-[#21262D] hover:bg-gray-200 dark:hover:bg-[#30363D] text-gray-800 dark:text-[#F0F6FC] border border-gray-300 dark:border-[#30363D] disabled:opacity-40 disabled:hover:bg-gray-100 dark:disabled:hover:bg-[#21262D] rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                    title="Decrease quantity by 1"
+                  >
+                    -
+                  </button>
+                  
+                  <!-- Direct Quantity Input -->
+                  <input 
+                    type="number" 
+                    :value="item.quantityKg"
+                    @input="updateQuantity(item.id, $event.target.value)"
+                    min="1"
+                    :max="item.unit === 'Quintals' ? Math.max(1, Math.floor((item.listing?.availableQty || 100000) / 100)) : (item.listing?.availableQty || 100000)"
+                    step="1"
+                    class="w-20 py-2 bg-white dark:bg-[#0D1117] border border-[#E2E4E7] dark:border-[#30363D] focus:border-[#0B57D0] dark:focus:border-blue-500 focus:outline-none font-black text-[#1E2328] dark:text-[#F0F6FC] text-center rounded-xl text-sm shadow-2xs"
+                  />
 
-              <!-- Quantity Selector, Unit & Price -->
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-[#21262D] text-xs">
-                <div class="space-y-1">
-                  <div class="flex items-center gap-2">
-                    <!-- Minus Button -->
-                    <button 
-                      type="button"
-                      @click="updateQuantity(item.id, item.quantityKg - 1)"
-                      :disabled="item.quantityKg <= 1"
-                      class="w-10 h-10 bg-gray-100 dark:bg-[#21262D] hover:bg-gray-200 dark:hover:bg-[#30363D] text-gray-800 dark:text-[#F0F6FC] border border-gray-300 dark:border-[#30363D] disabled:opacity-40 disabled:hover:bg-gray-100 dark:disabled:hover:bg-[#21262D] rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
-                      title="Decrease quantity by 1"
-                    >
-                      -
-                    </button>
-                    
-                    <!-- Direct Quantity Input -->
-                    <input 
-                      type="number" 
-                      :value="item.quantityKg"
-                      @input="updateQuantity(item.id, $event.target.value)"
-                      min="1"
-                      :max="item.listing?.availableQty || 100000"
-                      step="1"
-                      class="w-20 py-2 bg-white dark:bg-[#0D1117] border border-[#E2E4E7] dark:border-[#30363D] focus:border-[#0B57D0] dark:focus:border-blue-500 focus:outline-none font-black text-[#1E2328] dark:text-[#F0F6FC] text-center rounded-xl text-sm shadow-2xs"
-                    />
+                  <!-- Plus Button -->
+                  <button 
+                    type="button"
+                    @click="updateQuantity(item.id, item.quantityKg + 1)"
+                    :disabled="item.quantityKg >= (item.unit === 'Quintals' ? Math.max(1, Math.floor((item.listing?.availableQty || 100000) / 100)) : (item.listing?.availableQty || 100000))"
+                    class="w-10 h-10 bg-[#0B57D0]/10 dark:bg-blue-900/30 text-[#0B57D0] dark:text-blue-400 hover:bg-[#0B57D0] dark:hover:bg-blue-600 hover:text-white dark:hover:text-white border border-[#0B57D0]/30 dark:border-blue-700/50 disabled:opacity-40 rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
+                    title="Increase quantity by 1"
+                  >
+                    +
+                  </button>
 
-                    <!-- Plus Button -->
-                    <button 
-                      type="button"
-                      @click="updateQuantity(item.id, item.quantityKg + 1)"
-                      :disabled="item.quantityKg >= (item.listing?.availableQty || 100000)"
-                      class="w-10 h-10 bg-[#0B57D0]/10 dark:bg-blue-900/30 text-[#0B57D0] dark:text-blue-400 hover:bg-[#0B57D0] dark:hover:bg-blue-600 hover:text-white dark:hover:text-white border border-[#0B57D0]/30 dark:border-blue-700/50 disabled:opacity-40 rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
-                      title="Increase quantity by 1"
-                    >
-                      +
-                    </button>
-
-                    <!-- Unit Selector Dropdown -->
-                    <select 
-                      :value="item.unit || 'KG'" 
-                      @change="updateUnit(item.id, $event.target.value)"
-                      class="px-2.5 py-2 bg-white dark:bg-[#0D1117] border border-[#E2E4E7] dark:border-[#30363D] focus:border-[#0B57D0] dark:focus:border-blue-500 focus:outline-none font-bold text-[#1E2328] dark:text-[#F0F6FC] rounded-xl text-xs shadow-2xs cursor-pointer"
-                    >
-                      <option value="KG">KG</option>
-                      <option value="Quintals">Quintals (100 KG)</option>
-                      <option value="Litres">Litres (L)</option>
-                    </select>
-                  </div>
-
-                  <span class="text-[10px] text-gray-400 dark:text-gray-500 block">
-                    {{ $t('marketplace.availableStock') }}: {{ (item.listing?.availableQty || 10000).toLocaleString() }} {{ $t('common.kg') }}
-                  </span>
+                  <!-- Unit Selector Dropdown -->
+                  <select 
+                    :value="item.unit || 'KG'" 
+                    @change="updateUnit(item.id, $event.target.value)"
+                    class="px-2.5 py-2 bg-white dark:bg-[#0D1117] border border-[#E2E4E7] dark:border-[#30363D] focus:border-[#0B57D0] dark:focus:border-blue-500 focus:outline-none font-bold text-[#1E2328] dark:text-[#F0F6FC] rounded-xl text-xs shadow-2xs cursor-pointer"
+                  >
+                    <option value="KG">KG</option>
+                    <option value="Quintals">Quintals (100 KG)</option>
+                    <option value="Litres">Litres (L)</option>
+                  </select>
                 </div>
 
-                <div class="text-right shrink-0">
-                  <span class="text-[10px] text-gray-400 dark:text-gray-500 block">{{ formatETB(item.listing?.pricePerKg) }}{{ $t('common.perKg') }}</span>
-                  <span class="font-black text-[#1E9444] dark:text-emerald-400 text-base">
-                    {{ formatETB(getItemSubtotal(item)) }}
-                  </span>
-                </div>
+                <span class="text-[10px] text-gray-400 dark:text-gray-500 block text-right">
+                  {{ $t('marketplace.availableStock') }}: {{ (item.listing?.availableQty || 10000).toLocaleString() }} {{ $t('common.kg') }}
+                </span>
               </div>
             </div>
           </div>
@@ -145,17 +149,22 @@
             </div>
 
             <div class="flex justify-between items-center text-[#5A6270] dark:text-[#8B949E]">
-              <span>{{ $t('cart.escrowFee') }}</span>
-              <span class="font-bold text-emerald-600 dark:text-emerald-400">0%</span>
+              <span>Produce Subtotal</span>
+              <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ formatETB(selectedSubtotal) }}</span>
             </div>
 
-            <div class="border-t border-dashed border-gray-200 dark:border-[#30363D] pt-3 flex justify-between items-end">
+            <div class="flex justify-between items-center text-[#5A6270] dark:text-[#8B949E]">
+              <span>{{ $t('cart.escrowFee') }}</span>
+              <span class="font-bold text-emerald-600 dark:text-emerald-400">+{{ formatETB(escrowFee) }}</span>
+            </div>
+
+            <div class="border-t border-dashed border-gray-200 dark:border-[#30363D] pt-3 flex justify-between items-end gap-2">
               <div>
-                <span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E] block">{{ $t('cart.subtotal') }}</span>
+                <span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E] block">{{ $t('cart.totalPayable') }}</span>
                 <span class="text-[10px] text-gray-400 dark:text-gray-500">{{ $t('cart.escrowSecuredOrder') }}</span>
               </div>
-              <span class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">
-                {{ formatETB(selectedSubtotal) }}
+              <span class="text-2xl font-black text-[#1E9444] dark:text-emerald-400 tracking-tight whitespace-nowrap">
+                {{ formatETB(totalPayableWithFee) }}
               </span>
             </div>
           </div>
@@ -199,7 +208,7 @@ import { useCart } from '@/composables/useCart'
 import { formatETB } from '@/utils/helpers'
 
 const router = useRouter()
-const { cartItems, selectedItems, selectedCount, selectedSubtotal, removeFromCart, updateQuantity, updateUnit, getItemSubtotal, toggleSelect, selectAll } = useCart()
+const { cartItems, selectedItems, selectedCount, selectedSubtotal, escrowFee, totalPayableWithFee, removeFromCart, updateQuantity, updateUnit, getItemSubtotal, toggleSelect, selectAll } = useCart()
 
 const allSelected = computed(() => {
   return cartItems.value.length > 0 && cartItems.value.every(i => i.selected)

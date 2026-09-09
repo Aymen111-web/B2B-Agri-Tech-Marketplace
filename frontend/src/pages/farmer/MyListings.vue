@@ -99,7 +99,7 @@
               </span>
 
               <div class="flex items-center gap-1.5">
-                <button @click="handleDelete(item.id)" 
+                <button @click="openDeleteModal(item)" 
                   class="px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900/50 bg-white dark:bg-[#161B22] hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer shadow-2xs">
                   <Trash2 class="w-3.5 h-3.5" /><span>{{ $t('common.delete') || 'Delete' }}</span>
                 </button>
@@ -123,6 +123,15 @@
         @refresh="refreshListings"
       />
     </div>
+
+    <!-- Custom Delete Confirmation Modal (Sign Out Style) -->
+    <DeleteListingModal 
+      :isOpen="isDeleteModalOpen" 
+      :listingTitle="targetListingToDelete ? $t(targetListingToDelete.cropName) || targetListingToDelete.cropName : ''" 
+      :isDeleting="isDeleting" 
+      @close="closeDeleteModal" 
+      @confirm="confirmDelete" 
+    />
   </div>
 </template>
 
@@ -133,6 +142,7 @@ import { useListings } from '@/composables/useListings'
 import { useAuth } from '@/composables/useAuth'
 import { formatETB } from '@/utils/helpers'
 import Pagination from '@/components/common/Pagination.vue'
+import DeleteListingModal from '@/components/common/DeleteListingModal.vue'
 
 const { listings, deleteListing, refreshListings } = useListings()
 const { user } = useAuth()
@@ -142,9 +152,30 @@ const statusFilter = ref('all')
 const currentPage = ref(1)
 const itemsPerPage = 6
 
-const handleDelete = async (id) => {
-  if (confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
-    await deleteListing(id)
+const isDeleteModalOpen = ref(false)
+const targetListingToDelete = ref(null)
+const isDeleting = ref(false)
+
+const openDeleteModal = (item) => {
+  targetListingToDelete.value = item
+  isDeleteModalOpen.value = true
+}
+
+const closeDeleteModal = () => {
+  if (isDeleting.value) return
+  isDeleteModalOpen.value = false
+  targetListingToDelete.value = null
+}
+
+const confirmDelete = async () => {
+  if (!targetListingToDelete.value) return
+  isDeleting.value = true
+  try {
+    await deleteListing(targetListingToDelete.value.id)
+  } finally {
+    isDeleting.value = false
+    isDeleteModalOpen.value = false
+    targetListingToDelete.value = null
   }
 }
 
@@ -188,3 +219,4 @@ watch(statusFilter, () => {
   currentPage.value = 1
 })
 </script>
+

@@ -67,6 +67,8 @@
           </button>
         </form>
 
+
+
         <div class="text-center pt-2 text-[13px]">
           <p class="text-[#5A6270] dark:text-[#8B949E]">
             {{ t('noAccount') }}
@@ -96,6 +98,12 @@ const password = ref('')
 const showPassword = ref(false)
 const isLoading = ref(false)
 const authError = ref(null)
+
+const quickFill = (p, pwd) => {
+  phoneOrEmail.value = p
+  password.value = pwd
+  authError.value = null
+}
 
 const handleLogin = async () => {
   authError.value = null

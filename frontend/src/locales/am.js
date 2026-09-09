@@ -81,6 +81,9 @@ export default {
     noData: 'ምንም መረጃ የለም',
     notSet: 'አልተገለጸም',
     all: 'ሁሉም',
+    yes: 'አዎ',
+    no: 'አይ',
+    deleting: 'በመሰረዝ ላይ...',
   },
 
   nav: {
@@ -329,6 +332,9 @@ export default {
     newListingTitle: 'አዲስ የሰብል ክምችት ያክሉ',
     newListingSub: 'የተረጋገጡ የግብርና ምርቶችን በቀጥታ በመላው ኢትዮጵያ ላሉ የንግድ ገዥዎች ይለጥፉ።',
     editListingTitle: 'የሰብል ክምችት አርትዕ',
+    deleteListingTitle: 'ምርቱን ሰርዝ',
+    deleteListingConfirm: 'እርግጠኛ ነዎት ይህንን ምርት መሰረዝ ይፈልጋሉ?',
+    deleteListingConfirmNamed: 'እርግጠኛ ነዎት ይህንን ምርት መሰረዝ ይፈልጋሉ?',
     cropName: 'የሰብል ምርት ስም',
     category: 'የሰብል ምድብ',
     pricePerKgETB: 'የአንድ ኪሎግራም ዋጋ (በብር)',

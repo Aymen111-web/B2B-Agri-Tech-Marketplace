@@ -53,11 +53,11 @@
                 </p>
               </div>
 
-              <div class="text-right shrink-0">
-                <span class="text-xs font-black text-[#1E9444] dark:text-emerald-400">
-                  {{ formatETB((item.listing?.pricePerKg || 0) * (item.quantityKg || 100)) }}
+              <div class="flex flex-col items-end text-right shrink-0 leading-tight">
+                <span class="text-sm font-black text-[#1E9444] dark:text-emerald-400 leading-tight">
+                  {{ formatETB(getItemSubtotal(item)) }}
                 </span>
-                <span class="text-[10px] text-gray-400 dark:text-gray-500 block">
+                <span class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 font-medium leading-tight">
                   {{ formatETB(item.listing?.pricePerKg) }}{{ $t('common.perKg') }}
                 </span>
               </div>
@@ -84,7 +84,7 @@
                   :value="item.quantityKg || 1"
                   @input="updateQty(item, $event.target.value)"
                   min="1"
-                  :max="item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? Math.max(item.listing.availableQty, 1) : 100000"
+                  :max="item.unit === 'Quintals' ? Math.max(1, Math.floor((item.listing?.availableQty || 100000) / 100)) : (item.listing?.availableQty || 100000)"
                   step="1"
                   class="w-20 py-2 bg-white dark:bg-[#0D1117] border border-[#E2E4E7] dark:border-[#30363D] focus:border-[#0B57D0] dark:focus:border-blue-500 focus:outline-none font-black text-[#1E2328] dark:text-[#F0F6FC] text-center rounded-xl text-sm shadow-2xs"
                 />
@@ -93,7 +93,7 @@
                 <button 
                   type="button"
                   @click="updateQty(item, (item.quantityKg || 1) + 1)"
-                  :disabled="(item.quantityKg || 1) >= (item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? item.listing.availableQty : 100000)"
+                  :disabled="(item.quantityKg || 1) >= (item.unit === 'Quintals' ? Math.max(1, Math.floor((item.listing?.availableQty || 100000) / 100)) : (item.listing?.availableQty || 100000))"
                   class="w-10 h-10 bg-[#0B57D0]/10 dark:bg-blue-900/30 text-[#0B57D0] dark:text-blue-400 hover:bg-[#0B57D0] dark:hover:bg-blue-600 hover:text-white dark:hover:text-white border border-[#0B57D0]/30 dark:border-blue-700/50 disabled:opacity-40 rounded-xl font-black text-lg flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs"
                   title="Increase volume by 1"
                 >
@@ -123,7 +123,7 @@
           v-model="selectedHub" 
           class="w-full px-3.5 py-2.5 bg-[#F8F9FA] dark:bg-[#0D1117] border border-[#E2E4E7] dark:border-[#30363D] rounded-xl text-xs font-semibold text-[#1E2328] dark:text-[#F0F6FC] focus:border-[#0B57D0] dark:focus:border-blue-500 focus:outline-none cursor-pointer"
         >
-          <option value="" disabled>Select Delivery Destination (Loading...)</option>
+          <option value="" disabled>Select Delivery Destination Hub</option>
           <option v-for="hub in availableHubs" :key="hub.id" :value="hub.id">{{ hub.name }}</option>
         </select>
       </div>
@@ -144,9 +144,14 @@
             </span>
           </div>
 
+          <div class="flex justify-between text-[#5A6270] dark:text-[#8B949E] pt-1">
+            <span>Produce Subtotal</span>
+            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ formatETB(totalSubtotalETB) }}</span>
+          </div>
+
           <div class="flex justify-between text-[#5A6270] dark:text-[#8B949E]">
-            <span>{{ $t('cart.escrowFee') }}</span>
-            <span class="font-bold text-emerald-600 dark:text-emerald-400">0%</span>
+            <span>{{ $t('cart.escrowFee') }} (1.5%)</span>
+            <span class="font-bold text-emerald-600 dark:text-emerald-400">+{{ formatETB(escrowFeeETB) }}</span>
           </div>
 
           <div class="border-t border-dashed border-gray-200 dark:border-[#30363D] pt-3 flex justify-between items-center text-sm font-black">
@@ -206,8 +211,17 @@ const { user } = useAuth()
 const { selectedItems, cartItems, updateQuantity, updateUnit, getItemSubtotal, clearCart } = useCart()
 
 const isProcessing = ref(false)
-const selectedHub = ref('')
-const availableHubs = ref([]) // To be populated by backend
+const availableHubs = ref([
+  { id: 'hub-addis', name: 'Addis Ababa Central Logistics Hub (Bole Lemi Zone)' },
+  { id: 'hub-adama', name: 'Adama Commercial Grain & Produce Warehouse (Oromia Hub)' },
+  { id: 'hub-hawassa', name: 'Hawassa Industrial & Agri-Tech Cold Storage (Sidama Hub)' },
+  { id: 'hub-bahirdar', name: 'Bahir Dar Regional Aggregation & Processing Hub (Amhara Region)' },
+  { id: 'hub-diredawa', name: 'Dire Dawa International Freight Terminal' },
+  { id: 'hub-jimma', name: 'Jimma Coffee & Specialty Crops Aggregation Hub' },
+  { id: 'hub-mekelle', name: 'Mekelle Regional Agro-Processing Center' },
+  { id: 'hub-shashamane', name: 'Shashamane Southern Logistics Crossroads Terminal' }
+])
+const selectedHub = ref('hub-addis')
 
 const checkoutItems = computed(() => {
   // 1. If explicit listing ID passed in URL path
@@ -260,10 +274,18 @@ const handleUnitChange = (item, newUnit) => {
   }
 }
 
-const totalPayableETB = computed(() => {
+const totalSubtotalETB = computed(() => {
   return checkoutItems.value.reduce((sum, item) => {
     return sum + getItemSubtotal(item)
   }, 0)
+})
+
+const escrowFeeETB = computed(() => {
+  return totalSubtotalETB.value * 0.015
+})
+
+const totalPayableETB = computed(() => {
+  return totalSubtotalETB.value + escrowFeeETB.value
 })
 
 const handleCheckout = async () => {
@@ -274,9 +296,10 @@ const handleCheckout = async () => {
     const formattedItems = checkoutItems.value.map(item => {
       const rawId = item.listing?.id ? String(item.listing.id).replace(/[^0-9]/g, '') : ''
       const cleanListingId = parseInt(rawId) || 1
+      const effectiveQtyKg = item.unit === 'Quintals' ? (item.quantityKg || 1) * 100 : (item.quantityKg || 1)
       return {
         listing_id: cleanListingId,
-        quantity_kg: item.quantityKg || 100
+        quantity_kg: effectiveQtyKg
       }
     })
 
@@ -285,7 +308,8 @@ const handleCheckout = async () => {
     const checkoutRes = await api.checkoutOrder({ 
       items: formattedItems,
       listing_id: formattedItems[0]?.listing_id,
-      quantity_kg: formattedItems[0]?.quantity_kg
+      quantity_kg: formattedItems[0]?.quantity_kg,
+      delivery_hub_id: selectedHub.value
     }).catch((err) => {
       throw err
     })
@@ -297,7 +321,8 @@ const handleCheckout = async () => {
     // 2. Sync local order placement state for all items
     checkoutItems.value.forEach(item => {
       if (item.listing) {
-        placeOrder(item.listing, user.value, item.quantityKg || 100)
+        const effectiveQtyKg = item.unit === 'Quintals' ? (item.quantityKg || 1) * 100 : (item.quantityKg || 1)
+        placeOrder(item.listing, user.value, effectiveQtyKg)
       }
     })
 

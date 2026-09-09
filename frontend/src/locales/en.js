@@ -81,6 +81,9 @@ export default {
     noData: 'No data available',
     notSet: 'Not set',
     all: 'All',
+    yes: 'Yes',
+    no: 'No',
+    deleting: 'Deleting...',
   },
 
   nav: {
@@ -329,6 +332,9 @@ export default {
     newListingTitle: 'Add New Crop Inventory',
     newListingSub: 'Post verified agricultural produce directly to commercial buyers across Ethiopia.',
     editListingTitle: 'Edit Crop Inventory',
+    deleteListingTitle: 'Delete Listing',
+    deleteListingConfirm: 'Are you sure you want to delete this item?',
+    deleteListingConfirmNamed: 'Are you sure you want to delete this item?',
     cropName: 'Crop Produce Name',
     category: 'Crop Category',
     pricePerKgETB: 'Price per Kilogram (ETB)',

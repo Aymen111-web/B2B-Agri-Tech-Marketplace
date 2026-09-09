@@ -55,7 +55,8 @@ export function useCart() {
         const item = cartItems.value.find(i => i.id === cartItemId)
         if (item) {
             const parsed = parseInt(newQty)
-            const max = item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? item.listing.availableQty : 100000
+            const availableKg = item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? item.listing.availableQty : 100000
+            const max = item.unit === 'Quintals' ? Math.max(1, Math.floor(availableKg / 100)) : availableKg
             if (isNaN(parsed) || parsed < 1) {
                 item.quantityKg = 1
             } else if (parsed > max) {
@@ -70,6 +71,11 @@ export function useCart() {
         const item = cartItems.value.find(i => i.id === cartItemId)
         if (item) {
             item.unit = newUnit
+            const availableKg = item.listing?.availableQty !== undefined && item.listing?.availableQty !== null ? item.listing.availableQty : 100000
+            const max = item.unit === 'Quintals' ? Math.max(1, Math.floor(availableKg / 100)) : availableKg
+            if (item.quantityKg > max) {
+                item.quantityKg = Math.max(max, 1)
+            }
         }
     }
 
@@ -108,12 +114,22 @@ export function useCart() {
         }, 0)
     })
 
+    const escrowFee = computed(() => {
+        return selectedSubtotal.value * 0.015
+    })
+
+    const totalPayableWithFee = computed(() => {
+        return selectedSubtotal.value + escrowFee.value
+    })
+
     return {
         cartItems,
         selectedItems,
         selectedCount,
         totalCartCount,
         selectedSubtotal,
+        escrowFee,
+        totalPayableWithFee,
         addToCart,
         removeFromCart,
         updateQuantity,

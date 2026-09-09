@@ -129,7 +129,7 @@
       <div class="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#161B22] border-t border-[#E2E4E7] dark:border-[#30363D] p-4 max-w-3xl mx-auto shadow-lg flex gap-3">
         <button 
           type="button" 
-          @click="handleDelete" 
+          @click="openDeleteModal" 
           class="w-1/3 py-3.5 rounded-xl border border-red-200 dark:border-red-800/60 text-red-600 dark:text-red-400 font-bold text-xs hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
         >
           <Trash2 class="w-4 h-4" />
@@ -137,14 +137,23 @@
         </button>
         <button 
           type="submit" 
-          :disabled="isSaving" 
-          class="w-2/3 py-3.5 rounded-xl bg-[#1E9444] text-white font-black text-xs shadow-md hover:bg-[#0F5C2A] flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+          :disabled="isSaving || !isModified" 
+          class="w-2/3 py-3.5 rounded-xl bg-[#1E9444] text-white font-black text-xs shadow-md hover:bg-[#0F5C2A] flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#1E9444]"
         >
           <Loader2 v-if="isSaving" class="w-4 h-4 animate-spin" />
           <span>{{ isSaving ? $t('Saving...') : $t('Save Changes') }}</span>
         </button>
       </div>
     </form>
+
+    <!-- Custom Delete Confirmation Modal (Sign Out Style) -->
+    <DeleteListingModal 
+      :isOpen="isDeleteModalOpen" 
+      :listingTitle="listing ? ($t(listing.cropName) || listing.cropName) : ''" 
+      :isDeleting="isDeleting" 
+      @close="closeDeleteModal" 
+      @confirm="confirmDelete" 
+    />
   </div>
   <div v-else class="text-center py-16 bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-3xl max-w-md mx-auto my-12 p-8 shadow-2xs space-y-3">
     <p class="text-sm font-bold text-gray-700 dark:text-[#8B949E]">{{ $t('marketplace.listingNotFound') }}</p>
@@ -160,10 +169,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Loader2, Wheat, MapPin, Coins, Sparkles, Trash2 } from 'lucide-vue-next'
 import { useListings } from '@/composables/useListings'
 import { formatETB } from '@/utils/helpers'
+import DeleteListingModal from '@/components/common/DeleteListingModal.vue'
 
 const route = useRoute()
 const router = useRouter()
-const { getListingById, updateListing, deleteListing } = useListings()
+const { getListingById, updateListing, deleteListing, refreshListings } = useListings()
 
 const listing = computed(() => getListingById(route.params.id))
 const cropName = ref('')
@@ -174,6 +184,22 @@ const availableQty = ref(0)
 const pricePerKg = ref(0)
 const description = ref('')
 const isSaving = ref(false)
+
+const isDeleteModalOpen = ref(false)
+const isDeleting = ref(false)
+
+const isModified = computed(() => {
+  if (!listing.value) return false
+  return (
+    cropName.value !== (listing.value.cropName || '') ||
+    grade.value !== (listing.value.grade || 'Grade 1') ||
+    region.value !== (listing.value.region || 'Amhara') ||
+    zone.value !== (listing.value.zone || '') ||
+    Number(availableQty.value) !== Number(listing.value.availableQty || 0) ||
+    Number(pricePerKg.value) !== Number(listing.value.pricePerKg || 0) ||
+    description.value !== (listing.value.description || '')
+  )
+})
 
 const loadListing = () => {
   if (listing.value) {
@@ -187,29 +213,55 @@ const loadListing = () => {
   }
 }
 
-onMounted(loadListing)
-watch(listing, loadListing)
+onMounted(async () => {
+  if (!listing.value) {
+    await refreshListings()
+  }
+  loadListing()
+})
+
+watch(listing, loadListing, { immediate: true })
 
 const handleSubmit = async () => {
   if (!listing.value) return
   isSaving.value = true
-  await updateListing(listing.value.id, {
-    cropName: cropName.value,
-    grade: grade.value,
-    region: region.value,
-    zone: zone.value,
-    availableQty: availableQty.value,
-    pricePerKg: pricePerKg.value,
-    description: description.value
-  })
-  isSaving.value = false
-  router.push('/farmer/listings')
+  try {
+    await updateListing(listing.value.id, {
+      cropName: cropName.value,
+      grade: grade.value,
+      region: region.value,
+      zone: zone.value,
+      availableQty: availableQty.value,
+      pricePerKg: pricePerKg.value,
+      description: description.value
+    })
+    router.push('/farmer/listings')
+  } catch (err) {
+    console.error('Failed to save listing changes:', err)
+  } finally {
+    isSaving.value = false
+  }
 }
 
-const handleDelete = async () => {
-  if (confirm('Are you sure you want to delete this listing?')) {
+const openDeleteModal = () => {
+  isDeleteModalOpen.value = true
+}
+
+const closeDeleteModal = () => {
+  if (isDeleting.value) return
+  isDeleteModalOpen.value = false
+}
+
+const confirmDelete = async () => {
+  if (!listing.value) return
+  isDeleting.value = true
+  try {
     await deleteListing(listing.value.id)
+    isDeleteModalOpen.value = false
     router.push('/farmer/listings')
+  } finally {
+    isDeleting.value = false
   }
 }
 </script>
+

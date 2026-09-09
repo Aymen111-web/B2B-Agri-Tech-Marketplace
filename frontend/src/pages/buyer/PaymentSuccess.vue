@@ -124,8 +124,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { CheckCircle2, AlertCircle, Loader2, ShieldCheck, Lock, Printer } from 'lucide-vue-next'
 import { api } from '@/services/api'
+import { useOrders } from '@/composables/useOrders'
 
 const route = useRoute()
+const { refreshOrders } = useOrders()
 const isVerifying = ref(true)
 const verified = ref(false)
 const errorMessage = ref(null)
@@ -153,12 +155,14 @@ onMounted(async () => {
     try {
       await api.verifyOrderPayment(txRef.value)
       verified.value = true
+      await refreshOrders()
     } catch (err) {
       verified.value = false
       errorMessage.value = err.message || 'Payment verification failed with the gateway.'
     }
   } else {
     verified.value = true
+    await refreshOrders()
   }
   isVerifying.value = false
 })

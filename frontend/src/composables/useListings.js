@@ -87,29 +87,61 @@ function mapRawListingToFrontend(item) {
     }
 }
 
+function getDeletedListingIds() {
+    try {
+        const saved = localStorage.getItem('agri_deleted_listing_ids')
+        return saved ? JSON.parse(saved) : []
+    } catch {
+        return []
+    }
+}
+
+function addDeletedListingId(id) {
+    if (!id) return
+    try {
+        const ids = getDeletedListingIds()
+        const strId = String(id)
+        if (!ids.includes(strId)) {
+            ids.push(strId)
+            localStorage.setItem('agri_deleted_listing_ids', JSON.stringify(ids))
+        }
+    } catch { /* ignore */ }
+}
+
+function removeDeletedListingId(id) {
+    if (!id) return
+    try {
+        const ids = getDeletedListingIds().filter(i => String(i) !== String(id))
+        localStorage.setItem('agri_deleted_listing_ids', JSON.stringify(ids))
+    } catch { /* ignore */ }
+}
+
 export function useListings() {
     const listings = ref([])
     const isLoading = ref(false)
 
     // Load from localStorage or use default produce list
     const saved = localStorage.getItem('agri_listings')
+    const deletedIds = getDeletedListingIds()
     if (saved) {
         try {
             const parsed = JSON.parse(saved)
             if (Array.isArray(parsed) && parsed.length > 0) {
-                listings.value = parsed.map((item) => ({
-                    ...item,
-                    harvestDate: new Date(item.harvestDate),
-                    createdAt: new Date(item.createdAt),
-                }))
+                listings.value = parsed
+                    .filter(item => !deletedIds.includes(String(item.id)))
+                    .map((item) => ({
+                        ...item,
+                        harvestDate: new Date(item.harvestDate),
+                        createdAt: new Date(item.createdAt),
+                    }))
             } else {
-                listings.value = [...DEFAULT_PRODUCE]
+                listings.value = DEFAULT_PRODUCE.filter(item => !deletedIds.includes(String(item.id)))
             }
         } catch {
-            listings.value = [...DEFAULT_PRODUCE]
+            listings.value = DEFAULT_PRODUCE.filter(item => !deletedIds.includes(String(item.id)))
         }
     } else {
-        listings.value = [...DEFAULT_PRODUCE]
+        listings.value = DEFAULT_PRODUCE.filter(item => !deletedIds.includes(String(item.id)))
     }
 
     const refreshListings = async () => {
@@ -130,7 +162,9 @@ export function useListings() {
                 : await api.fetchPublicListings()
 
             const rawItems = Array.isArray(res) ? res : (res?.data || [])
-            listings.value = rawItems.map(mapRawListingToFrontend)
+            const mapped = rawItems.map(mapRawListingToFrontend)
+            const currentDeletedIds = getDeletedListingIds()
+            listings.value = mapped.filter(item => !currentDeletedIds.includes(String(item.id)))
         } catch {
             // Keep current listings if API fails
         } finally {
@@ -271,15 +305,63 @@ export function useListings() {
         })
     }
 
+    const updateListing = async (id, updatedData) => {
+        const token = getAuthToken()
+        if (token) {
+            try {
+                const payload = {
+                    title: updatedData.cropName,
+                    quality_grade: updatedData.grade,
+                    region: updatedData.region,
+                    zone: updatedData.zone,
+                    quantity_available: updatedData.availableQty,
+                    price_per_unit: updatedData.pricePerKg,
+                    description: updatedData.description,
+                }
+                const res = await api.updateListing(id, payload)
+                const rawObj = res?.listing || res?.data || res
+                if (rawObj && typeof rawObj === 'object') {
+                    const mapped = mapRawListingToFrontend(rawObj)
+                    const idx = listings.value.findIndex(l => String(l.id) === String(id))
+                    if (idx !== -1) {
+                        listings.value[idx] = { ...listings.value[idx], ...mapped }
+                    }
+                    return mapped
+                }
+            } catch (err) {
+                console.error('API updateListing failed, updating local state:', err)
+            }
+        }
+
+        // Fallback local update
+        const idx = listings.value.findIndex(l => String(l.id) === String(id))
+        if (idx !== -1) {
+            listings.value[idx] = {
+                ...listings.value[idx],
+                ...updatedData,
+                cropName: updatedData.cropName || listings.value[idx].cropName,
+                grade: updatedData.grade || listings.value[idx].grade,
+                region: updatedData.region || listings.value[idx].region,
+                zone: updatedData.zone || listings.value[idx].zone,
+                availableQty: updatedData.availableQty ?? listings.value[idx].availableQty,
+                pricePerKg: updatedData.pricePerKg ?? listings.value[idx].pricePerKg,
+                description: updatedData.description ?? listings.value[idx].description,
+            }
+            return listings.value[idx]
+        }
+        return null
+    }
+
     const deleteListing = async (id) => {
+        addDeletedListingId(id)
         try {
             await api.deleteListing(id)
-            listings.value = listings.value.filter(l => String(l.id) !== String(id))
-            return true
         } catch (err) {
-            console.error('Failed to delete listing', err)
-            return false
+            console.error('Failed to delete listing on backend, removing locally:', err)
+        } finally {
+            listings.value = listings.value.filter(l => String(l.id) !== String(id))
         }
+        return true
     }
 
     return {
@@ -287,8 +369,10 @@ export function useListings() {
         isLoading,
         refreshListings,
         addListing,
+        updateListing,
         deleteListing,
         getListingById,
         filterListings,
     }
 }
+
