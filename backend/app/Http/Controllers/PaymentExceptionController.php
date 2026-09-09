@@ -6,9 +6,11 @@ use App\Http\Requests\ListPaymentExceptionsRequest;
 use App\Http\Requests\ResolvePaymentExceptionRequest;
 use App\Http\Requests\StorePaymentExceptionRequest;
 use App\Http\Resources\PaymentExceptionResource;
+use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentException;
+use App\Models\Payout;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -217,12 +219,82 @@ class PaymentExceptionController extends Controller
             ], 422);
         }
 
+        $action = $validated['action'] ?? 'refund_buyer';
+
         $exception->update([
             'status'           => 'resolved',
             'resolution_notes' => $validated['resolution_notes'],
             'resolved_by'      => $admin->id,
             'resolved_at'      => now(),
         ]);
+
+        $order = $exception->order;
+        if ($order) {
+            if ($action === 'refund_buyer') {
+                $order->update([
+                    'status'         => 'cancelled',
+                    'payment_status' => 'refunded',
+                    'payout_status'  => 'refunded',
+                ]);
+
+                foreach ($order->fulfillments as $fulfillment) {
+                    $fulfillment->update([
+                        'payout_status' => 'refunded',
+                        'status'        => 'rejected',
+                    ]);
+                }
+
+                AuditLog::create([
+                    'user_id'        => $admin->id,
+                    'action'         => 'escrow_refunded_to_buyer',
+                    'auditable_type' => Order::class,
+                    'auditable_id'   => $order->id,
+                    'new_values'     => [
+                        'exception_id' => $exception->id,
+                        'notes'        => $validated['resolution_notes'],
+                        'amount'       => $order->total_amount,
+                    ],
+                    'ip_address'     => request()->ip(),
+                ]);
+            } elseif ($action === 'release_farmer') {
+                $order->update([
+                    'status'        => 'completed',
+                    'payout_status' => 'eligible',
+                ]);
+
+                foreach ($order->fulfillments as $fulfillment) {
+                    $fulfillment->update([
+                        'payout_status' => 'eligible',
+                        'status'        => 'completed',
+                        'completed_at'  => now(),
+                    ]);
+
+                    Payout::updateOrCreate(
+                        ['order_fulfillment_id' => $fulfillment->id],
+                        [
+                            'farmer_id'    => $fulfillment->farmer_id,
+                            'amount'       => $fulfillment->subtotal_amount,
+                            'status'       => 'processed',
+                            'reference'    => 'ESCROW-RELEASE-' . strtoupper(uniqid()),
+                            'processed_at' => now(),
+                        ]
+                    );
+                }
+
+                AuditLog::create([
+                    'user_id'        => $admin->id,
+                    'action'         => 'escrow_released_to_farmer',
+                    'auditable_type' => Order::class,
+                    'auditable_id'   => $order->id,
+                    'new_values'     => [
+                        'exception_id' => $exception->id,
+                        'notes'        => $validated['resolution_notes'],
+                        'amount'       => $order->total_amount,
+                    ],
+                    'ip_address'     => request()->ip(),
+                ]);
+            }
+        }
 
         return response()->json([
             'message'           => 'Exception resolved.',
