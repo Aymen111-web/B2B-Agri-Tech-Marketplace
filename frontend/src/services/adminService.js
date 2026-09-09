@@ -79,10 +79,10 @@ export const adminApi = {
         return adminRequest(`/admin/payment-exceptions/${id}/investigate`, { method: 'POST' })
     },
 
-    async resolvePaymentException(id, resolution_notes) {
+    async resolvePaymentException(id, action, resolution_notes) {
         return adminRequest(`/admin/payment-exceptions/${id}/resolve`, {
             method: 'POST',
-            body: JSON.stringify({ resolution_notes }),
+            body: JSON.stringify({ action, resolution_notes }),
         })
     },
 

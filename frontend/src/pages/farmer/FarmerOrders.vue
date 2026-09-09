@@ -58,7 +58,11 @@
             <!-- Middle / Right: Escrow + Price + Action Buttons -->
             <div class="flex items-center justify-between lg:justify-end gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100 dark:border-[#30363D]">
               <!-- Escrow Status Pill -->
-              <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40 text-[11px] font-bold capitalize">
+              <span v-if="order.status === 'disputed' || order.escrowStatus === 'disputed'" class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/80 text-[11px] font-bold flex items-center gap-1">
+                <ShieldAlert class="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                Escrow Disputed
+              </span>
+              <span v-else class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40 text-[11px] font-bold capitalize">
                 {{ $t('Escrow') }}: {{ $t(order.escrowStatus || 'held') }}
               </span>
 
@@ -131,7 +135,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check } from 'lucide-vue-next'
+import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check, ShieldAlert } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { formatETB, formatDate } from '@/utils/helpers'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'

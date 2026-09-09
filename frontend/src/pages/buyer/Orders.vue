@@ -155,6 +155,15 @@
                 <span>Enter PIN</span>
               </button>
 
+              <!-- Dispute Escrow Button for Paid/In-Transit/Delivered Orders -->
+              <button v-if="['paid_in_escrow', 'in_transit', 'dispatched', 'delivered', 'completed', 'inspection_rejected'].includes(order.status)"
+                @click="openDisputeModal(order)"
+                class="px-2.5 py-1.5 border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 rounded-xl text-xs font-bold transition-colors shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
+                title="Report Quality/Delivery Issue">
+                <AlertTriangle class="w-3.5 h-3.5" />
+                <span>Dispute Escrow</span>
+              </button>
+
               <!-- Payment Needed -->
               <div v-else-if="['pending_payment', 'awaiting_buyer_payment', 'placed'].includes(order.status)" class="flex items-center gap-1.5 shrink-0">
                 <button @click="verifyPayment(order)" 
@@ -247,12 +256,61 @@
         </div>
       </div>
     </div>
+
+    <!-- FILE DISPUTE / ESCROW EXCEPTION MODAL -->
+    <div v-if="selectedOrderForDispute" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div class="max-w-md w-full bg-white dark:bg-[#161B22] border border-gray-100 dark:border-[#30363D] rounded-3xl p-6 shadow-2xl space-y-4 text-[#1E2328] dark:text-[#F0F6FC]">
+        <div class="flex items-center justify-between border-b dark:border-[#30363D] pb-3">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-100 dark:border-rose-800/40">
+              <ShieldAlert class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">Report Issue / Dispute Escrow</h3>
+              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">Order #{{ selectedOrderForDispute.displayId || selectedOrderForDispute.id }}</p>
+            </div>
+          </div>
+          <button @click="selectedOrderForDispute = null" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="space-y-1">
+            <label class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">Claim Category</label>
+            <select v-model="disputeType" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] rounded-xl font-bold dark:text-[#F0F6FC]">
+              <option value="quality_mismatch">Produce Quality Mismatch / Damaged Batch</option>
+              <option value="delivery_delay">Major Delivery Delay / Non-Arrival</option>
+              <option value="wrong_quantity">Quantity Shortfall / Weight Deficit</option>
+              <option value="dispute">General Financial Dispute</option>
+              <option value="other">Other Transport Exception</option>
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">Incident Description & Audit Evidence</label>
+            <textarea v-model="disputeDescription" rows="4" placeholder="Provide detailed explanation of the produce condition, photos, or delivery failure..."
+              class="w-full p-3 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-[#30363D] rounded-xl text-xs font-medium focus:outline-none focus:border-rose-500 dark:text-[#F0F6FC]"></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2 border-t border-gray-100 dark:border-[#30363D]">
+          <button @click="selectedOrderForDispute = null" class="flex-1 py-2.5 border border-gray-200 dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] rounded-xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D]">
+            Cancel
+          </button>
+          <button @click="submitDispute" :disabled="isSubmittingDispute" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer">
+            <Loader2 v-if="isSubmittingDispute" class="w-4 h-4 animate-spin" />
+            <span>Submit Dispute Claim</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw } from 'lucide-vue-next'
+import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw, ShieldAlert, AlertTriangle, Loader2 } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { useAlertModal } from '@/composables/useAlertModal'
 import { formatETB } from '@/utils/helpers'
@@ -429,6 +487,55 @@ const handlePayment = async (order) => {
     })
   } finally {
     isProcessingPayment.value = null
+  }
+}
+
+const selectedOrderForDispute = ref(null)
+const disputeType = ref('quality_mismatch')
+const disputeDescription = ref('')
+const isSubmittingDispute = ref(false)
+
+const openDisputeModal = (order) => {
+  selectedOrderForDispute.value = order
+  disputeType.value = 'quality_mismatch'
+  disputeDescription.value = ''
+}
+
+const submitDispute = async () => {
+  if (!selectedOrderForDispute.value) return
+  if (!disputeDescription.value.trim()) {
+    showAlert({ title: 'Description Required', message: 'Please describe the produce quality or delivery issue.', type: 'warning' })
+    return
+  }
+
+  isSubmittingDispute.value = true
+  try {
+    const targetOrder = selectedOrderForDispute.value
+    const rawPaymentId = targetOrder.payment_id || targetOrder.displayId || targetOrder.id
+    
+    await api.createPaymentException({
+      payment_id: Number(rawPaymentId) || 1,
+      type: disputeType.value,
+      description: disputeDescription.value
+    })
+
+    showAlert({
+      title: 'Dispute Claim Logged',
+      message: 'Escrow funds are now locked under Admin Arbitrage review. An administrator will inspect the claim.',
+      type: 'success'
+    })
+
+    selectedOrderForDispute.value = null
+    disputeDescription.value = ''
+    await refreshOrders()
+  } catch (err) {
+    showAlert({
+      title: 'Dispute Submission Error',
+      message: err.message || 'Failed to submit dispute claim. Please verify payment status.',
+      type: 'error'
+    })
+  } finally {
+    isSubmittingDispute.value = false
   }
 }
 </script>

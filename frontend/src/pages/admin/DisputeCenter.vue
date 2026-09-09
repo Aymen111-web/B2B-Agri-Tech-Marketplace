@@ -135,11 +135,16 @@ onMounted(loadDisputes)
 
 const resolveDispute = async (id, resolution) => {
   const isRefund = resolution === 'refund_buyer'
-  if (confirm(`CRITICAL ESCROW ACTION: Are you sure you want to completely ${isRefund ? 'REFUND THE BUYER' : 'PAY OUT THE FARMER'} for this transaction? This cannot be easily reversed.`)) {
+  if (confirm(`CRITICAL ESCROW ARBITRAGE: Are you sure you want to ${isRefund ? 'REFUND THE BUYER' : 'PAY OUT THE FARMER'} for this transaction? This action will mutate escrow funds.`)) {
     try {
       const notes = prompt(`Please enter resolution/audit notes for ${isRefund ? 'refunding the buyer' : 'payout to farmer'}:`) || `Administratively resolved via ${resolution}`
-      await adminApi.resolvePaymentException(id, notes)
+      await adminApi.resolvePaymentException(id, resolution, notes)
       loadDisputes()
+      showAlert({
+        title: 'Escrow Action Complete',
+        message: `Successfully ${isRefund ? 'refunded buyer' : 'released payout to farmer'} and logged audit record.`,
+        type: 'success'
+      })
     } catch (err) {
       showAlert({
         title: 'Escrow Action Error',

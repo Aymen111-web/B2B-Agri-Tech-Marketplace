@@ -201,6 +201,17 @@ export const api = {
         return request('/payouts')
     },
 
+    async createPaymentException(data) {
+        return request('/payment-exceptions', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        })
+    },
+
+    async fetchMyPaymentExceptions() {
+        return request('/payment-exceptions/my')
+    },
+
     async logout() {
         try {
             return await request('/auth/logout', { method: 'POST' })

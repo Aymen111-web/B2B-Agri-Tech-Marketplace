@@ -34,6 +34,17 @@ function mapRawOrderToFrontend(item) {
 
     const escrowRef = item.payment?.chapa_tx_ref || item.escrow_reference || item.escrowReference || `CHP-TX-${Math.floor(10000000 + Math.random() * 90000000)}`
 
+    const exceptionsArr = item.payment_exceptions || item.paymentExceptions || item.order?.payment_exceptions || []
+    const rawException = exceptionsArr[0] || item.dispute || null
+    const disputeData = rawException ? {
+        id: rawException.id,
+        type: rawException.type || 'dispute',
+        status: rawException.status || 'open',
+        description: rawException.description || '',
+        resolutionNotes: rawException.resolution_notes || rawException.resolutionNotes || '',
+        resolvedAt: rawException.resolved_at || rawException.resolvedAt || null,
+    } : null
+
     return {
         id: String(item.id || item.order_number || `ORD-${Math.floor(1000 + Math.random() * 9000)}`),
         displayId: String(item.order?.id || item.order_id || item.id || ''),
@@ -79,6 +90,7 @@ function mapRawOrderToFrontend(item) {
         status: item.status || 'placed',
         escrowStatus: isEscrowReleased ? 'released' : 'held',
         escrowReference: escrowRef,
+        dispute: disputeData,
         placedAt: item.placed_at ? new Date(item.placed_at) : (item.created_at ? new Date(item.created_at) : new Date()),
         deliveryPin: item.order?.delivery_pin || item.delivery_pin || item.deliveryPin || null,
         trackingNotes: item.trackingNotes || [],
