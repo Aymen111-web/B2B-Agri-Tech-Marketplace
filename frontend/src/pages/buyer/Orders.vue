@@ -92,150 +92,113 @@
       </router-link>
     </div>
 
-    <!-- Redesigned B2B Order Card Hub -->
+    <!-- Redesigned B2B Compact Horizontal Order Cards -->
     <div v-else class="space-y-4">
-      <div v-for="order in filteredOrders" :key="order.id" class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl shadow-2xs overflow-hidden transition-all hover:border-gray-300 dark:hover:border-gray-600">
-        <!-- Card Header -->
-        <div class="p-5 border-b border-[#E2E4E7] dark:border-[#30363D] space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 bg-[#EDFAF2] dark:bg-emerald-950/40 rounded-2xl flex items-center justify-center text-2xl border border-[#C3EFCF] dark:border-emerald-800/60 shrink-0">
+      <div class="space-y-2.5">
+        <div v-for="order in paginatedOrders" :key="order.id" 
+          class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-xl px-4 py-3 shadow-2xs hover:border-[#0B57D0]/50 transition-all">
+          
+          <!-- Main Compact Horizontal Row -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <!-- Left: Crop Avatar + Produce & Parties -->
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 sm:w-10 sm:h-10 bg-[#EDFAF2] dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-xl border border-[#C3EFCF] dark:border-emerald-800/60 shrink-0 shadow-2xs">
                 {{ order.listing?.cropEmoji || '🌾' }}
               </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h4 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ $t(order.listing?.cropName) || $t('Produce Batch') }}</h4>
-                  <span class="px-2 py-0.5 bg-gray-100 dark:bg-[#21262D] text-[#5A6270] dark:text-[#8B949E] rounded-md text-[11px] font-bold">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h4 class="text-sm font-black text-[#1E2328] dark:text-[#F0F6FC]">
+                    {{ $t(order.listing?.cropName) || $t('Produce Batch') }}
+                  </h4>
+                  <span class="px-1.5 py-0.2 rounded bg-gray-100 dark:bg-[#21262D] text-[#5A6270] dark:text-[#8B949E] text-[10px] font-bold">
                     {{ order.quantityKg?.toLocaleString() }} kg
                   </span>
+                  <span class="text-xs font-mono font-bold text-[#1E2328] dark:text-[#F0F6FC]">
+                    #{{ order.displayId }}
+                  </span>
+                  <span :class="['px-2 py-0.5 rounded-full text-[10px] font-black capitalize border shadow-2xs', statusBadgeClass(order.status || 'placed')]">
+                    {{ (order.status || 'placed').replace('_', ' ') }}
+                  </span>
                 </div>
-                <p class="text-xs text-[#5A6270] mt-0.5 flex flex-wrap items-center gap-2">
-                  <span class="font-bold text-[#1E2328]">{{ $t('orders.orderId') }} #{{ order.displayId }}</span>
-                  <span>•</span>
-                  <span>{{ $t('orders.farmer') }}: <strong class="text-[#1E2328]">{{ order.farmer?.name || 'Dawit Bekele' }}</strong></span>
-                  <span>•</span>
-                  <span>{{ $t('Region') }}: <strong class="text-[#1E2328]">{{ order.listing?.region || 'Oromia Co-op' }}</strong></span>
-                </p>
+                
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-[#5A6270] dark:text-[#8B949E]">
+                  <span>{{ $t('orders.farmer') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC]">{{ order.farmer?.name || 'Dawit Bekele' }}</strong></span>
+                  <span class="text-gray-300 dark:text-gray-600">•</span>
+                  <span>{{ $t('Region') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC]">{{ order.listing?.region || 'Oromia' }}</strong></span>
+                  <span class="text-gray-300 dark:text-gray-600 hidden sm:inline">•</span>
+                  <span class="font-mono text-[10px] hidden sm:inline">{{ order.escrowReference }}</span>
+                </div>
               </div>
             </div>
 
-            <!-- Price & Status Badge -->
-            <div class="flex items-center gap-3 self-start sm:self-auto">
-              <span :class="['px-3 py-1 rounded-full text-xs font-extrabold capitalize border shadow-2xs', statusBadgeClass(order.status || 'placed')]">
-                {{ (order.status || 'placed').replace('_', ' ') }}
-              </span>
-              <span class="text-lg font-black text-[#0B57D0] dark:text-blue-400">{{ formatETB(order.totalAmountETB || 0) }}</span>
-            </div>
-          </div>
+            <!-- Middle / Right: Escrow + Price + Actions -->
+            <div class="flex items-center justify-between lg:justify-end gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100 dark:border-[#30363D]">
+              <!-- Escrow Tag -->
+              <div class="flex items-center gap-1.5 text-[#0F5C2A] dark:text-emerald-300 bg-[#EDFAF2] dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-[#C3EFCF] dark:border-emerald-800/60 text-[11px] font-bold">
+                <ShieldCheck class="w-3.5 h-3.5 text-[#1E9444] dark:text-emerald-400" />
+                <span>Escrow Secured</span>
+              </div>
 
-          <!-- Escrow Guarantee Bar -->
-          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 text-xs">
-            <div class="flex items-center gap-2 text-[#0F5C2A] dark:text-emerald-300 bg-[#EDFAF2] dark:bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-[#C3EFCF] dark:border-emerald-800/60">
-              <ShieldCheck class="w-4 h-4 text-[#1E9444] dark:text-emerald-400" />
-              <span class="font-bold">{{ $t('Chapa Escrow Ref') }}:</span>
-              <span class="font-mono text-[11px] font-bold">{{ order.escrowReference }}</span>
-            </div>
+              <!-- Price -->
+              <div class="text-right min-w-[85px]">
+                <span class="text-sm sm:text-base font-black text-[#0B57D0] dark:text-blue-400 tracking-tight block">
+                  {{ formatETB(order.totalAmountETB || 0) }}
+                </span>
+              </div>
 
-            <div class="flex items-center gap-2 text-xs">
+              <!-- Quick Actions based on order status -->
+              <!-- Enter PIN for Driver handoff -->
+              <button v-if="order.status === 'in_transit' || order.status === 'dispatched'" 
+                @click="openDeliveryModal(order)" 
+                class="px-3 py-1.5 bg-[#E69500] text-white rounded-xl text-xs font-bold hover:bg-[#D48900] transition-colors shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer">
+                <Key class="w-3.5 h-3.5" />
+                <span>Enter PIN</span>
+              </button>
+
+              <!-- Payment Needed -->
+              <div v-else-if="order.status === 'awaiting_buyer_payment'" class="flex items-center gap-1.5 shrink-0">
+                <button @click="verifyPayment(order.id)" 
+                  class="px-2.5 py-1.5 bg-white dark:bg-[#161B22] text-[#0B57D0] dark:text-blue-400 border border-[#0B57D0] dark:border-blue-400 rounded-xl text-xs font-bold hover:bg-blue-50 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
+                  <RefreshCw v-if="isVerifyingPayment === order.id" class="w-3.5 h-3.5 animate-spin" />
+                  <span v-else>Verify</span>
+                </button>
+                <button @click="handlePayment(order.id)" 
+                  class="px-3 py-1.5 bg-[#0B57D0] text-white rounded-xl text-xs font-bold hover:bg-blue-800 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
+                  <CreditCard class="w-3.5 h-3.5" />
+                  <span>{{ isProcessingPayment === order.id ? '...' : 'Pay Chapa' }}</span>
+                </button>
+              </div>
+
+              <!-- Toggle Lifecycle Drawer -->
               <button @click="toggleLifecycleDrawer(order.id)" 
-                class="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-[#21262D] hover:bg-gray-200 dark:hover:bg-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] font-bold transition-colors flex items-center gap-1.5 cursor-pointer">
-                <ChevronDown :class="['w-3.5 h-3.5 transition-transform', expandedLifecycleOrders[order.id] ? 'rotate-180' : '']" />
-                <span>{{ expandedLifecycleOrders[order.id] ? 'Hide Progress' : 'View Order Lifecycle' }}</span>
+                class="p-1.5 rounded-lg bg-gray-100 dark:bg-[#21262D] hover:bg-gray-200 dark:hover:bg-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] transition-colors cursor-pointer"
+                :title="expandedLifecycleOrders[order.id] ? 'Hide Progress' : 'View Order Lifecycle'">
+                <ChevronDown :class="['w-4 h-4 transition-transform duration-200', expandedLifecycleOrders[order.id] ? 'rotate-180' : '']" />
               </button>
             </div>
           </div>
-        </div>
 
-        <!-- Inline PIN Action Box for Active Shipments -->
-        <div v-if="order.status === 'in_transit' || order.status === 'dispatched'" 
-          class="bg-amber-50/70 dark:bg-amber-950/30 border-b border-amber-200/80 dark:border-amber-800/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-[#E69500] text-white flex items-center justify-center font-black">
-              <Key class="w-4 h-4" />
-            </div>
-            <div>
-              <p class="font-bold text-[#1E2328]">{{ $t('Driver Delivery PIN Verification Required') }}</p>
-              <p class="text-[11px] text-amber-800">
-                {{ $t('Driver delivery PIN prompt') }} #{{ order.displayId }}. {{ $t('Enter PIN to release escrow payment.') }}
-              </p>
+          <!-- Collapsible Order Lifecycle Drawer -->
+          <div v-if="expandedLifecycleOrders[order.id]" class="mt-3 pt-3 border-t border-gray-100 dark:border-[#30363D] space-y-2 animate-in fade-in duration-200">
+            <OrderTimeline :status="order.status" />
+            <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#5A6270] dark:text-[#8B949E] pt-1">
+              <span>{{ $t('Chapa Escrow Ref') }}: <strong class="font-mono text-[#1E2328] dark:text-[#F0F6FC]">{{ order.escrowReference }}</strong></span>
+              <span v-if="order.status === 'delivered' || order.status === 'completed'" class="text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">
+                <CheckCircle2 class="w-3.5 h-3.5" /> Delivery verified & funds released to farmer.
+              </span>
             </div>
           </div>
-          <button @click="openDeliveryModal(order)" 
-            class="px-4 py-2 bg-[#E69500] text-white rounded-xl font-extrabold hover:bg-[#D48900] transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0">
-            <CheckCircle2 class="w-4 h-4" />
-            <span>Enter Delivery PIN</span>
-          </button>
-        </div>
-
-        <div v-else-if="order.status === 'awaiting_buyer_payment'" 
-          class="bg-blue-50/70 dark:bg-blue-950/30 border-b border-blue-200/80 dark:border-blue-800/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-[#0B57D0] text-white flex items-center justify-center font-black">
-              <CreditCard class="w-4 h-4" />
-            </div>
-            <div>
-              <p class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">Payment Required (Escrow Lock)</p>
-              <p class="text-[11px] text-blue-800 dark:text-blue-300">
-                Farmer accepted the order. Please complete payment to secure funds in escrow.
-              </p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button @click="verifyPayment(order.id)" 
-              class="px-4 py-2 bg-white text-[#0B57D0] border border-[#0B57D0] rounded-xl font-extrabold hover:bg-blue-50 transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0">
-              <RefreshCw v-if="isVerifyingPayment === order.id" class="w-4 h-4 animate-spin" />
-              <CheckCircle2 v-else class="w-4 h-4" />
-              <span>Verify Status</span>
-            </button>
-            <button @click="handlePayment(order.id)" 
-              class="px-4 py-2 bg-[#0B57D0] text-white rounded-xl font-extrabold hover:bg-blue-800 transition-colors shadow-2xs flex items-center justify-center gap-1.5 shrink-0">
-              <ShieldCheck class="w-4 h-4" />
-              <span>{{ isProcessingPayment === order.id ? 'Loading...' : 'Pay with Chapa' }}</span>
-            </button>
-          </div>
-        </div>
-
-        <div v-else-if="order.status === 'paid_in_escrow'" 
-          class="bg-emerald-50/70 dark:bg-emerald-950/30 border-b border-emerald-200/80 dark:border-emerald-800/60 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-[#1E9444] text-white flex items-center justify-center font-black">
-              <Package class="w-4 h-4" />
-            </div>
-            <div>
-              <p class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">Payment Secured in Escrow</p>
-              <p class="text-[11px] text-emerald-800 dark:text-emerald-300">
-                Waiting for the farmer to dispatch the shipment.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div v-else-if="order.status === 'pending_farmer_approval' || order.status === 'pending_payment'" 
-          class="bg-gray-50/70 dark:bg-[#1C2128] border-b border-gray-200/80 dark:border-[#30363D] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-gray-200 dark:bg-[#30363D] text-gray-600 dark:text-gray-300 flex items-center justify-center font-black">
-              <Clock class="w-4 h-4" />
-            </div>
-            <div>
-              <p class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">Awaiting Farmer Approval</p>
-              <p class="text-[11px] text-gray-600 dark:text-gray-400">
-                The farmer is reviewing the order. You can pay after they accept it.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div v-else-if="order.status === 'delivered' || order.status === 'completed'" 
-          class="bg-emerald-50/70 dark:bg-emerald-950/30 border-b border-emerald-200/80 dark:border-emerald-800/60 p-3 px-5 flex items-center gap-2 text-xs text-emerald-800 dark:text-emerald-300 font-bold">
-          <CheckCircle2 class="w-4 h-4 text-[#1E9444] dark:text-emerald-400" />
-          <span>{{ $t('Delivery confirmed & Chapa Escrow funds released to farmer.') }}</span>
-        </div>
-
-        <!-- Collapsible Vertical Lifecycle Drawer -->
-        <div v-if="expandedLifecycleOrders[order.id]" class="p-5 bg-[#FAFAFA] dark:bg-[#0D1117] border-t border-gray-100 dark:border-[#30363D]">
-          <OrderTimeline :status="order.status" />
         </div>
       </div>
+
+      <!-- Pagination Controls -->
+      <Pagination 
+        :currentPage="currentPage" 
+        :totalPages="totalPages" 
+        :totalItems="filteredOrders.length" 
+        :itemsPerPage="itemsPerPage" 
+        @update:currentPage="currentPage = $event" 
+      />
     </div>
 
     <!-- Delivery Confirmation & PIN Modal -->
@@ -288,12 +251,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { formatETB } from '@/utils/helpers'
 import { api } from '@/services/api'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
+import Pagination from '@/components/common/Pagination.vue'
 
 const { orders, confirmDelivery } = useOrders()
 
@@ -301,6 +265,8 @@ const activeTab = ref('all')
 const searchQuery = ref('')
 const selectedOrderForPIN = ref(null)
 const deliveryPin = ref('')
+const currentPage = ref(1)
+const itemsPerPage = 6
 
 const expandedLifecycleOrders = ref({})
 
@@ -352,6 +318,17 @@ const filteredOrders = computed(() => {
   }
 
   return result
+})
+
+const totalPages = computed(() => Math.ceil(filteredOrders.value.length / itemsPerPage) || 1)
+
+const paginatedOrders = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return filteredOrders.value.slice(start, start + itemsPerPage)
+})
+
+watch([activeTab, searchQuery], () => {
+  currentPage.value = 1
 })
 
 const statusBadgeClass = (status) => {

@@ -1,87 +1,175 @@
 <template>
-  <div class="w-full flex flex-col min-h-full pb-8 max-w-5xl mx-auto space-y-5">
-    <div class="bg-gradient-to-r from-[#062E15] via-[#0F5C2A] to-[#0B57D0] text-white p-6 rounded-3xl shadow-sm relative overflow-hidden">
+  <div class="w-full flex flex-col min-h-full pb-8 max-w-5xl mx-auto space-y-4">
+    <div class="bg-gradient-to-r from-[#062E15] via-[#0F5C2A] to-[#0B57D0] text-white p-5 rounded-2xl shadow-sm relative overflow-hidden">
       <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#E69500]/20 rounded-full blur-2xl pointer-events-none" />
       <div class="flex items-center justify-between relative z-10">
         <div>
-          <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">{{ $t('orders.farmerOrdersTitle') || 'Received Orders' }}</h1>
-          <p class="text-xs text-[#C3EFCF] mt-1 font-medium">{{ $t('orders.farmerOrdersSub') || 'Orders placed by commercial buyers with escrow protection' }}</p>
+          <h1 class="text-lg sm:text-xl font-black text-white tracking-tight">{{ $t('orders.farmerOrdersTitle') || 'Received Orders' }}</h1>
+          <p class="text-xs text-[#C3EFCF] mt-0.5 font-medium">{{ $t('orders.farmerOrdersSub') || 'Orders placed by commercial buyers with escrow protection' }}</p>
+        </div>
+        <div class="px-3 py-1 bg-white/10 backdrop-blur-xs rounded-xl border border-white/20 text-xs font-bold text-white">
+          {{ orders.length }} {{ $t('Total Orders') }}
         </div>
       </div>
     </div>
 
     <div v-if="orders.length === 0" class="text-center py-12 text-[#5A6270] dark:text-[#8B949E] bg-white dark:bg-[#161B22] border border-[#E2E8F0] dark:border-[#30363D] rounded-2xl p-6">
-      <p>{{ $t('orders.noOrdersTitle') }}</p>
+      <Package class="w-10 h-10 text-gray-400 dark:text-gray-500 mx-auto mb-2 opacity-50" />
+      <p class="font-bold text-sm text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('orders.noOrdersTitle') }}</p>
     </div>
 
     <div v-else class="space-y-4">
-      <div v-for="order in orders" :key="order.id" class="bg-white dark:bg-[#161B22] border border-[#E2E8F0] dark:border-[#30363D] rounded-2xl p-5 shadow-xs space-y-3">
-        <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#30363D] pb-3">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/40 flex items-center justify-center font-bold text-lg">
-              <Package class="w-5 h-5" />
+      <div class="space-y-2.5">
+        <div v-for="order in paginatedOrders" :key="order.id" 
+          class="bg-white dark:bg-[#161B22] border border-[#E2E8F0] dark:border-[#30363D] rounded-xl px-4 py-3 shadow-2xs hover:border-[#1E9444]/50 transition-all">
+          
+          <!-- Compact Main Row -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <!-- Left: Icon + Order Batch & Buyer Info -->
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/40 flex items-center justify-center font-bold text-base shrink-0 shadow-2xs">
+                <Package class="w-4 h-4" />
+              </div>
+              
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-sm font-black text-[#1E2328] dark:text-[#F0F6FC]">
+                    #{{ order.displayId || order.id }}
+                  </h3>
+                  <span :class="['px-2 py-0.5 rounded-full text-[10px] font-black capitalize border shadow-2xs', statusBadgeClass(order.status)]">
+                    {{ $t(order.status) }}
+                  </span>
+                  <span class="text-[11px] text-[#5A6270] dark:text-[#8B949E] font-medium">
+                    {{ formatDate(order.createdAt || order.placedAt || order.created_at) }}
+                  </span>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-[#5A6270] dark:text-[#8B949E]">
+                  <span>{{ $t('orders.buyer') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC]">{{ order.buyer?.name || $t('Commercial Buyer') }}</strong></span>
+                  <span class="text-gray-300 dark:text-gray-600">•</span>
+                  <span>{{ $t('orders.crop') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC]">{{ $t(order.listing?.cropName) || $t('Produce') }}</strong></span>
+                  <span class="px-1.5 py-0.2 rounded bg-gray-100 dark:bg-[#21262D] font-bold text-[#1E2328] dark:text-[#F0F6FC] text-[10px]">
+                    {{ order.quantityKg?.toLocaleString() }} kg
+                  </span>
+                </div>
+              </div>
             </div>
-            <div>
-              <h3 class="text-sm font-black text-[#1E2328]">{{ $t('orders.orderId') }} #{{ order.displayId }}</h3>
-              <p class="text-xs text-[#5A6270]">{{ $t('orders.buyer') }}: {{ order.buyer?.name || $t('Commercial Buyer') }} · {{ formatDate(order.createdAt || order.placedAt || order.created_at) }}</p>
+
+            <!-- Middle / Right: Escrow + Price + Action Buttons -->
+            <div class="flex items-center justify-between lg:justify-end gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100 dark:border-[#30363D]">
+              <!-- Escrow Status Pill -->
+              <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40 text-[11px] font-bold capitalize">
+                {{ $t('Escrow') }}: {{ $t(order.escrowStatus || 'held') }}
+              </span>
+
+              <!-- Delivery PIN Pill (if active transit/accepted) -->
+              <div v-if="(order.status === 'in_transit' || order.status === 'dispatched' || order.status === 'accepted') && order.deliveryPin"
+                @click="copyPin(order.deliveryPin)"
+                class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-[#0F5C2A] dark:text-emerald-300 border border-[#C3EFCF] dark:border-emerald-800/50 rounded-lg text-xs font-mono font-black cursor-pointer hover:bg-emerald-100 transition-colors"
+                :title="$t('Click to copy handover PIN')">
+                <span class="text-[10px] uppercase tracking-wider font-sans opacity-70">PIN:</span>
+                <span>{{ order.deliveryPin }}</span>
+                <span v-if="copiedPin === order.deliveryPin" class="text-[9px] font-sans text-emerald-600 font-bold">✓</span>
+              </div>
+
+              <!-- Price -->
+              <div class="text-right min-w-[80px]">
+                <span class="text-sm sm:text-base font-black text-[#1E9444] dark:text-emerald-400 tracking-tight block">
+                  {{ formatETB(order.totalAmountETB) }}
+                </span>
+              </div>
+
+              <!-- Action Buttons -->
+              <button v-if="order.status === 'placed' || order.status === 'pending'" 
+                @click="updateOrderStatus(order.id, 'accepted', 'Farmer accepted order parameters')" 
+                class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer">
+                <CheckCircle2 class="w-3.5 h-3.5" />
+                <span>{{ $t('Accept') }}</span>
+              </button>
+
+              <button v-else-if="order.status === 'paid_in_escrow'" 
+                @click="dispatchOrder(order.id)" 
+                class="px-3 py-1.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer">
+                <Truck class="w-3.5 h-3.5" />
+                <span>{{ $t('Dispatch') }}</span>
+              </button>
+
+              <!-- Timeline Toggle -->
+              <button @click="toggleTimeline(order.id)" 
+                class="p-1.5 rounded-lg bg-[#F0F1F2] dark:bg-[#21262D] hover:bg-gray-200 dark:hover:bg-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] transition-colors cursor-pointer"
+                :title="expandedOrderIds[order.id] ? 'Hide Progress' : 'View Order Timeline'">
+                <ChevronDown :class="['w-4 h-4 transition-transform duration-200', expandedOrderIds[order.id] ? 'rotate-180' : '']" />
+              </button>
             </div>
           </div>
-          <span :class="['px-3 py-1 rounded-full text-xs font-black capitalize', statusBadgeClass(order.status)]">{{ $t(order.status) }}</span>
-        </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F8F9FA] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] p-3 rounded-xl text-xs">
-          <div><span class="text-[#5A6270] dark:text-[#8B949E] block font-medium">{{ $t('orders.crop') }}</span><span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t(order.listing?.cropName) || $t('Produce') }}</span></div>
-          <div><span class="text-[#5A6270] dark:text-[#8B949E] block font-medium">{{ $t('cart.quantity') }}</span><span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ order.quantityKg?.toLocaleString() }} kg</span></div>
-          <div><span class="text-[#5A6270] dark:text-[#8B949E] block font-medium">{{ $t('orders.amount') }}</span><span class="font-black text-[#1E9444] dark:text-emerald-400">{{ formatETB(order.totalAmountETB) }}</span></div>
-          <div><span class="text-[#5A6270] dark:text-[#8B949E] block font-medium">{{ $t('Escrow Status') }}</span><span class="font-bold text-amber-600 dark:text-amber-400 capitalize">{{ $t(order.escrowStatus || 'held') }}</span></div>
-        </div>
-
-        <OrderTimeline :status="order.status" />
-
-        <div v-if="order.status === 'placed' || order.status === 'pending'" class="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-[#30363D]">
-          <button @click="updateOrderStatus(order.id, 'accepted', 'Farmer accepted order parameters')" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer">
-            <CheckCircle2 class="w-4 h-4" /><span>{{ $t('Accept Order') || 'Accept Order' }}</span>
-          </button>
-        </div>
-
-        <div v-if="order.status === 'paid_in_escrow'" class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-          <button @click="dispatchOrder(order.id)" class="px-4 py-2 rounded-xl bg-[#1E9444] text-white text-xs font-bold hover:bg-[#0F5C2A] flex items-center gap-1.5 shadow-2xs">
-            <Truck class="w-4 h-4" /><span>{{ $t('Dispatch Shipment') }}</span>
-          </button>
-        </div>
-
-        <!-- Escrow PIN Box for Farmer -->
-        <div v-if="order.status === 'in_transit' || order.status === 'dispatched' || order.status === 'accepted'" 
-          class="bg-[#EDFAF2] dark:bg-emerald-950/30 border border-[#C3EFCF] dark:border-emerald-800/50 p-4 rounded-xl mt-3 flex items-center justify-between shadow-2xs">
-          <div>
-            <h4 class="text-xs font-black text-[#0F5C2A] uppercase tracking-wider">{{ $t('orders.deliveryPin') }}</h4>
-            <p class="text-[11px] text-[#1E9444] mt-0.5">{{ $t('orders.handoffInstruction') }}</p>
-          </div>
-          <div class="px-4 py-1.5 bg-white dark:bg-[#161B22] rounded-lg border border-[#C3EFCF] dark:border-emerald-800/50 shadow-sm select-all">
-            <span class="text-lg font-black tracking-widest text-[#1E2328] dark:text-[#F0F6FC]">{{ order.deliveryPin || 'PENDING' }}</span>
+          <!-- Collapsible Timeline Drawer -->
+          <div v-if="expandedOrderIds[order.id]" class="mt-3 pt-3 border-t border-gray-100 dark:border-[#30363D] space-y-2 animate-in fade-in duration-200">
+            <OrderTimeline :status="order.status" />
+            <p v-if="order.deliveryPin" class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">
+              {{ $t('orders.handoffInstruction') }}: <strong class="text-[#0F5C2A] dark:text-emerald-300 font-mono">{{ order.deliveryPin }}</strong>
+            </p>
           </div>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <Pagination 
+        :currentPage="currentPage" 
+        :totalPages="totalPages" 
+        :totalItems="orders.length" 
+        :itemsPerPage="itemsPerPage" 
+        @update:currentPage="currentPage = $event" 
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { Package, Truck, CheckCircle2 } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { Package, Truck, CheckCircle2, ChevronDown } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { formatETB, formatDate } from '@/utils/helpers'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
+import Pagination from '@/components/common/Pagination.vue'
 
 const { orders, dispatchOrder, updateOrderStatus } = useOrders()
 
+const expandedOrderIds = ref({})
+const copiedPin = ref(null)
+
+const toggleTimeline = (orderId) => {
+  expandedOrderIds.value[orderId] = !expandedOrderIds.value[orderId]
+}
+
+const copyPin = (pin) => {
+  if (!pin) return
+  navigator.clipboard?.writeText(pin)
+  copiedPin.value = pin
+  setTimeout(() => {
+    if (copiedPin.value === pin) copiedPin.value = null
+  }, 2000)
+}
+
+const currentPage = ref(1)
+const itemsPerPage = 6
+
+const totalPages = computed(() => Math.ceil(orders.value.length / itemsPerPage) || 1)
+
+const paginatedOrders = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  return orders.value.slice(start, start + itemsPerPage)
+})
+
 const statusBadgeClass = (status) => {
   const map = {
-    placed: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60',
-    dispatched: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60',
-    in_transit: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60',
-    delivered: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60',
-    completed: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
+    placed: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60',
+    dispatched: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
+    in_transit: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
+    delivered: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
+    completed: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
   }
   return map[status] || 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
 }
 </script>
+
