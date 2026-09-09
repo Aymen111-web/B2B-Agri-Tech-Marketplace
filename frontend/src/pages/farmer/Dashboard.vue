@@ -30,60 +30,87 @@
       </div>
     </div>
 
-    <!-- 6 METRIC STAT CARDS -->
+    <!-- 6 METRIC STAT CARDS (Uniform Buyer Dashboard Style) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-[#1E9444]" />
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all relative overflow-hidden group flex flex-col justify-between space-y-3">
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">{{ $t('farmer.activeProduceListings') }}</span><h3 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ activeCount }}</h3></div>
-          <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center shrink-0"><Zap class="w-5 h-5" /></div>
+          <div>
+            <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('farmer.activeProduceListings') }}</span>
+            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ activeCount }}</h3>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
+            <Zap class="w-4 h-4" />
+          </div>
         </div>
-        <span class="text-[10px] font-bold text-[#1E9444] dark:text-emerald-400">{{ $t('farmer.liveOnMarketplace') }}</span>
+        <span class="text-[11px] font-semibold text-[#1E9444] dark:text-emerald-400 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-[#1E9444] animate-pulse"></span>
+          <span>{{ $t('farmer.liveOnMarketplace') }}</span>
+        </span>
       </div>
 
-      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-[#F5B73A]" />
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all relative overflow-hidden group flex flex-col justify-between space-y-3">
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">{{ $t('farmer.regionalDepots') }}</span><h3 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">0</h3></div>
-          <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-[#F5B73A] dark:text-amber-300 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center shrink-0"><Building2 class="w-5 h-5" /></div>
+          <div>
+            <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('farmer.regionalDepots') }}</span>
+            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">0</h3>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-[#0B57D0]/10 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 border border-blue-100 dark:border-blue-800/60 flex items-center justify-center shrink-0">
+            <Building2 class="w-4 h-4" />
+          </div>
         </div>
-        <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300">{{ $t('farmer.supportedLogistics') }}</span>
+        <span class="text-[11px] font-semibold text-[#0B57D0] dark:text-blue-400">{{ $t('farmer.supportedLogistics') }}</span>
       </div>
 
-      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-[#E6533C]" />
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all relative overflow-hidden group flex flex-col justify-between space-y-3">
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">{{ $t('farmer.primaryUnionCoops') }}</span><h3 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ farmer?.union ? 1 : 0 }}</h3></div>
-          <div class="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-950/40 text-[#E6533C] dark:text-red-400 border border-red-100 dark:border-red-800/60 flex items-center justify-center shrink-0"><UserCheck class="w-5 h-5" /></div>
+          <div>
+            <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('farmer.primaryUnionCoops') }}</span>
+            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ farmer?.union ? 1 : 0 }}</h3>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
+            <UserCheck class="w-4 h-4" />
+          </div>
         </div>
-        <span class="text-[10px] font-bold text-red-600 dark:text-red-400">{{ $t(farmer?.union) || $t('None') }}</span>
+        <span class="text-[11px] font-semibold text-[#1E9444] dark:text-emerald-400">{{ $t(farmer?.union) || $t('None') }}</span>
       </div>
 
-      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-[#14B8A6]" />
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all relative overflow-hidden group flex flex-col justify-between space-y-3">
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">{{ $t('Verified Buyers') }}</span><h3 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">0</h3></div>
-          <div class="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-[#14B8A6] dark:text-teal-400 border border-teal-100 dark:border-teal-800/60 flex items-center justify-center shrink-0"><Users class="w-5 h-5" /></div>
+          <div>
+            <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('Verified Buyers') }}</span>
+            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">0</h3>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-[#0B57D0]/10 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 border border-blue-100 dark:border-blue-800/60 flex items-center justify-center shrink-0">
+            <Users class="w-4 h-4" />
+          </div>
         </div>
-        <span class="text-[10px] font-bold text-teal-700 dark:text-teal-300">{{ $t('Commercial Escrow Buyers') }}</span>
+        <span class="text-[11px] font-semibold text-[#0B57D0] dark:text-blue-400">{{ $t('Commercial Escrow Buyers') }}</span>
       </div>
 
-      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-amber-400" />
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all relative overflow-hidden group flex flex-col justify-between space-y-3">
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">{{ $t('Orders Received') }}</span><h3 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ receivedOrdersCount }}</h3></div>
-          <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-300 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center shrink-0"><PackageCheck class="w-5 h-5" /></div>
+          <div>
+            <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('Orders Received') }}</span>
+            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ receivedOrdersCount }}</h3>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-[#E69500] dark:text-amber-300 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center shrink-0">
+            <PackageCheck class="w-4 h-4" />
+          </div>
         </div>
-        <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300">{{ $t('Pending Escrow Release:') }} {{ formatETB(pendingPayoutETB) }}</span>
+        <span class="text-[11px] font-semibold text-amber-700 dark:text-amber-300">{{ $t('Pending Escrow Release:') }} {{ formatETB(pendingPayoutETB) }}</span>
       </div>
 
-      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-[#E6533C]" />
+      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 sm:p-5 shadow-2xs hover:shadow-md transition-all relative overflow-hidden group flex flex-col justify-between space-y-3">
         <div class="flex items-start justify-between">
-          <div><span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">{{ $t('SMS Dispatch Notifications') }}</span><h3 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">0</h3></div>
-          <div class="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-950/40 text-[#E6533C] dark:text-red-400 border border-red-100 dark:border-red-800/60 flex items-center justify-center shrink-0"><Smartphone class="w-5 h-5" /></div>
+          <div>
+            <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('SMS Dispatch Notifications') }}</span>
+            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">0</h3>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
+            <Smartphone class="w-4 h-4" />
+          </div>
         </div>
-        <span class="text-[10px] font-bold text-red-600 dark:text-red-400">{{ $t('Active Mobile SMS Channel') }}</span>
+        <span class="text-[11px] font-semibold text-[#1E9444] dark:text-emerald-400">{{ $t('Active Mobile SMS Channel') }}</span>
       </div>
     </div>
 
