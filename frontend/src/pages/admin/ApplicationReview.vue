@@ -547,7 +547,7 @@ const previewDocName = ref('')
 const previewDocType = ref('pdf')
 const previewApp = ref(null)
 
-const openDoc = (doc, app = null) => {
+const openDoc = async (doc, app = null) => {
   const url = getDocUrl(doc)
   const docName = getDocName(doc)
 
