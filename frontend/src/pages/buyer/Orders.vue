@@ -117,7 +117,7 @@
                     #{{ order.displayId }}
                   </span>
                   <span :class="['px-2 py-0.5 rounded-full text-[10px] font-black capitalize border shadow-2xs', statusBadgeClass(order.status || 'placed')]">
-                    {{ (order.status || 'placed').replace('_', ' ') }}
+                    {{ formatStatusLabel(order.status) }}
                   </span>
                 </div>
                 
@@ -350,16 +350,35 @@ const statusBadgeClass = (status) => {
   return map[status] || 'bg-gray-100 dark:bg-[#21262D] text-gray-700 dark:text-gray-300 border-gray-200 dark:border-[#30363D]'
 }
 
+const formatStatusLabel = (status) => {
+  const map = {
+    delivered: 'Completed Handoff',
+    completed: 'Completed Handoff',
+    paid_in_escrow: 'Paid in Escrow',
+    awaiting_buyer_payment: 'Awaiting Payment',
+    pending_payment: 'Pending Payment',
+    in_transit: 'In Transit',
+    dispatched: 'Dispatched',
+  }
+  return map[status] || (status || 'placed').replace(/_/g, ' ')
+}
+
 const openDeliveryModal = (order) => {
   selectedOrderForPIN.value = order
   deliveryPin.value = ''
 }
 
-const submitDeliveryPin = () => {
+const submitDeliveryPin = async () => {
   if (selectedOrderForPIN.value) {
-    confirmDelivery(selectedOrderForPIN.value.id, deliveryPin.value)
+    const targetOrder = selectedOrderForPIN.value
+    await confirmDelivery(targetOrder.id, deliveryPin.value)
+    if (typeof targetOrder === 'object') {
+      targetOrder.status = 'completed'
+      targetOrder.escrowStatus = 'released'
+    }
     selectedOrderForPIN.value = null
     deliveryPin.value = ''
+    await refreshOrders()
   }
 }
 
