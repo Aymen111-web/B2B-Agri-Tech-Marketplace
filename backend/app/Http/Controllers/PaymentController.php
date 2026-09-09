@@ -40,9 +40,9 @@ class PaymentController extends Controller
             ], 422);
         }
 
-        $payableAmount = (float) $acceptedFulfillments->sum('subtotal_amount');
+        $payableAmount = (float) $order->total_amount;
         if ($payableAmount <= 0) {
-            $payableAmount = (float) $order->total_amount;
+            $payableAmount = (float) $acceptedFulfillments->sum('subtotal_amount');
         }
 
         // Guard against re-paying completed or cancelled orders
@@ -209,13 +209,32 @@ class PaymentController extends Controller
             }
         }
 
+        if (! $payment && is_numeric($txRef)) {
+            $payment = Payment::where('order_id', (int) $txRef)->latest()->first()
+                ?? Payment::where('order_fulfillment_id', (int) $txRef)->latest()->first();
+        }
+
+        if (! $payment) {
+            $payment = Payment::where('gateway_metadata->reference', $txRef)
+                ->orWhere('gateway_metadata->ref_id', $txRef)
+                ->latest()
+                ->first();
+        }
+
+        if (! $payment && \Illuminate\Support\Facades\Auth::check()) {
+            $payment = Payment::whereHas('order', function ($q) {
+                $q->where('buyer_id', \Illuminate\Support\Facades\Auth::id());
+            })->latest()->first();
+        }
+
         if (! $payment) {
             return response()->json([
                 'message' => 'Payment record not found.',
             ], 404);
         }
 
-        $verification = $chapaService->verifyTransaction($txRef);
+        $realTxRef = $payment->chapa_tx_ref ?: $txRef;
+        $verification = $chapaService->verifyTransaction($realTxRef);
 
         \Illuminate\Support\Facades\Log::info("VERIFY REACHED for $txRef", [
             'payment_status' => $payment->status,
@@ -232,6 +251,10 @@ class PaymentController extends Controller
                     \Illuminate\Support\Facades\Log::info("SUCCESS confirmPayment for $txRef - Order Status Now: " . $payment->fresh()->order?->status);
                 } catch (\Exception $e) {
                     \Illuminate\Support\Facades\Log::error("CRASH in confirmPayment for $txRef", ['error' => $e->getMessage()]);
+                    return response()->json([
+                        'message' => 'Failed to confirm escrow payment: ' . $e->getMessage(),
+                        'status'  => 'error',
+                    ], 500);
                 }
                 $payment->refresh();
             } else {
@@ -250,20 +273,21 @@ class PaymentController extends Controller
             }
 
             return response()->json([
-                'message'      => 'Payment verified successfully.',
+                'message'      => 'Payment verified successfully. Escrow secured.',
                 'status'       => 'success',
                 'payment'      => new PaymentResource($payment),
+                'order'        => new \App\Http\Resources\OrderResource($payment->order?->fresh(['fulfillments.farmer', 'items.listing'])),
                 'chapa_data'   => $verification['data'] ?? [],
                 'receipt_url'  => $receiptUrl,
             ]);
         }
 
         return response()->json([
-            'message'    => $verification['message'] ?? 'Payment verification pending.',
-            'status'     => 'pending',
+            'message'    => $verification['message'] ?? 'Payment verification pending or failed.',
+            'status'     => $verification['status'] ?? 'failed',
             'payment'    => new PaymentResource($payment),
             'chapa_data' => $verification['data'] ?? [],
-        ]);
+        ], 400);
     }
 
     /**

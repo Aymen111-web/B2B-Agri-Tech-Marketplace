@@ -147,13 +147,45 @@
               </div>
 
               <!-- Quick Actions based on order status -->
-              <!-- Enter PIN for Driver handoff -->
-              <button v-if="order.status === 'in_transit' || order.status === 'dispatched'" 
-                @click="openDeliveryModal(order)" 
-                class="px-3 py-1.5 bg-[#E69500] text-white rounded-xl text-xs font-bold hover:bg-[#D48900] transition-colors shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer">
-                <Key class="w-3.5 h-3.5" />
-                <span>Enter PIN</span>
-              </button>
+              <!-- Enter PIN for Driver handoff / Dispute -->
+              <div v-if="order.status === 'in_transit' || order.status === 'dispatched'" class="flex items-center gap-1.5 shrink-0">
+                <button 
+                  @click="openDeliveryModal(order)" 
+                  class="px-3 py-1.5 bg-[#E69500] text-white rounded-xl text-xs font-bold hover:bg-[#D48900] transition-colors shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer">
+                  <Key class="w-3.5 h-3.5" />
+                  <span>Enter PIN</span>
+                </button>
+                <button 
+                  @click="openDisputeModal(order)" 
+                  class="px-2.5 py-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/60 rounded-xl text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
+                  title="Report quality mismatch or issue">
+                  <AlertTriangle class="w-3.5 h-3.5" />
+                  <span>Dispute</span>
+                </button>
+              </div>
+
+              <!-- Paid in Escrow - Awaiting Farmer Dispatch -->
+              <div v-else-if="order.status === 'paid_in_escrow'" class="flex items-center gap-1.5 shrink-0">
+                <span class="px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl flex items-center gap-1">
+                  <Clock class="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                  <span>Awaiting Dispatch</span>
+                </span>
+                <button 
+                  @click="openDisputeModal(order)" 
+                  class="px-2 py-1 bg-gray-50 dark:bg-[#21262D] text-red-600 dark:text-red-400 border border-gray-200 dark:border-[#30363D] rounded-xl text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
+                  title="Dispute escrow">
+                  <AlertTriangle class="w-3.5 h-3.5" />
+                  <span>Dispute</span>
+                </button>
+              </div>
+
+              <!-- Escrow Disputed Status -->
+              <div v-else-if="order.status === 'disputed' || order.isDisputed" class="flex items-center gap-1.5 shrink-0">
+                <span class="px-2.5 py-1.5 bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/60 rounded-xl text-xs font-bold flex items-center gap-1">
+                  <AlertCircle class="w-3.5 h-3.5 text-red-600" />
+                  <span>Escrow Frozen (Under Review)</span>
+                </span>
+              </div>
 
               <!-- Payment Needed -->
               <div v-else-if="['pending_payment', 'awaiting_buyer_payment', 'placed'].includes(order.status)" class="flex items-center gap-1.5 shrink-0">
@@ -209,7 +241,7 @@
             <ShieldCheck class="w-5 h-5 text-[#1E9444] dark:text-emerald-400" />
             <h3 class="text-base font-bold">{{ $t('orders.confirmDelivery') }}</h3>
           </div>
-          <button @click="selectedOrderForPIN = null" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+          <button @click="selectedOrderForPIN = null" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer">
             <X class="w-5 h-5" />
           </button>
         </div>
@@ -238,11 +270,73 @@
         </div>
 
         <div class="flex gap-2 pt-2">
-          <button @click="selectedOrderForPIN = null" class="flex-1 py-2.5 border border-gray-300 dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] rounded-xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D]">
+          <button @click="selectedOrderForPIN = null" :disabled="isSubmittingPin" class="flex-1 py-2.5 border border-gray-300 dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] rounded-xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D] cursor-pointer">
             {{ $t('Cancel') }}
           </button>
-          <button @click="submitDeliveryPin" class="flex-1 py-2.5 bg-[#1E9444] text-white rounded-xl font-bold text-xs hover:bg-[#0F5C2A] shadow-2xs">
-            Confirm & Release Payout
+          <button @click="submitDeliveryPin" :disabled="isSubmittingPin" class="flex-1 py-2.5 bg-[#1E9444] text-white rounded-xl font-bold text-xs hover:bg-[#0F5C2A] shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50">
+            <RefreshCw v-if="isSubmittingPin" class="w-3.5 h-3.5 animate-spin" />
+            <span>{{ isSubmittingPin ? 'Verifying...' : 'Confirm & Release Payout' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Escrow Quality Dispute Modal -->
+    <div v-if="selectedOrderForDispute" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div class="max-w-md w-full bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-6 shadow-2xl space-y-4 text-[#1E2328] dark:text-[#F0F6FC]">
+        <div class="flex items-center justify-between border-b border-[#E2E4E7] dark:border-[#30363D] pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400">
+              <AlertTriangle class="w-4 h-4" />
+            </div>
+            <div>
+              <h3 class="text-base font-bold">Dispute Escrow Payment</h3>
+              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">Freeze funds for admin arbitration</p>
+            </div>
+          </div>
+          <button @click="closeDisputeModal" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <div class="p-3 bg-[#F8F9FA] dark:bg-[#21262D] rounded-xl border border-gray-100 dark:border-[#30363D] space-y-1 text-xs">
+          <div class="flex justify-between font-semibold">
+            <span class="text-[#5A6270] dark:text-[#8B949E]">Order Reference:</span>
+            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">#{{ selectedOrderForDispute.displayId || selectedOrderForDispute.id }}</span>
+          </div>
+          <div class="flex justify-between font-semibold">
+            <span class="text-[#5A6270] dark:text-[#8B949E]">Escrow Protected Total:</span>
+            <span class="text-[#0B57D0] dark:text-blue-400 font-black">{{ formatETB(selectedOrderForDispute.totalAmountETB || selectedOrderForDispute.total_amount || 0) }}</span>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-[#1E2328] dark:text-[#F0F6FC]">Dispute Reason</label>
+          <select v-model="disputeCategory" class="w-full px-3 py-2 bg-gray-50 dark:bg-[#0D1117] border border-gray-300 dark:border-[#30363D] rounded-xl text-xs font-bold text-[#1E2328] dark:text-[#F0F6FC] focus:outline-none focus:border-red-500">
+            <option value="produce_damaged">Produce Damaged / Spoiled in Transit</option>
+            <option value="quality_mismatch">Quality / Grade Mismatch</option>
+            <option value="wrong_quantity">Wrong Quantity / Weight Discrepancy</option>
+            <option value="delivery_delay">Severe Delivery Delay</option>
+            <option value="other">Other Issue</option>
+          </select>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-[#1E2328] dark:text-[#F0F6FC]">Description of Issue</label>
+          <textarea v-model="disputeDescription" rows="3" placeholder="Provide specific details regarding the produce quality inspection or delivery issue..." class="w-full px-3 py-2 bg-gray-50 dark:bg-[#0D1117] border border-gray-300 dark:border-[#30363D] rounded-xl text-xs font-medium text-[#1E2328] dark:text-[#F0F6FC] focus:outline-none focus:border-red-500"></textarea>
+        </div>
+
+        <div class="p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl text-amber-800 dark:text-amber-300 text-[11px] leading-relaxed">
+          Filing a dispute immediately freezes the escrow funds and halts automated release to the farmer pending admin arbitrage.
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button @click="closeDisputeModal" :disabled="isSubmittingDispute" class="flex-1 py-2.5 border border-gray-300 dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] rounded-xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D] cursor-pointer">
+            Cancel
+          </button>
+          <button @click="submitDispute" :disabled="isSubmittingDispute" class="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-bold text-xs hover:bg-red-700 shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50">
+            <RefreshCw v-if="isSubmittingDispute" class="w-3.5 h-3.5 animate-spin" />
+            <span>{{ isSubmittingDispute ? 'Freezing Escrow...' : 'Freeze Escrow & Dispute' }}</span>
           </button>
         </div>
       </div>
@@ -378,7 +472,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw, ExternalLink, FileText } from 'lucide-vue-next'
+import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw, ExternalLink, FileText, AlertTriangle, AlertCircle } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { useAlertModal } from '@/composables/useAlertModal'
 import { formatETB } from '@/utils/helpers'
@@ -393,8 +487,70 @@ const activeTab = ref('all')
 const searchQuery = ref('')
 const selectedOrderForPIN = ref(null)
 const deliveryPin = ref('')
+const isSubmittingPin = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 6
+
+// Dispute Modal State
+const selectedOrderForDispute = ref(null)
+const disputeCategory = ref('produce_damaged')
+const disputeDescription = ref('')
+const isSubmittingDispute = ref(false)
+
+const openDisputeModal = (order) => {
+  selectedOrderForDispute.value = order
+  disputeCategory.value = 'produce_damaged'
+  disputeDescription.value = ''
+}
+
+const closeDisputeModal = () => {
+  selectedOrderForDispute.value = null
+  disputeDescription.value = ''
+  isSubmittingDispute.value = false
+}
+
+const submitDispute = async () => {
+  if (!selectedOrderForDispute.value) return
+  if (!disputeDescription.value.trim()) {
+    showAlert({ title: 'Description Required', message: 'Please provide details about the quality or delivery issue.', type: 'warning' })
+    return
+  }
+  
+  isSubmittingDispute.value = true
+  const targetOrder = selectedOrderForDispute.value
+  const orderDbId = targetOrder.orderId || targetOrder.id
+  
+  try {
+    const payload = {
+      order_id: orderDbId,
+      type: disputeCategory.value,
+      description: disputeDescription.value.trim()
+    }
+    await api.filePaymentException(payload)
+    
+    if (typeof targetOrder === 'object') {
+      targetOrder.status = 'disputed'
+      targetOrder.isDisputed = true
+      targetOrder.payoutStatus = 'locked'
+    }
+    
+    showAlert({
+      title: 'Escrow Frozen & Disputed',
+      message: 'A dispute has been filed and escrow payout is frozen. Platform administrators will arbitrate your case.',
+      type: 'success'
+    })
+    closeDisputeModal()
+    await refreshOrders()
+  } catch (err) {
+    showAlert({
+      title: 'Dispute Submission Failed',
+      message: err.message || 'Failed to file dispute. Please try again.',
+      type: 'error'
+    })
+  } finally {
+    isSubmittingDispute.value = false
+  }
+}
 
 const expandedLifecycleOrders = ref({})
 
@@ -497,14 +653,36 @@ const openDeliveryModal = (order) => {
 const submitDeliveryPin = async () => {
   if (selectedOrderForPIN.value) {
     const targetOrder = selectedOrderForPIN.value
-    await confirmDelivery(targetOrder.id, deliveryPin.value)
-    if (typeof targetOrder === 'object') {
-      targetOrder.status = 'completed'
-      targetOrder.escrowStatus = 'released'
+    if (!deliveryPin.value || deliveryPin.value.trim().length < 4) {
+      showAlert({ title: 'Invalid PIN', message: 'Please enter a valid 6-digit delivery PIN.', type: 'warning' })
+      return
     }
-    selectedOrderForPIN.value = null
-    deliveryPin.value = ''
-    await refreshOrders()
+    isSubmittingPin.value = true
+    try {
+      const orderDbId = targetOrder.orderId || targetOrder.id
+      await confirmDelivery(orderDbId, deliveryPin.value.trim())
+      if (typeof targetOrder === 'object') {
+        targetOrder.status = 'completed'
+        targetOrder.escrowStatus = 'released'
+        targetOrder.payoutStatus = 'released'
+      }
+      showAlert({ 
+        title: 'Handoff Confirmed', 
+        message: 'Delivery PIN verified successfully! Escrow funds have been released to the farmer.', 
+        type: 'success' 
+      })
+      selectedOrderForPIN.value = null
+      deliveryPin.value = ''
+      await refreshOrders()
+    } catch (err) {
+      showAlert({ 
+        title: 'Verification Failed', 
+        message: err.response?.data?.message || err.message || 'Invalid delivery PIN. Please check the code with the driver and try again.', 
+        type: 'error' 
+      })
+    } finally {
+      isSubmittingPin.value = false
+    }
   }
 }
 
@@ -528,19 +706,18 @@ const stopPaymentPolling = () => {
 
 const checkActivePayment = async (isManual = false) => {
   if (!activePaymentOrder.value) return
-  const orderId = activePaymentOrder.value.id || activePaymentOrder.value.displayId
+  const targetId = activePaymentOrder.value.displayId || activePaymentOrder.value.id
   if (isManual) {
     activePaymentStatus.value = 'verifying'
     activePaymentErrorMessage.value = null
   }
   
   try {
-    const res = await api.verifyPendingPaymentForOrder(orderId)
-    // Success: status is 'success' OR payment object shows confirmed status
+    const res = await api.verifyPendingPaymentForOrder(targetId)
     const isSuccess = res && (
-      res.status === 'success' ||
-      res.payment?.status === 'confirmed' ||
-      res.message?.toLowerCase().includes('verified successfully')
+      res.status === 'success' || 
+      res.message?.toLowerCase().includes('verified') || 
+      res.payment?.status === 'confirmed'
     )
     if (isSuccess) {
       stopPaymentPolling()
@@ -554,39 +731,27 @@ const checkActivePayment = async (isManual = false) => {
       await refreshOrders()
     } else if (isManual) {
       activePaymentStatus.value = 'awaiting'
-      activePaymentErrorMessage.value = 'Payment not yet confirmed on Chapa. Please complete payment in the Chapa tab, then click Check again.'
+      activePaymentErrorMessage.value = res?.message || 'Payment is still processing on Chapa.'
     }
-    // If auto-poll and not success: just keep polling silently
   } catch (err) {
-    // 400 = payment still pending (normal during payment flow) — not a fatal error
-    // Only show message for manual check, keep polling either way
     if (isManual) {
       activePaymentStatus.value = 'awaiting'
-      const errMsg = err.message || ''
-      // If error says "not confirmed" / "pending" it's a normal intermediate state
-      const isPending = errMsg.toLowerCase().includes('pending') ||
-        errMsg.toLowerCase().includes('not found') ||
-        errMsg.toLowerCase().includes('not yet') ||
-        errMsg.toLowerCase().includes('verification')
-      activePaymentErrorMessage.value = isPending
-        ? 'Payment is still being processed. Please complete payment in the Chapa tab and try again.'
-        : (errMsg || 'Unable to verify payment right now. Please try again.')
+      activePaymentErrorMessage.value = err.message || 'Payment is not yet confirmed. Please complete the steps in the Chapa tab.'
     }
   }
 }
 
-const startPaymentPolling = (orderId) => {
+const startPaymentPolling = (targetId) => {
   stopPaymentPolling()
   let ticks = 0
   paymentPollingInterval = setInterval(async () => {
     ticks++
-    // Poll for up to 10 minutes (120 ticks × 5s) then stop silently
-    if (ticks > 120 || !activePaymentOrder.value || activePaymentStatus.value === 'success') {
+    if (ticks > 100 || !activePaymentOrder.value || activePaymentStatus.value === 'success') {
       stopPaymentPolling()
       return
     }
     await checkActivePayment(false)
-  }, 5000)
+  }, 3000)
 }
 
 const reopenPaymentTab = () => {
@@ -625,44 +790,41 @@ onUnmounted(() => {
 })
 
 const verifyPayment = async (order) => {
-  const orderId = typeof order === 'object' ? (order.id || order.displayId) : order
+  const targetId = typeof order === 'object' ? (order.displayId || order.id) : order
   if (isVerifyingPayment.value) return
-  isVerifyingPayment.value = orderId
+  isVerifyingPayment.value = targetId
   
   try {
-    const res = await api.verifyPendingPaymentForOrder(orderId)
+    const res = await api.verifyPendingPaymentForOrder(targetId)
     const isSuccess = res && (
-      res.status === 'success' ||
+      res.status === 'success' || 
+      res.message?.toLowerCase().includes('verified') || 
       res.payment?.status === 'confirmed' ||
-      res.message?.toLowerCase().includes('verified successfully')
+      res.order?.payment_status === 'paid'
     )
     if (isSuccess) {
-      // Update the local order object immediately
+      showAlert({ 
+        title: 'Payment Confirmed', 
+        message: res.message || 'Payment confirmed and funds secured in escrow! The farmer has been notified.', 
+        type: 'success' 
+      })
       if (typeof order === 'object') {
         order.status = 'paid_in_escrow'
         order.escrowStatus = 'held'
-        if (res.receipt_url) order.receiptUrl = res.receipt_url
+        order.paymentStatus = 'paid'
       }
       await refreshOrders()
-      showAlert({ title: '✅ Payment Confirmed', message: 'Your escrow payment has been verified and secured. The farmer has been notified.', type: 'success' })
     } else {
       showAlert({ 
-        title: 'Payment Pending', 
-        message: res?.message || 'Payment is not yet confirmed. Please complete your payment in the Chapa tab and try verifying again.', 
+        title: 'Payment Incomplete', 
+        message: res?.message || 'Payment is still processing on Chapa. Please complete the steps in the tester tab.', 
         type: 'warning' 
       })
     }
   } catch (err) {
-    const errMsg = err.message || ''
-    const isPending = errMsg.toLowerCase().includes('pending') ||
-      errMsg.toLowerCase().includes('not found') ||
-      errMsg.toLowerCase().includes('not yet') ||
-      errMsg.toLowerCase().includes('verification')
     showAlert({ 
-      title: isPending ? 'Payment Still Processing' : 'Verification Error', 
-      message: isPending 
-        ? 'Payment is still being processed by Chapa. Please complete payment in the Chapa tab and try again in a few seconds.'
-        : (errMsg || 'Verification failed. Please try again.'), 
+      title: 'Payment Verification Status', 
+      message: err.message || 'Payment is not yet verified. Please complete payment in the Chapa tester and try again.', 
       type: 'warning' 
     })
   } finally {

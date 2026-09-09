@@ -169,6 +169,7 @@ class ChapaService
             'phone_number'  => $phone,
             'tx_ref'        => $txRef,
             'callback_url'  => config('services.chapa.callback_url'),
+            'return_url'    => (config('services.chapa.return_url') ?: 'http://localhost:5174/payment/success') . (str_contains(config('services.chapa.return_url', ''), '?') ? '&' : '?') . "order_id={$order->id}&tx_ref=" . urlencode($txRef),
             'customization' => [
                 'title'       => 'AgriMarket ET',
                 'description' => "Order Payment {$orderNumClean}",
@@ -252,6 +253,7 @@ class ChapaService
             'phone_number'  => $phone,
             'tx_ref'        => $txRef,
             'callback_url'  => config('services.chapa.callback_url'),
+            'return_url'    => (config('services.chapa.return_url') ?: 'http://localhost:5174/payment/success') . (str_contains(config('services.chapa.return_url', ''), '?') ? '&' : '?') . "fulfillment_id={$fulfillment->id}&tx_ref=" . urlencode($txRef),
             'customization' => [
                 'title'       => 'AgriMarket ET',
                 'description' => "Direct Settlement {$farmerNameClean}",

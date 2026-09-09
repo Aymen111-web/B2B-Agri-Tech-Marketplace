@@ -36,38 +36,52 @@ class PaymentExceptionController extends Controller
 
         $validated = $request->validated();
 
-        $payment = Payment::with('order')->findOrFail($validated['payment_id']);
-        $order   = $payment->order;
+        $payment = null;
+        $order   = null;
+
+        if (! empty($validated['payment_id'])) {
+            $payment = Payment::with('order')->find($validated['payment_id']);
+            $order   = $payment?->order;
+        }
+
+        if (! $order && ! empty($validated['order_id'])) {
+            $orderId = $validated['order_id'];
+            $order = Order::find($orderId)
+                ?? Order::where('order_number', $orderId)->first()
+                ?? Order::where('id', (int) preg_replace('/[^0-9]/', '', (string) $orderId))->first();
+
+            if ($order && ! $payment) {
+                $payment = $order->payment ?? Payment::where('order_id', $order->id)->latest()->first();
+            }
+        }
 
         if (! $order) {
             return response()->json([
-                'message' => 'The payment is not associated with a valid order.',
-            ], 422);
+                'message' => 'The order or payment associated with this claim was not found.',
+            ], 404);
         }
 
         // Only the buyer or a farmer assigned to a fulfillment on this order may raise an exception.
-        // This participant check is a business-logic concern that requires the order context,
-        // so it remains here rather than in the policy.
         if (! $this->isOrderParticipant($user, $order)) {
             return response()->json([
-                'message' => 'You are not authorized to raise an exception for this payment.',
+                'message' => 'You are not authorized to raise an exception for this order.',
             ], 403);
         }
 
-        // Prevent duplicate open exceptions of the same type for the same payment.
-        $existingOpen = PaymentException::where('payment_id', $payment->id)
+        // Prevent duplicate open exceptions of the same type for the same order.
+        $existingOpen = PaymentException::where('order_id', $order->id)
             ->where('type', $validated['type'])
             ->whereIn('status', ['open', 'investigating'])
             ->exists();
 
         if ($existingOpen) {
             return response()->json([
-                'message' => 'An open exception of this type already exists for this payment.',
+                'message' => 'An active claim of this category already exists for this order.',
             ], 409);
         }
 
         $exception = PaymentException::create([
-            'payment_id'  => $payment->id,
+            'payment_id'  => $payment?->id,
             'order_id'    => $order->id,
             'raised_by'   => $user->id,
             'type'        => $validated['type'],
@@ -75,8 +89,35 @@ class PaymentExceptionController extends Controller
             'status'      => 'open',
         ]);
 
+        // Escrow Freezing:
+        // Order status flags to disputed. Escrow payout is automatically locked.
+        $oldStatus = $order->status;
+        $order->update([
+            'status'        => 'disputed',
+            'payout_status' => 'locked',
+        ]);
+
+        foreach ($order->fulfillments as $fulfillment) {
+            $fulfillment->update([
+                'payout_status' => 'locked',
+            ]);
+        }
+
+        \App\Services\AuditService::log(
+            'dispute.filed',
+            $order,
+            ['status' => $oldStatus],
+            [
+                'status'        => 'disputed',
+                'payout_status' => 'locked',
+                'exception_id'  => $exception->id,
+                'claim_type'    => $validated['type'],
+            ]
+        );
+
         return response()->json([
-            'message'           => 'Payment exception raised successfully.',
+            'status'            => 'success',
+            'message'           => 'Escrow disputed and frozen. Administrator will arbitrate this claim.',
             'payment_exception' => new PaymentExceptionResource($exception->load([
                 'payment', 'order', 'raisedBy',
             ])),
@@ -217,15 +258,99 @@ class PaymentExceptionController extends Controller
             ], 422);
         }
 
-        $exception->update([
-            'status'           => 'resolved',
-            'resolution_notes' => $validated['resolution_notes'],
-            'resolved_by'      => $admin->id,
-            'resolved_at'      => now(),
-        ]);
+        $action = $validated['resolution_action'] ?? 'release_farmer';
+        $order = $exception->order;
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($exception, $order, $action, $validated, $admin) {
+            $exception->update([
+                'status'           => 'resolved',
+                'resolution_notes' => $validated['resolution_notes'],
+                'resolved_by'      => $admin->id,
+                'resolved_at'      => now(),
+            ]);
+
+            if ($order) {
+                if ($action === 'refund_buyer') {
+                    $order->update([
+                        'status'         => \App\Models\Order::STATUS_CANCELLED,
+                        'payment_status' => 'refunded',
+                        'payout_status'  => 'refunded',
+                    ]);
+
+                    foreach ($order->fulfillments as $fulfillment) {
+                        $fulfillment->update([
+                            'status'        => 'cancelled',
+                            'payout_status' => 'refunded',
+                        ]);
+                    }
+
+                    \App\Services\AuditService::log(
+                        'dispute.resolved_refund_buyer',
+                        $order,
+                        ['status' => 'disputed'],
+                        [
+                            'status'         => \App\Models\Order::STATUS_CANCELLED,
+                            'payment_status' => 'refunded',
+                            'payout_status'  => 'refunded',
+                            'admin_id'       => $admin->id,
+                            'notes'          => $validated['resolution_notes'],
+                        ]
+                    );
+                } else {
+                    // Release to Farmer: Confirms order completion, sets payout_status to 'eligible', releases escrow to farmer
+                    $order->update([
+                        'status'        => \App\Models\Order::STATUS_COMPLETED,
+                        'payout_status' => 'released',
+                    ]);
+
+                    foreach ($order->fulfillments as $fulfillment) {
+                        $fulfillment->update([
+                            'status'            => 'completed',
+                            'inspection_status' => 'approved',
+                            'payout_status'     => 'eligible',
+                            'completed_at'      => now(),
+                        ]);
+
+                        // Automatically create or mark farmer payout as processed
+                        $existingPayout = \App\Models\Payout::where('order_fulfillment_id', $fulfillment->id)->first();
+                        if (! $existingPayout) {
+                            $payoutAmount = (float) ($fulfillment->farmer_net_payout ?: $fulfillment->subtotal_amount);
+                            if ($payoutAmount <= 0) {
+                                $payoutAmount = (float) $fulfillment->subtotal_amount;
+                            }
+                            \App\Models\Payout::create([
+                                'farmer_id'            => $fulfillment->farmer_id,
+                                'order_fulfillment_id' => $fulfillment->id,
+                                'amount'               => $payoutAmount,
+                                'status'               => 'processed',
+                                'reference'            => 'ESCROW-RELEASE-' . strtoupper(\Illuminate\Support\Str::random(6)),
+                                'processed_at'         => now(),
+                            ]);
+                        } else {
+                            $existingPayout->update([
+                                'status'       => 'processed',
+                                'processed_at' => now(),
+                            ]);
+                        }
+                    }
+
+                    \App\Services\AuditService::log(
+                        'dispute.resolved_release_farmer',
+                        $order,
+                        ['status' => 'disputed'],
+                        [
+                            'status'        => \App\Models\Order::STATUS_COMPLETED,
+                            'payout_status' => 'released',
+                            'admin_id'      => $admin->id,
+                            'notes'         => $validated['resolution_notes'],
+                        ]
+                    );
+                }
+            }
+        });
 
         return response()->json([
-            'message'           => 'Exception resolved.',
+            'message'           => 'Dispute arbitrated and resolved successfully.',
             'payment_exception' => new PaymentExceptionResource($exception->fresh()->load([
                 'payment', 'order', 'raisedBy', 'resolvedBy',
             ])),

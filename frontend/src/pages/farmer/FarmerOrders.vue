@@ -37,7 +37,7 @@
                     #{{ order.displayId || order.id }}
                   </h3>
                   <span :class="['px-2 py-0.5 rounded-full text-[10px] font-black capitalize border shadow-2xs', statusBadgeClass(order.status)]">
-                    {{ $t(order.status) }}
+                    {{ formatStatusLabel(order.status) }}
                   </span>
                   <span class="text-[11px] text-[#5A6270] dark:text-[#8B949E] font-medium">
                     {{ formatDate(order.createdAt || order.placedAt || order.created_at) }}
@@ -58,7 +58,10 @@
             <!-- Middle / Right: Escrow + Price + Action Buttons -->
             <div class="flex items-center justify-between lg:justify-end gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100 dark:border-[#30363D]">
               <!-- Escrow Status Pill -->
-              <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40 text-[11px] font-bold capitalize">
+              <span v-if="order.status === 'disputed' || order.isDisputed" class="px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/40 text-[11px] font-bold capitalize">
+                {{ $t('Escrow') }}: Frozen
+              </span>
+              <span v-else class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/40 text-[11px] font-bold capitalize">
                 {{ $t('Escrow') }}: {{ $t(order.escrowStatus || 'held') }}
               </span>
 
@@ -66,8 +69,8 @@
               <div v-if="order.deliveryPin"
                 @click.stop="copyPin(order.deliveryPin)"
                 class="flex items-center gap-2 px-3 py-1 bg-[#EDFAF2] dark:bg-emerald-950/60 border border-[#C3EFCF] dark:border-emerald-800/80 rounded-xl cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all shadow-2xs group"
-                :title="$t('Click to copy handover PIN')">
-                <span class="text-[11px] font-black uppercase text-[#0F5C2A] dark:text-emerald-300">PIN:</span>
+                :title="$t('Click to copy handover PIN for delivery driver')">
+                <span class="text-[11px] font-black uppercase text-[#0F5C2A] dark:text-emerald-300">Driver PIN:</span>
                 <span class="font-mono text-base font-black text-[#1E9444] dark:text-emerald-400 tracking-widest">{{ order.deliveryPin }}</span>
                 <span class="ml-0.5 p-1 rounded-lg bg-[#1E9444] text-white flex items-center justify-center shrink-0">
                   <Check v-if="copiedPin === order.deliveryPin" class="w-3.5 h-3.5" />
@@ -83,7 +86,13 @@
               </div>
 
               <!-- Action Buttons -->
-              <button v-if="order.status === 'placed' || order.status === 'pending'" 
+              <span v-if="order.status === 'disputed' || order.isDisputed" 
+                class="px-2.5 py-1 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/60 rounded-xl flex items-center gap-1 shrink-0">
+                <AlertTriangle class="w-3.5 h-3.5 text-red-600" />
+                <span>Escrow Disputed</span>
+              </span>
+
+              <button v-else-if="order.status === 'placed' || order.status === 'pending'" 
                 @click="updateOrderStatus(order.id, 'accepted', 'Farmer accepted order parameters')" 
                 class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer">
                 <CheckCircle2 class="w-3.5 h-3.5" />
@@ -94,8 +103,20 @@
                 @click="dispatchOrder(order.id)" 
                 class="px-3 py-1.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-bold flex items-center gap-1 shadow-2xs cursor-pointer">
                 <Truck class="w-3.5 h-3.5" />
-                <span>{{ $t('Dispatch') }}</span>
+                <span>{{ $t('Dispatch Produce') }}</span>
               </button>
+
+              <span v-else-if="order.status === 'dispatched' || order.status === 'in_transit'" 
+                class="px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/50 dark:border-amber-800/40 rounded-xl flex items-center gap-1 shrink-0">
+                <Truck class="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                <span>In Transit</span>
+              </span>
+
+              <span v-else-if="order.status === 'completed' || order.status === 'delivered'" 
+                class="px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-800/40 rounded-xl flex items-center gap-1 shrink-0">
+                <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
+                <span>Payout Released</span>
+              </span>
 
               <!-- Timeline Toggle -->
               <button @click="toggleTimeline(order.id)" 
@@ -108,11 +129,20 @@
 
           <!-- Collapsible Timeline Drawer -->
           <div v-if="expandedOrderIds[order.id]" class="mt-3 pt-3 border-t border-gray-100 dark:border-[#30363D] space-y-2 animate-in fade-in duration-200">
+            <div v-if="order.status === 'disputed' || order.isDisputed" class="p-2.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
+              <AlertTriangle class="w-4 h-4 shrink-0 text-red-600" />
+              <span>This order has an active quality or delivery dispute. Escrow funds will remain safely locked until platform admins finalize arbitration.</span>
+            </div>
+
             <OrderTimeline :status="order.status" />
-            <p v-if="order.deliveryPin" class="text-xs font-medium text-[#5A6270] dark:text-[#8B949E] flex items-center gap-2 pt-1">
-              <span>{{ $t('orders.handoffInstruction') }}:</span>
+
+            <div v-if="order.deliveryPin && order.status !== 'completed'" class="p-2.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/50 dark:border-blue-900/40 text-xs text-[#1E2328] dark:text-[#F0F6FC] flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <Key class="w-4 h-4 text-[#0B57D0] dark:text-blue-400 shrink-0" />
+                <span>{{ $t('Driver Handoff PIN (Provide to your transport driver)') }}:</span>
+              </div>
               <strong class="font-mono font-black text-sm text-[#1E9444] dark:text-emerald-400 tracking-widest bg-[#EDFAF2] dark:bg-emerald-950/40 px-2 py-0.5 rounded-lg border border-[#C3EFCF] dark:border-emerald-800/50 select-all">{{ order.deliveryPin }}</strong>
-            </p>
+            </div>
           </div>
         </div>
       </div>
@@ -130,24 +160,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check, AlertTriangle, Clock } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { formatETB, formatDate } from '@/utils/helpers'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
-const { orders, dispatchOrder, updateOrderStatus, refreshOrders } = useOrders()
-
-// Auto-refresh every 15s so farmer sees updated escrow status after buyer pays
-let autoRefreshInterval = null
-onMounted(() => {
-  refreshOrders()
-  autoRefreshInterval = setInterval(() => refreshOrders(), 15000)
-})
-onUnmounted(() => {
-  if (autoRefreshInterval) clearInterval(autoRefreshInterval)
-})
+const { orders, dispatchOrder, updateOrderStatus } = useOrders()
 
 const expandedOrderIds = ref({})
 const copiedPin = ref(null)
@@ -178,12 +198,28 @@ const paginatedOrders = computed(() => {
 const statusBadgeClass = (status) => {
   const map = {
     placed: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60',
+    pending: 'bg-yellow-50 dark:bg-yellow-950/40 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800/60',
+    accepted: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/60',
+    paid_in_escrow: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
     dispatched: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
-    in_transit: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
+    in_transit: 'bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700/60',
     delivered: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
-    completed: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
+    completed: 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700/60',
+    disputed: 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/60',
   }
   return map[status] || 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+}
+
+const formatStatusLabel = (status) => {
+  const map = {
+    paid_in_escrow: 'Paid in Escrow',
+    dispatched: 'Dispatched',
+    in_transit: 'In Transit',
+    completed: 'Completed',
+    delivered: 'Delivered',
+    disputed: 'Escrow Disputed',
+  }
+  return map[status] || (status || 'placed').replace(/_/g, ' ')
 }
 </script>
 

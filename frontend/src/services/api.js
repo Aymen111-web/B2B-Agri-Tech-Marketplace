@@ -189,6 +189,13 @@ export const api = {
         })
     },
 
+    async filePaymentException(payload) {
+        return request('/payment-exceptions', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        })
+    },
+
     async fetchBuyerDashboardStats() {
         return request('/buyer/dashboard/stats')
     },

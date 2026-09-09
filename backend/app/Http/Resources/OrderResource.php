@@ -23,6 +23,7 @@ class OrderResource extends JsonResource
             'delivery_status'          => $this->delivery_status,
             'inspection_status'        => $this->inspection_status,
             'payout_status'            => $this->payout_status,
+            'escrow_status'            => $this->payout_status === 'released' ? 'released' : (in_array($this->status, ['paid_in_escrow', 'dispatched', 'in_transit', 'completed']) ? 'held' : 'pending'),
             'produce_amount'           => $this->produce_amount ?? $this->total_amount,
             'platform_fee'             => $this->platform_fee ?? round(($this->total_amount ?? 0) * 0.015, 2),
             'fee_rate'                 => $this->fee_rate ?? 0.0150,

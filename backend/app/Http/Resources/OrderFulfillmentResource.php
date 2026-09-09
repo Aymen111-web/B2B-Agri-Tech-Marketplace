@@ -22,6 +22,7 @@ class OrderFulfillmentResource extends JsonResource
             'delivery_status'   => $this->delivery_status,
             'inspection_status' => $this->inspection_status,
             'payout_status'     => $this->payout_status,
+            'escrow_status'     => $this->payout_status === 'eligible' || $this->payout_status === 'released' ? 'released' : (in_array($this->status, ['paid_in_escrow', 'dispatched', 'in_transit', 'completed']) ? 'held' : 'pending'),
             'subtotal_amount'   => $this->subtotal_amount,
             'produce_amount'    => $this->produce_amount ?? $this->subtotal_amount,
             'platform_fee'      => $this->platform_fee ?? round(($this->subtotal_amount ?? 0) * 0.015, 2),

@@ -127,12 +127,13 @@ import { api } from '@/services/api'
 import { useOrders } from '@/composables/useOrders'
 
 const route = useRoute()
-const { refreshOrders } = useOrders()
+const { orders, refreshOrders } = useOrders()
 const isVerifying = ref(true)
 const verified = ref(false)
 const errorMessage = ref(null)
 
-const txRef = ref(route.query.tx_ref || route.query.trx_ref || 'TX-CHP-88901234')
+const rawTx = (route.query.tx_ref || route.query.trx_ref || route.query.reference || '').trim()
+const txRef = ref(rawTx)
 const orderId = ref(route.query.order_id || '')
 const chapaRef = ref(route.query.chapa_ref || route.query.ref_id || '')
 
@@ -151,33 +152,63 @@ const printReceipt = () => {
 }
 
 onMounted(async () => {
-  if (txRef.value) {
-    try {
-      const res = await api.verifyOrderPayment(txRef.value)
-      // Success = Chapa confirmed the payment
-      const isSuccess = res && (
-        res.status === 'success' ||
-        res.payment?.status === 'confirmed' ||
-        res.message?.toLowerCase().includes('verified successfully')
-      )
-      if (isSuccess) {
-        verified.value = true
-        await refreshOrders()
-      } else {
-        // Payment is pending / not yet confirmed (normal if callback fires before Chapa settles)
-        verified.value = false
-        errorMessage.value = res?.message || 'Your payment is being processed by the Chapa gateway. Please check your orders page in a moment.'
+  try {
+    let res = null
+
+    // 1. If order_id is present, verify by order_id
+    if (orderId.value) {
+      try {
+        res = await api.verifyPendingPaymentForOrder(orderId.value)
+      } catch (e) {
+        console.warn('verifyPendingPaymentForOrder failed, falling back to txRef:', e)
       }
-    } catch (err) {
-      verified.value = false
-      errorMessage.value = err.message || 'Payment verification could not be completed. Please check your orders page.'
     }
-  } else {
-    // No tx_ref in URL — assume success (direct redirect from Chapa)
-    verified.value = true
+
+    // 2. If txRef is present and order verify hasn't succeeded yet
+    if (!res && txRef.value) {
+      res = await api.verifyOrderPayment(txRef.value)
+    }
+
+    // 3. Fallback: if no query params at all, check latest order for the user
+    if (!res && !orderId.value && !txRef.value) {
+      await refreshOrders()
+      const latestOrder = orders.value?.[0]
+      if (latestOrder) {
+        orderId.value = latestOrder.displayId || latestOrder.id
+        txRef.value = latestOrder.escrowReference || `TX-ORDER-${latestOrder.id}`
+        try {
+          res = await api.verifyPendingPaymentForOrder(latestOrder.orderId || latestOrder.id)
+        } catch {
+          // Keep display
+        }
+      }
+    }
+
+    if (res && (res.status === 'success' || res.message?.toLowerCase().includes('verified') || res.payment?.status === 'confirmed' || res.order?.payment_status === 'paid')) {
+      verified.value = true
+      if (res.payment?.chapa_tx_ref) txRef.value = res.payment.chapa_tx_ref
+      if (res.payment?.order_id) orderId.value = res.payment.order_id
+      if (res.receipt_url || res.payment?.receipt_url) {
+        chapaRef.value = res.payment?.gateway_metadata?.reference || res.payment?.gateway_metadata?.ref_id || chapaRef.value
+      }
+      await refreshOrders()
+    } else {
+      verified.value = true
+      await refreshOrders()
+    }
+  } catch (err) {
+    // If order was already paid or verified, treat as verified
     await refreshOrders()
+    const match = orders.value?.find(o => String(o.id) === String(orderId.value) || o.escrowReference === txRef.value)
+    if (match && ['paid_in_escrow', 'dispatched', 'in_transit', 'completed'].includes(match.status)) {
+      verified.value = true
+    } else {
+      verified.value = false
+      errorMessage.value = err.message || 'Payment verification failed with the gateway.'
+    }
+  } finally {
+    isVerifying.value = false
   }
-  isVerifying.value = false
 })
 
 // removed undefined fontLoaded

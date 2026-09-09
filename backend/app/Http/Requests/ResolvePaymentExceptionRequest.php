@@ -17,7 +17,8 @@ class ResolvePaymentExceptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'resolution_notes' => ['required', 'string', 'max:2000'],
+            'resolution_notes'  => ['required', 'string', 'max:2000'],
+            'resolution_action' => ['sometimes', 'string', 'in:refund_buyer,release_farmer'],
         ];
     }
 

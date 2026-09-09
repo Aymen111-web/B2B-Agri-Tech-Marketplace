@@ -133,6 +133,13 @@ class OrderFulfillmentController extends Controller
             'accepted_at' => now(),
         ]);
 
+        \App\Services\AuditService::log(
+            'fulfillment.accepted',
+            $fulfillment,
+            ['status' => 'pending'],
+            ['status' => 'accepted', 'order_id' => $fulfillment->order_id]
+        );
+
         $this->syncOrderStatus($fulfillment->order_id);
 
         return response()->json([
@@ -160,10 +167,19 @@ class OrderFulfillmentController extends Controller
             ], 422);
         }
 
+        $oldStatus = $fulfillment->status;
+
         $fulfillment->update([
             'status'          => 'dispatched',
             'delivery_status' => 'in_transit',
         ]);
+
+        \App\Services\AuditService::log(
+            'fulfillment.dispatched',
+            $fulfillment,
+            ['status' => $oldStatus],
+            ['status' => 'dispatched', 'delivery_status' => 'in_transit', 'order_id' => $fulfillment->order_id]
+        );
 
         $this->syncOrderStatus($fulfillment->order_id);
 
@@ -314,7 +330,7 @@ class OrderFulfillmentController extends Controller
     {
         $order = Order::with('fulfillments')->findOrFail($orderId);
 
-        if (in_array($order->status, [Order::STATUS_COMPLETED, Order::STATUS_CANCELLED])) {
+        if (in_array($order->status, [Order::STATUS_COMPLETED, Order::STATUS_CANCELLED, 'disputed'])) {
             return;
         }
 
@@ -343,14 +359,18 @@ class OrderFulfillmentController extends Controller
 
         if ($allCompleted) {
             $order->status = Order::STATUS_COMPLETED;
+            $order->delivery_status = 'delivered';
+            $order->payout_status = 'released';
         } elseif ($allRejected) {
             $order->status = Order::STATUS_CANCELLED;
         } elseif ($hasBuyerReceived) {
             $order->status = Order::STATUS_PROCESSING;
         } elseif ($hasDispatched) {
             $order->status = 'dispatched';
+            $order->delivery_status = 'in_transit';
         } elseif ($hasPaidInEscrow) {
             $order->status = Order::STATUS_PAID_IN_ESCROW;
+            $order->payment_status = 'paid';
         } elseif ($hasAccepted) {
             $order->status = Order::STATUS_AWAITING_BUYER_PAYMENT;
         } elseif ($hasPending) {

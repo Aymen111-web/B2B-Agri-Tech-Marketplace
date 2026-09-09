@@ -1,4 +1,4 @@
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { api, getAuthToken } from '@/services/api'
 
 function getCurrentUserData() {
@@ -11,7 +11,7 @@ function getCurrentUserData() {
 }
 
 function mapRawOrderToFrontend(item) {
-    const isEscrowReleased = item.escrow_status === 'released' || item.escrowStatus === 'released' || item.payout_status === 'released'
+    const isEscrowReleased = item.escrow_status === 'released' || item.escrowStatus === 'released' || item.payout_status === 'released' || item.order?.payout_status === 'released'
 
     // Extract first item & listing from items array or fulfillments array or root item
     const firstItem = item.items?.[0] || item.fulfillments?.[0]?.items?.[0] || {}
@@ -34,10 +34,16 @@ function mapRawOrderToFrontend(item) {
 
     const escrowRef = item.payment?.chapa_tx_ref || item.escrow_reference || item.escrowReference || `CHP-TX-${Math.floor(10000000 + Math.random() * 90000000)}`
 
+    const isDisputed = item.status === 'disputed' || item.order?.status === 'disputed'
+    const rawStatus = isDisputed ? 'disputed' : (item.status || item.order?.status || 'placed')
+    const deliveryPin = item.order?.delivery_pin || item.delivery_pin || item.deliveryPin || null
+
     return {
         id: String(item.id || item.order_number || `ORD-${Math.floor(1000 + Math.random() * 9000)}`),
         displayId: String(item.order?.id || item.order_id || item.id || ''),
         orderNumber: String(item.order?.order_number || item.order_number || item.id || ''),
+        orderId: item.order_id || item.order?.id || item.id,
+        fulfillmentId: item.order_id ? item.id : (item.fulfillments?.[0]?.id || null),
         listing: {
             id: String(firstListing.id || ''),
             farmerId: String(farmerObj.id || firstListing.farmer_id || ''),
@@ -76,12 +82,14 @@ function mapRawOrderToFrontend(item) {
         },
         quantityKg: quantity,
         totalAmountETB: totalAmount,
-        status: item.status || 'placed',
-        escrowStatus: isEscrowReleased ? 'released' : 'held',
+        status: rawStatus,
+        paymentStatus: item.order?.payment_status || item.payment_status || (['paid_in_escrow', 'dispatched', 'in_transit', 'completed'].includes(rawStatus) ? 'paid' : 'pending'),
+        payoutStatus: item.payout_status || item.order?.payout_status || (isEscrowReleased ? 'released' : 'pending'),
+        escrowStatus: isEscrowReleased ? 'released' : (['paid_in_escrow', 'dispatched', 'in_transit', 'completed', 'disputed'].includes(rawStatus) ? 'held' : 'pending'),
         escrowReference: escrowRef,
         placedAt: item.placed_at ? new Date(item.placed_at) : (item.created_at ? new Date(item.created_at) : new Date()),
-        createdAt: item.created_at ? new Date(item.created_at) : (item.placed_at ? new Date(item.placed_at) : new Date()),
-        deliveryPin: item.order?.delivery_pin || item.delivery_pin || item.deliveryPin || null,
+        deliveryPin: deliveryPin,
+        isDisputed: isDisputed,
         trackingNotes: item.trackingNotes || [],
     }
 }
@@ -146,8 +154,35 @@ export function useOrders() {
         localStorage.setItem('agri_orders', JSON.stringify(val))
     }, { deep: true })
 
+    let syncInterval = null
+
+    const handleFocusSync = () => {
+        if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+            refreshOrders()
+        }
+    }
+
     onMounted(() => {
         refreshOrders()
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('focus', handleFocusSync)
+            document.addEventListener('visibilitychange', handleFocusSync)
+
+            // Auto background sync every 10s to keep buyer, farmer, and admin synchronized
+            syncInterval = setInterval(handleFocusSync, 10000)
+        }
+    })
+
+    onUnmounted(() => {
+        if (syncInterval) {
+            clearInterval(syncInterval)
+            syncInterval = null
+        }
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('focus', handleFocusSync)
+            document.removeEventListener('visibilitychange', handleFocusSync)
+        }
     })
 
     const placeOrder = (listing, buyer, quantityKg) => {
@@ -184,11 +219,7 @@ export function useOrders() {
     const confirmDelivery = async (orderId, pin = '123456') => {
         const token = getAuthToken()
         if (token) {
-            try {
-                await api.verifyDeliveryPin(orderId, pin)
-            } catch {
-                // offline fallback
-            }
+            await api.verifyDeliveryPin(orderId, pin)
         }
 
         orders.value = orders.value.map((order) => {
@@ -198,6 +229,7 @@ export function useOrders() {
                     ...order,
                     status: 'completed',
                     escrowStatus: 'released',
+                    payoutStatus: 'released',
                     deliveredAt: now,
                     completedAt: now,
                     trackingNotes: [
@@ -226,25 +258,28 @@ export function useOrders() {
                 else if (status === 'dispatched' || status === 'in_transit') statusAction = 'dispatch'
                 else if (status === 'accepted') statusAction = 'accept'
 
-                await api.updateFulfillmentStatus(orderId, statusAction, note)
-            } catch {
-                // offline fallback
+                const found = orders.value.find(o => o.id === orderId || o.displayId === orderId || o.orderId === orderId)
+                const targetFulfillmentId = found?.fulfillmentId || orderId
+
+                await api.updateFulfillmentStatus(targetFulfillmentId, statusAction, note)
+            } catch (err) {
+                console.error('Failed to update fulfillment status', err)
             }
         }
 
         orders.value = orders.value.map((order) => {
-            if (order.id === orderId) {
+            if (order.id === orderId || order.fulfillmentId === orderId) {
                 const now = new Date()
                 return {
                     ...order,
-                    status,
-                    dispatchedAt: status === 'dispatched' ? now : order.dispatchedAt,
+                    status: status === 'dispatch' ? 'dispatched' : status,
+                    dispatchedAt: (status === 'dispatched' || status === 'dispatch') ? now : order.dispatchedAt,
                     trackingNotes: [
                         ...(order.trackingNotes || []),
                         {
                             id: `note-${Date.now()}`,
                             orderId,
-                            status,
+                            status: status === 'dispatch' ? 'dispatched' : status,
                             note,
                             timestamp: now,
                             actorRole: 'farmer',
@@ -254,12 +289,12 @@ export function useOrders() {
             }
             return order
         })
-        // Sync latest order status from backend after every status update
-        setTimeout(() => refreshOrders(), 1000)
+
+        await refreshOrders()
     }
 
-    const dispatchOrder = async (orderId) => {
-        await updateOrderStatus(orderId, 'dispatched', 'Shipment dispatched to destination')
+    const dispatchOrder = (orderId) => {
+        updateOrderStatus(orderId, 'dispatched', 'Shipment dispatched to destination')
     }
 
     return {

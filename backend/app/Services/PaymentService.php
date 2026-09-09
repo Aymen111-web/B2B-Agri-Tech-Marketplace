@@ -12,7 +12,7 @@ class PaymentService
     /**
      * Confirm a payment via Chapa webhook with reservation expiration check.
      */
-    public function confirmPayment(Payment $payment, array $payload): array
+    public function confirmPayment(Payment $payment, array $payload = []): array
     {
         return DB::transaction(function () use ($payment, $payload) {
             $order = $payment->order;
@@ -45,34 +45,57 @@ class PaymentService
                 }
             }
 
+            // Ensure 6-digit Delivery PIN is set
+            $deliveryPin = $order->delivery_pin ?: str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
             // Do not instantly complete fulfillments for marketplace escrow flow!
             // The farmer still needs to deliver the goods.
             if ($payment->order_fulfillment_id) {
                 $fulfillment = \App\Models\OrderFulfillment::find($payment->order_fulfillment_id);
                 if ($fulfillment && in_array($fulfillment->status, ['accepted', 'pending'])) {
                     $fulfillment->update([
-                        'status' => 'paid_in_escrow',
+                        'status'        => 'paid_in_escrow',
+                        'payout_status' => 'locked',
                     ]);
                 }
             } else {
                 foreach ($order->fulfillments as $fulfillment) {
                     if (in_array($fulfillment->status, ['accepted', 'pending'])) {
                         $fulfillment->update([
-                            'status' => 'paid_in_escrow',
+                            'status'        => 'paid_in_escrow',
+                            'payout_status' => 'locked',
                         ]);
                     }
                 }
             }
 
-            // Synchronise parent order status to paid in escrow (NOT completed, delivery pending)
+            // Synchronise parent order status to paid in escrow (delivery pending)
+            $oldStatus = $order->status;
             $order->update([
                 'status'         => Order::STATUS_PAID_IN_ESCROW,
                 'payment_status' => 'paid',
+                'payout_status'  => 'locked',
+                'delivery_pin'   => $deliveryPin,
             ]);
+
+            \App\Services\AuditService::log(
+                'payment.escrow_secured',
+                $order,
+                ['status' => $oldStatus],
+                [
+                    'status'         => Order::STATUS_PAID_IN_ESCROW,
+                    'payment_status' => 'paid',
+                    'escrow_status'  => 'held',
+                    'payout_status'  => 'locked',
+                    'payment_id'     => $payment->id,
+                    'chapa_tx_ref'   => $payment->chapa_tx_ref,
+                ]
+            );
 
             return [
                 'status'  => 'success',
-                'message' => 'Payment confirmed and order completed successfully.',
+                'message' => 'Payment confirmed and funds locked safely in escrow.',
+                'payment' => $payment->fresh(),
             ];
         });
     }

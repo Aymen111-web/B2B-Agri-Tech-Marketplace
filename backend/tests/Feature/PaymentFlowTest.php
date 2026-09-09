@@ -171,4 +171,209 @@ class PaymentFlowTest extends TestCase
         $this->assertEquals('processed', $payout->fresh()->status);
         $this->assertNotNull($payout->fresh()->processed_at);
     }
+
+    public function test_payment_confirmation_transitions_order_and_fulfillment_to_escrow()
+    {
+        $paymentService = app(\App\Services\PaymentService::class);
+        $result = $paymentService->confirmPayment($this->payment);
+
+        $this->assertEquals('confirmed', $result['payment']->status);
+
+        $this->order->refresh();
+        $this->assertEquals('paid_in_escrow', $this->order->status);
+        $this->assertEquals('paid', $this->order->payment_status);
+        $this->assertEquals('locked', $this->order->payout_status);
+        $this->assertNotEmpty($this->order->delivery_pin);
+
+        $this->fulfillment->refresh();
+        $this->assertEquals('paid_in_escrow', $this->fulfillment->status);
+        $this->assertEquals('locked', $this->fulfillment->payout_status);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action'         => 'payment.escrow_secured',
+            'auditable_type' => Order::class,
+            'auditable_id'   => $this->order->id,
+        ]);
+    }
+
+    public function test_farmer_can_dispatch_order_fulfillment()
+    {
+        $this->fulfillment->update(['status' => 'paid_in_escrow']);
+        $this->order->update(['status' => 'paid_in_escrow']);
+
+        $response = $this->actingAs($this->farmer, 'sanctum')
+            ->postJson("/api/fulfillments/{$this->fulfillment->id}/dispatch", [
+                'note' => 'Produce packed and handed over to logistics driver.',
+            ]);
+
+        $response->assertStatus(200);
+
+        $this->fulfillment->refresh();
+        $this->assertEquals('dispatched', $this->fulfillment->status);
+
+        $this->order->refresh();
+        $this->assertEquals('in_transit', $this->order->delivery_status);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action'         => 'fulfillment.dispatched',
+            'auditable_type' => OrderFulfillment::class,
+            'auditable_id'   => $this->fulfillment->id,
+        ]);
+    }
+
+    public function test_verify_delivery_pin_releases_escrow_and_creates_processed_payout()
+    {
+        $this->order->update([
+            'status'       => 'dispatched',
+            'delivery_pin' => '654321',
+        ]);
+        $this->fulfillment->update([
+            'status'        => 'dispatched',
+            'payout_status' => 'locked',
+        ]);
+
+        // Incorrect PIN must fail with 422
+        $failResponse = $this->actingAs($this->buyer, 'sanctum')
+            ->postJson("/api/orders/{$this->order->id}/verify-delivery-pin", [
+                'pin' => '000000',
+            ]);
+        $failResponse->assertStatus(422);
+
+        // Correct PIN must succeed with 200
+        $successResponse = $this->actingAs($this->buyer, 'sanctum')
+            ->postJson("/api/orders/{$this->order->id}/verify-delivery-pin", [
+                'pin' => '654321',
+            ]);
+
+        $successResponse->assertStatus(200);
+
+        $this->order->refresh();
+        $this->assertEquals('completed', $this->order->status);
+        $this->assertEquals('released', $this->order->payout_status);
+
+        $this->fulfillment->refresh();
+        $this->assertEquals('completed', $this->fulfillment->status);
+        $this->assertEquals('eligible', $this->fulfillment->payout_status);
+
+        // Payout automatically created for the farmer
+        $payout = Payout::where('farmer_id', $this->farmer->id)
+            ->where('order_fulfillment_id', $this->fulfillment->id)
+            ->first();
+
+        $this->assertNotNull($payout);
+        $this->assertEquals('processed', $payout->status);
+        $this->assertStringStartsWith('ESCROW-RELEASE-', $payout->reference);
+        $this->assertEquals(1000.00, (float) $payout->amount);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action'         => 'order.delivery_pin_verified',
+            'auditable_type' => Order::class,
+            'auditable_id'   => $this->order->id,
+        ]);
+    }
+
+    public function test_buyer_can_file_dispute_and_freezes_escrow()
+    {
+        $this->order->update([
+            'status'        => 'paid_in_escrow',
+            'payout_status' => 'locked',
+        ]);
+
+        $response = $this->actingAs($this->buyer, 'sanctum')
+            ->postJson('/api/payment-exceptions', [
+                'order_id'    => $this->order->id,
+                'type'        => 'produce_damaged',
+                'description' => 'Produce arrived crushed and spoiled in transport.',
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('status', 'success');
+
+        $this->order->refresh();
+        $this->assertEquals('disputed', $this->order->status);
+        $this->assertEquals('locked', $this->order->payout_status);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'dispute.filed',
+        ]);
+    }
+
+    public function test_admin_can_resolve_dispute_with_refund_buyer()
+    {
+        $this->order->update([
+            'status'         => 'disputed',
+            'payment_status' => 'paid',
+            'payout_status'  => 'locked',
+        ]);
+
+        $exception = \App\Models\PaymentException::create([
+            'order_id'    => $this->order->id,
+            'payment_id'  => $this->payment->id,
+            'raised_by'   => $this->buyer->id,
+            'type'        => 'produce_damaged',
+            'description' => 'Damaged produce claim.',
+            'status'      => 'open',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->postJson("/api/admin/payment-exceptions/{$exception->id}/resolve", [
+                'resolution_action' => 'refund_buyer',
+                'resolution_notes'  => 'Inspection confirmed transport damage. Full refund issued to buyer.',
+            ]);
+
+        $response->assertStatus(200);
+
+        $this->order->refresh();
+        $this->assertEquals('cancelled', $this->order->status);
+        $this->assertEquals('refunded', $this->order->payment_status);
+        $this->assertEquals('refunded', $this->order->payout_status);
+
+        $exception->refresh();
+        $this->assertEquals('resolved', $exception->status);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'dispute.resolved_refund_buyer',
+        ]);
+    }
+
+    public function test_admin_can_resolve_dispute_with_release_farmer()
+    {
+        $this->order->update([
+            'status'         => 'disputed',
+            'payment_status' => 'paid',
+            'payout_status'  => 'locked',
+        ]);
+
+        $exception = \App\Models\PaymentException::create([
+            'order_id'    => $this->order->id,
+            'payment_id'  => $this->payment->id,
+            'raised_by'   => $this->buyer->id,
+            'type'        => 'quality_mismatch',
+            'description' => 'Claiming moisture too high.',
+            'status'      => 'open',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->postJson("/api/admin/payment-exceptions/{$exception->id}/resolve", [
+                'resolution_action' => 'release_farmer',
+                'resolution_notes'  => 'Lab test confirmed moisture is within acceptable grade standards. Releasing funds to farmer.',
+            ]);
+
+        $response->assertStatus(200);
+
+        $this->order->refresh();
+        $this->assertEquals('completed', $this->order->status);
+        $this->assertEquals('released', $this->order->payout_status);
+
+        $payout = Payout::where('farmer_id', $this->farmer->id)->first();
+        $this->assertNotNull($payout);
+        $this->assertEquals('processed', $payout->status);
+
+        $exception->refresh();
+        $this->assertEquals('resolved', $exception->status);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'dispute.resolved_release_farmer',
+        ]);
+    }
 }

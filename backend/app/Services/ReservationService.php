@@ -124,6 +124,19 @@ class ReservationService
                 'total_amount'   => $totalBuyerAmount,
             ]);
 
+            \App\Services\AuditService::log(
+                'order.checkout',
+                $order,
+                null,
+                [
+                    'status'         => $order->status,
+                    'payment_status' => 'pending',
+                    'total_amount'   => $totalBuyerAmount,
+                    'produce_amount' => $totalProduceAmount,
+                    'platform_fee'   => $platformFee,
+                ]
+            );
+
             return $order->fresh(['fulfillments.items', 'items']);
         });
     }

@@ -138,7 +138,12 @@ const resolveDispute = async (id, resolution) => {
   if (confirm(`CRITICAL ESCROW ACTION: Are you sure you want to completely ${isRefund ? 'REFUND THE BUYER' : 'PAY OUT THE FARMER'} for this transaction? This cannot be easily reversed.`)) {
     try {
       const notes = prompt(`Please enter resolution/audit notes for ${isRefund ? 'refunding the buyer' : 'payout to farmer'}:`) || `Administratively resolved via ${resolution}`
-      await adminApi.resolvePaymentException(id, notes)
+      await adminApi.resolvePaymentException(id, notes, resolution)
+      showAlert({
+        title: 'Escrow Dispute Resolved',
+        message: isRefund ? 'Escrow refunded to buyer and order cancelled.' : 'Escrow payout released to farmer and order completed.',
+        type: 'success'
+      })
       loadDisputes()
     } catch (err) {
       showAlert({

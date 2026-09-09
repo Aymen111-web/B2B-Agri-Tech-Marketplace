@@ -17,8 +17,9 @@ class StorePaymentExceptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_id'  => ['required', 'integer', 'exists:payments,id'],
-            'type'        => ['required', 'string', 'in:dispute,mismatch,failed_payment_review,refund_request,other'],
+            'order_id'    => ['required_without:payment_id', 'nullable'],
+            'payment_id'  => ['required_without:order_id', 'nullable'],
+            'type'        => ['required', 'string', 'in:produce_damaged,quality_mismatch,delivery_delay,wrong_quantity,dispute,mismatch,failed_payment_review,refund_request,other'],
             'description' => ['required', 'string', 'max:2000'],
         ];
     }
@@ -29,9 +30,8 @@ class StorePaymentExceptionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'payment_id.exists' => 'The specified payment does not exist.',
-            'type.in'           => 'Exception type must be one of: dispute, mismatch, failed_payment_review, refund_request, other.',
-            'description.max'   => 'Description must not exceed 2000 characters.',
+            'type.in'         => 'Claim type must be one of: produce_damaged, quality_mismatch, delivery_delay, wrong_quantity, dispute, other.',
+            'description.max' => 'Description must not exceed 2000 characters.',
         ];
     }
 }
