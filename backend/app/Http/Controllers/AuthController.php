@@ -118,13 +118,13 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $rawPhone = trim($validated['phone']);
-        $digits = preg_replace('/[^\d]/', '', $rawPhone);
+        $rawInput = trim($validated['phone']);
+        $digits = preg_replace('/[^\d]/', '', $rawInput);
 
         $possiblePhones = [
-            $rawPhone,
-            '+' . $digits,
+            $rawInput,
             $digits,
+            '+' . $digits,
         ];
 
         if (preg_match('/^251([79]\d{8})$/', $digits, $matches)) {
@@ -138,7 +138,7 @@ class AuthController extends Controller
             $possiblePhones[] = $matches[1];
         }
 
-        $user = User::whereIn('phone', array_unique($possiblePhones))->first();
+        $user = User::whereIn('phone', array_unique(array_filter($possiblePhones)))->first();
 
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response([
