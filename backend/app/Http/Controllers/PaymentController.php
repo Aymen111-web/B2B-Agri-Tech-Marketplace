@@ -259,11 +259,11 @@ class PaymentController extends Controller
         }
 
         return response()->json([
-            'message'    => $verification['message'] ?? 'Payment verification pending or failed.',
-            'status'     => $verification['status'] ?? 'failed',
+            'message'    => $verification['message'] ?? 'Payment verification pending.',
+            'status'     => 'pending',
             'payment'    => new PaymentResource($payment),
             'chapa_data' => $verification['data'] ?? [],
-        ], 400);
+        ]);
     }
 
     /**

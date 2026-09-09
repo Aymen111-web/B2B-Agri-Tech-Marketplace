@@ -80,6 +80,7 @@ function mapRawOrderToFrontend(item) {
         escrowStatus: isEscrowReleased ? 'released' : 'held',
         escrowReference: escrowRef,
         placedAt: item.placed_at ? new Date(item.placed_at) : (item.created_at ? new Date(item.created_at) : new Date()),
+        createdAt: item.created_at ? new Date(item.created_at) : (item.placed_at ? new Date(item.placed_at) : new Date()),
         deliveryPin: item.order?.delivery_pin || item.delivery_pin || item.deliveryPin || null,
         trackingNotes: item.trackingNotes || [],
     }
@@ -239,7 +240,7 @@ export function useOrders() {
                     status,
                     dispatchedAt: status === 'dispatched' ? now : order.dispatchedAt,
                     trackingNotes: [
-                        ...order.trackingNotes,
+                        ...(order.trackingNotes || []),
                         {
                             id: `note-${Date.now()}`,
                             orderId,
@@ -253,10 +254,12 @@ export function useOrders() {
             }
             return order
         })
+        // Sync latest order status from backend after every status update
+        setTimeout(() => refreshOrders(), 1000)
     }
 
-    const dispatchOrder = (orderId) => {
-        updateOrderStatus(orderId, 'dispatched', 'Shipment dispatched to destination')
+    const dispatchOrder = async (orderId) => {
+        await updateOrderStatus(orderId, 'dispatched', 'Shipment dispatched to destination')
     }
 
     return {

@@ -153,14 +153,27 @@ const printReceipt = () => {
 onMounted(async () => {
   if (txRef.value) {
     try {
-      await api.verifyOrderPayment(txRef.value)
-      verified.value = true
-      await refreshOrders()
+      const res = await api.verifyOrderPayment(txRef.value)
+      // Success = Chapa confirmed the payment
+      const isSuccess = res && (
+        res.status === 'success' ||
+        res.payment?.status === 'confirmed' ||
+        res.message?.toLowerCase().includes('verified successfully')
+      )
+      if (isSuccess) {
+        verified.value = true
+        await refreshOrders()
+      } else {
+        // Payment is pending / not yet confirmed (normal if callback fires before Chapa settles)
+        verified.value = false
+        errorMessage.value = res?.message || 'Your payment is being processed by the Chapa gateway. Please check your orders page in a moment.'
+      }
     } catch (err) {
       verified.value = false
-      errorMessage.value = err.message || 'Payment verification failed with the gateway.'
+      errorMessage.value = err.message || 'Payment verification could not be completed. Please check your orders page.'
     }
   } else {
+    // No tx_ref in URL — assume success (direct redirect from Chapa)
     verified.value = true
     await refreshOrders()
   }

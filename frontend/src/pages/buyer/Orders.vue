@@ -528,18 +528,19 @@ const stopPaymentPolling = () => {
 
 const checkActivePayment = async (isManual = false) => {
   if (!activePaymentOrder.value) return
-  const targetId = activePaymentOrder.value.displayId || activePaymentOrder.value.id
+  const orderId = activePaymentOrder.value.id || activePaymentOrder.value.displayId
   if (isManual) {
     activePaymentStatus.value = 'verifying'
     activePaymentErrorMessage.value = null
   }
   
   try {
-    const res = await api.verifyPendingPaymentForOrder(targetId)
+    const res = await api.verifyPendingPaymentForOrder(orderId)
+    // Success: status is 'success' OR payment object shows confirmed status
     const isSuccess = res && (
-      res.status === 'success' || 
-      res.message?.toLowerCase().includes('verified') || 
-      res.payment?.status === 'confirmed'
+      res.status === 'success' ||
+      res.payment?.status === 'confirmed' ||
+      res.message?.toLowerCase().includes('verified successfully')
     )
     if (isSuccess) {
       stopPaymentPolling()
@@ -553,27 +554,39 @@ const checkActivePayment = async (isManual = false) => {
       await refreshOrders()
     } else if (isManual) {
       activePaymentStatus.value = 'awaiting'
-      activePaymentErrorMessage.value = res?.message || 'Payment is still processing on Chapa.'
+      activePaymentErrorMessage.value = 'Payment not yet confirmed on Chapa. Please complete payment in the Chapa tab, then click Check again.'
     }
+    // If auto-poll and not success: just keep polling silently
   } catch (err) {
+    // 400 = payment still pending (normal during payment flow) — not a fatal error
+    // Only show message for manual check, keep polling either way
     if (isManual) {
       activePaymentStatus.value = 'awaiting'
-      activePaymentErrorMessage.value = err.message || 'Payment is not yet confirmed. Please complete the steps in the Chapa tab.'
+      const errMsg = err.message || ''
+      // If error says "not confirmed" / "pending" it's a normal intermediate state
+      const isPending = errMsg.toLowerCase().includes('pending') ||
+        errMsg.toLowerCase().includes('not found') ||
+        errMsg.toLowerCase().includes('not yet') ||
+        errMsg.toLowerCase().includes('verification')
+      activePaymentErrorMessage.value = isPending
+        ? 'Payment is still being processed. Please complete payment in the Chapa tab and try again.'
+        : (errMsg || 'Unable to verify payment right now. Please try again.')
     }
   }
 }
 
-const startPaymentPolling = (targetId) => {
+const startPaymentPolling = (orderId) => {
   stopPaymentPolling()
   let ticks = 0
   paymentPollingInterval = setInterval(async () => {
     ticks++
-    if (ticks > 100 || !activePaymentOrder.value || activePaymentStatus.value === 'success') {
+    // Poll for up to 10 minutes (120 ticks × 5s) then stop silently
+    if (ticks > 120 || !activePaymentOrder.value || activePaymentStatus.value === 'success') {
       stopPaymentPolling()
       return
     }
     await checkActivePayment(false)
-  }, 3000)
+  }, 5000)
 }
 
 const reopenPaymentTab = () => {
@@ -612,24 +625,44 @@ onUnmounted(() => {
 })
 
 const verifyPayment = async (order) => {
-  const targetId = typeof order === 'object' ? (order.displayId || order.id) : order
+  const orderId = typeof order === 'object' ? (order.id || order.displayId) : order
   if (isVerifyingPayment.value) return
-  isVerifyingPayment.value = targetId
+  isVerifyingPayment.value = orderId
   
   try {
-    const res = await api.verifyPendingPaymentForOrder(targetId)
-    if (res && res.message) {
-      showAlert({ title: 'Payment Verification', message: res.message, type: 'success' })
+    const res = await api.verifyPendingPaymentForOrder(orderId)
+    const isSuccess = res && (
+      res.status === 'success' ||
+      res.payment?.status === 'confirmed' ||
+      res.message?.toLowerCase().includes('verified successfully')
+    )
+    if (isSuccess) {
+      // Update the local order object immediately
+      if (typeof order === 'object') {
+        order.status = 'paid_in_escrow'
+        order.escrowStatus = 'held'
+        if (res.receipt_url) order.receiptUrl = res.receipt_url
+      }
+      await refreshOrders()
+      showAlert({ title: '✅ Payment Confirmed', message: 'Your escrow payment has been verified and secured. The farmer has been notified.', type: 'success' })
+    } else {
+      showAlert({ 
+        title: 'Payment Pending', 
+        message: res?.message || 'Payment is not yet confirmed. Please complete your payment in the Chapa tab and try verifying again.', 
+        type: 'warning' 
+      })
     }
-    if (typeof order === 'object') {
-      order.status = 'paid_in_escrow'
-      order.escrowStatus = 'held'
-    }
-    await refreshOrders()
   } catch (err) {
+    const errMsg = err.message || ''
+    const isPending = errMsg.toLowerCase().includes('pending') ||
+      errMsg.toLowerCase().includes('not found') ||
+      errMsg.toLowerCase().includes('not yet') ||
+      errMsg.toLowerCase().includes('verification')
     showAlert({ 
-      title: 'Payment Verification Status', 
-      message: err.message || 'Payment is not yet verified. Please complete payment in the Chapa tester and try again.', 
+      title: isPending ? 'Payment Still Processing' : 'Verification Error', 
+      message: isPending 
+        ? 'Payment is still being processed by Chapa. Please complete payment in the Chapa tab and try again in a few seconds.'
+        : (errMsg || 'Verification failed. Please try again.'), 
       type: 'warning' 
     })
   } finally {

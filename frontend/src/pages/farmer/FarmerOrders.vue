@@ -130,14 +130,24 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Package, Truck, CheckCircle2, ChevronDown, Key, Copy, Check } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { formatETB, formatDate } from '@/utils/helpers'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
-const { orders, dispatchOrder, updateOrderStatus } = useOrders()
+const { orders, dispatchOrder, updateOrderStatus, refreshOrders } = useOrders()
+
+// Auto-refresh every 15s so farmer sees updated escrow status after buyer pays
+let autoRefreshInterval = null
+onMounted(() => {
+  refreshOrders()
+  autoRefreshInterval = setInterval(() => refreshOrders(), 15000)
+})
+onUnmounted(() => {
+  if (autoRefreshInterval) clearInterval(autoRefreshInterval)
+})
 
 const expandedOrderIds = ref({})
 const copiedPin = ref(null)
