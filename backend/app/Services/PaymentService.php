@@ -17,21 +17,16 @@ class PaymentService
         return DB::transaction(function () use ($payment, $payload) {
             $order = $payment->order;
 
-            // Late payment guard: If reservation expired before webhook arrived
-            if ($order->status === 'expired' || ($order->reservation_expires_at && now()->gt($order->reservation_expires_at) && $order->status === 'pending_payment')) {
+            // Only flag late refund if the order was explicitly cancelled or expired
+            if ($order->status === 'expired' || $order->status === 'cancelled') {
                 $payment->update([
                     'status'           => 'failed',
-                    'gateway_metadata' => array_merge($payload, ['refund_flag' => 'reservation_expired_late_payment']),
-                ]);
-
-                $order->update([
-                    'status'         => 'expired',
-                    'payment_status' => 'failed_refund_required',
+                    'gateway_metadata' => array_merge($payload, ['refund_flag' => 'order_cancelled_or_expired']),
                 ]);
 
                 return [
                     'status'  => 'refund_flagged',
-                    'message' => 'Payment received after reservation expiration. Stock released; flagged for refund.',
+                    'message' => 'Payment received after order was cancelled or expired. Flagged for refund.',
                 ];
             }
 
