@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Models\Order;
 use App\Models\PaymentException;
+use App\Models\Payout;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
@@ -33,6 +34,7 @@ class AdminDashboardController extends Controller
         $activeListingsCount      = Listing::where('status', 'active')->count();
 
         $paymentExceptionsCount = PaymentException::whereIn('status', ['pending', 'investigating'])->count();
+        $pendingPayoutsAmount   = Payout::where('status', 'pending')->sum('amount');
 
         // Recent Audit Activity Feed (last 8)
         $recentActivity = AuditLog::with(['user:id,first_name,second_name,phone,is_admin'])
@@ -81,6 +83,7 @@ class AdminDashboardController extends Controller
                 'pending_applications'      => (int) $pendingApplicationsCount,
                 'active_listings'           => (int) $activeListingsCount,
                 'payment_exceptions_count'  => (int) $paymentExceptionsCount,
+                'pending_payouts_amount'    => (float) $pendingPayoutsAmount,
             ],
             'recent_activity'               => $recentActivity,
             'pending_approvals_preview'     => $pendingApplicationsPreview,
