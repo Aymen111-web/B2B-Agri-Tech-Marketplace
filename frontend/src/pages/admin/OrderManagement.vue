@@ -48,67 +48,81 @@
       </div>
     </div>
 
-    <div v-else class="space-y-6">
-      <div class="grid grid-cols-1 gap-5 relative z-10">
+    <div v-else class="space-y-4">
+      <div class="space-y-2.5 relative z-10">
         <article v-for="order in paginatedOrders" :key="order.id" 
-          class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-3xl p-6 lg:p-8 shadow-sm hover:shadow-xl transition-all group lg:flex lg:flex-col lg:gap-6">
+          class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-xl px-4 py-3 shadow-2xs hover:border-[#0B57D0]/50 dark:hover:border-blue-500/50 transition-all group">
           
-          <div class="flex flex-col lg:flex-row items-start justify-between gap-4 border-b border-[#E2E4E7]/60 dark:border-[#30363D] pb-6">
-            <div class="flex items-start gap-4">
-              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-50 dark:from-blue-950/40 to-sky-100 dark:to-sky-950/40 border border-blue-200 dark:border-blue-800/40 flex items-center justify-center shrink-0 shadow-sm text-blue-700 dark:text-blue-300">
-                <ShoppingBag class="w-6 h-6" />
+          <!-- Main Compact Horizontal Row -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <!-- Left: Icon + Batch / Parties -->
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-50 to-sky-100 dark:from-blue-950/50 dark:to-sky-950/40 border border-blue-200 dark:border-blue-800/50 flex items-center justify-center shrink-0 shadow-2xs text-blue-700 dark:text-blue-300">
+                <ShoppingBag class="w-4 h-4" />
               </div>
               
-              <div>
-                <div class="flex items-center gap-2.5">
-                  <h3 class="text-[18px] font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">
-                    {{ $t('admin.orderBatch') }} #{{ order.order_number || String(order.id).slice(-6) }}
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-sm font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight truncate">
+                    #{{ order.order_number || String(order.id).slice(-6) }}
                   </h3>
-                  <span :class="['px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider', 
+                  <span :class="['px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider', 
                     order.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50' : 
                     order.status === 'disputed' ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/50' : 
                     'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50']">
                     {{ $t(order.status || 'placed') }}
                   </span>
+                  <span class="text-[11px] text-[#5A6270] dark:text-[#8B949E] font-medium flex items-center gap-1">
+                    <Calendar class="w-3 h-3 opacity-60" /> {{ formatDate(order.placed_at || order.created_at || new Date()) }}
+                  </span>
                 </div>
                 
-                <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-2.5 text-[12px] font-semibold text-[#5A6270] dark:text-[#8B949E]">
-                  <span class="flex items-center gap-1.5"><CreditCard class="w-3.5 h-3.5 opacity-60" /> {{ order.payment_method || 'Chapa Escrow' }} ({{ order.payment_status }})</span>
-                  <span class="flex items-center gap-1.5"><User class="w-3.5 h-3.5 opacity-60" /> {{ $t('admin.buyerCustomer') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC] font-extrabold">{{ order.buyer?.name || order.buyer?.first_name || $t('common.anonymous') }}</strong></span>
-                  <span class="flex items-center gap-1.5"><Tractor class="w-3.5 h-3.5 opacity-60" /> {{ $t('admin.producerSupplier') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC] font-extrabold">{{ order.farmer?.name || order.farmer?.first_name || $t('common.anonymous') }}</strong></span>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5 text-[11px] font-medium text-[#5A6270] dark:text-[#8B949E]">
+                  <span>{{ $t('admin.buyerCustomer') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC]">{{ order.buyer?.name || order.buyer?.first_name || $t('common.anonymous') }}</strong></span>
+                  <span class="text-gray-300 dark:text-gray-600">•</span>
+                  <span>{{ $t('admin.producerSupplier') }}: <strong class="text-[#1E2328] dark:text-[#F0F6FC]">{{ order.farmer?.name || order.farmer?.first_name || $t('common.anonymous') }}</strong></span>
+                  <span class="text-gray-300 dark:text-gray-600 hidden sm:inline">•</span>
+                  <span class="hidden sm:inline">{{ order.payment_method || 'Chapa Escrow' }} ({{ order.payment_status }})</span>
                 </div>
               </div>
             </div>
-            
-            <div class="lg:text-right flex flex-col justify-center">
-              <span class="text-[11px] font-black uppercase tracking-widest text-[#9BA1AA] dark:text-[#8B949E] mb-0.5">{{ $t('admin.totalEscrowValue') }}</span>
-              <span class="text-[24px] font-black text-[#1E9444] dark:text-emerald-400 tracking-tight">{{ formatETB(order.total_amount) }}</span>
-              <span class="text-[12px] font-bold text-[#5A6270] dark:text-[#8B949E] flex items-center lg:justify-end gap-1.5 mt-1">
-                <Calendar class="w-3.5 h-3.5" /> {{ formatDate(order.placed_at || order.created_at || new Date()) }}
-              </span>
+
+            <!-- Middle/Right: Compact Status Chips & Escrow Amount & Toggle -->
+            <div class="flex items-center justify-between lg:justify-end gap-3 sm:gap-4 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100 dark:border-[#30363D]">
+              <!-- Items & Inspection & Delivery badges -->
+              <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+                <span class="px-2 py-0.5 rounded-lg bg-[#F0F1F2] dark:bg-[#21262D] text-[#1E2328] dark:text-[#F0F6FC] font-bold">
+                  {{ order.items?.reduce((acc, it) => acc + (it.quantity || 0), 0)?.toLocaleString() || 0 }} items
+                </span>
+                <span class="px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200/50 dark:border-indigo-800/40 capitalize">
+                  {{ $t(order.inspection_status || 'pending') }}
+                </span>
+                <span class="px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold border border-amber-200/50 dark:border-amber-800/40 capitalize">
+                  {{ $t(order.delivery_status || 'admin.awaitingTransport') }}
+                </span>
+                <span :class="['px-2 py-0.5 rounded-lg font-bold border capitalize', order.payout_status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200/50 dark:border-emerald-800/40' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200/50 dark:border-rose-800/40']">
+                  Payout: {{ $t(order.payout_status || 'admin.withheld') }}
+                </span>
+              </div>
+
+              <!-- Escrow Total Amount -->
+              <div class="text-right min-w-[90px]">
+                <span class="text-base font-black text-[#1E9444] dark:text-emerald-400 tracking-tight block">
+                  {{ formatETB(order.total_amount) }}
+                </span>
+              </div>
+
+              <!-- Accordion Toggle Button -->
+              <button @click="toggleTimeline(order.id)" 
+                class="p-1.5 rounded-lg bg-[#F0F1F2] dark:bg-[#21262D] hover:bg-gray-200 dark:hover:bg-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] transition-colors cursor-pointer"
+                :title="expandedOrderIds[order.id] ? 'Hide Details' : 'View Timeline & Details'">
+                <ChevronDown :class="['w-4 h-4 transition-transform duration-200', expandedOrderIds[order.id] ? 'rotate-180' : '']" />
+              </button>
             </div>
           </div>
 
-          <div class="mt-4 lg:mt-0 grid grid-cols-2 md:grid-cols-4 gap-4 bg-[#F8F9FA] dark:bg-[#21262D] p-5 rounded-2xl border border-[#E2E4E7]/60 dark:border-[#30363D]">
-            <div>
-              <span class="text-[10px] uppercase font-black text-[#9BA1AA] dark:text-[#8B949E] block mb-1">{{ $t('admin.itemsRequested') }}</span>
-              <span class="font-extrabold text-[#1E2328] dark:text-[#F0F6FC] text-[14px]">{{ $t('admin.totalItemsCount', { count: order.items?.reduce((acc, it) => acc + (it.quantity || 0), 0)?.toLocaleString() || 0 }) }}</span>
-            </div>
-            <div>
-              <span class="text-[10px] uppercase font-black text-[#9BA1AA] dark:text-[#8B949E] block mb-1">{{ $t('admin.inspectionStatus') }}</span>
-              <span class="font-extrabold text-indigo-700 dark:text-indigo-300 text-[14px] capitalize">{{ $t(order.inspection_status || 'pending') }}</span>
-            </div>
-            <div>
-              <span class="text-[10px] uppercase font-black text-[#9BA1AA] dark:text-[#8B949E] block mb-1">{{ $t('admin.deliveryEscrow') }}</span>
-              <span class="font-extrabold text-amber-600 dark:text-amber-400 text-[14px] capitalize">{{ $t(order.delivery_status || 'admin.awaitingTransport') }}</span>
-            </div>
-            <div>
-              <span class="text-[10px] uppercase font-black text-[#9BA1AA] dark:text-[#8B949E] block mb-1">{{ $t('admin.farmerPayout') }}</span>
-              <span :class="['font-extrabold text-[14px] capitalize', order.payout_status === 'completed' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400']">{{ $t(order.payout_status || 'admin.withheld') }}</span>
-            </div>
-          </div>
-
-          <div class="mt-6 border-t border-[#E2E4E7]/60 dark:border-[#30363D] pt-6">
+          <!-- Expandable Details & Timeline Drawer -->
+          <div v-if="expandedOrderIds[order.id]" class="mt-3 pt-3 border-t border-gray-100 dark:border-[#30363D] animate-in fade-in duration-200">
             <OrderTimeline :status="order.status" />
           </div>
         </article>
@@ -128,7 +142,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ShoppingBag, Loader2, RefreshCcw, CreditCard, User, Tractor, Calendar } from 'lucide-vue-next'
+import { ShoppingBag, Loader2, RefreshCcw, CreditCard, User, Tractor, Calendar, ChevronDown } from 'lucide-vue-next'
 import { adminApi } from '@/services/adminService'
 import { formatETB, formatDate } from '@/utils/helpers'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
@@ -136,6 +150,11 @@ import Pagination from '@/components/common/Pagination.vue'
 
 const orders = ref([])
 const isLoading = ref(true)
+const expandedOrderIds = ref({})
+
+const toggleTimeline = (orderId) => {
+  expandedOrderIds.value[orderId] = !expandedOrderIds.value[orderId]
+}
 
 const currentPage = ref(1)
 const itemsPerPage = 6
