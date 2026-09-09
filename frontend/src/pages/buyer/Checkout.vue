@@ -318,13 +318,7 @@ const handleCheckout = async () => {
       orderId = checkoutRes.order.id
     }
 
-    // 2. Sync local order placement state for all items
-    checkoutItems.value.forEach(item => {
-      if (item.listing) {
-        const effectiveQtyKg = item.unit === 'Quintals' ? (item.quantityKg || 1) * 100 : (item.quantityKg || 1)
-        placeOrder(item.listing, user.value, effectiveQtyKg)
-      }
-    })
+    // 2. Clear cart & route to orders tracking page
 
     // 3. Clear cart & route to orders tracking page
     clearCart()
