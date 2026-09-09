@@ -539,6 +539,12 @@ const getDocUrl = (doc) => {
   return `http://127.0.0.1:8000/storage/${target}`
 }
 
+const isDocPreviewOpen = ref(false)
+const previewDocUrl = ref('')
+const previewDocName = ref('')
+const previewDocType = ref('pdf')
+const previewApp = ref(null)
+
 const openDoc = (doc, app = null) => {
   const url = getDocUrl(doc)
   const docName = getDocName(doc)
@@ -552,7 +558,22 @@ const openDoc = (doc, app = null) => {
     return
   }
 
-  // Base64 Data URL conversion to Blob URL for easy browser viewing/opening
+  previewDocName.value = docName
+  previewApp.value = app
+
+  // Detect file type
+  const lowerUrl = url.toLowerCase()
+  const lowerName = docName.toLowerCase()
+
+  if (lowerUrl.startsWith('data:image/') || lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp') || lowerName.endsWith('.svg')) {
+    previewDocType.value = 'image'
+  } else if (lowerUrl.startsWith('data:application/pdf') || lowerName.endsWith('.pdf') || lowerUrl.includes('.pdf')) {
+    previewDocType.value = 'pdf'
+  } else {
+    previewDocType.value = 'other'
+  }
+
+  // Handle Base64 Data URLs cleanly as Blob URLs
   if (url.startsWith('data:')) {
     try {
       const arr = url.split(',')
@@ -565,30 +586,32 @@ const openDoc = (doc, app = null) => {
         u8arr[n] = bstr.charCodeAt(n)
       }
       const blob = new Blob([u8arr], { type: mime })
-      const blobUrl = URL.createObjectURL(blob)
-
-      const win = window.open(blobUrl, '_blank')
-      if (!win) {
-        const a = document.createElement('a')
-        a.href = blobUrl
-        a.download = docName
-        a.click()
-      }
-      return
+      previewDocUrl.value = URL.createObjectURL(blob)
     } catch (e) {
       console.error('Failed to parse base64 document blob:', e)
+      previewDocUrl.value = url
     }
+  } else {
+    previewDocUrl.value = url
   }
 
-  // Direct open in new tab
-  const win = window.open(url, '_blank')
-  if (!win || win.closed || typeof win.closed === 'undefined') {
-    const a = document.createElement('a')
-    a.href = url
-    a.target = '_blank'
-    a.download = docName
-    a.click()
-  }
+  isDocPreviewOpen.value = true
+}
+
+const downloadPreviewDoc = () => {
+  if (!previewDocUrl.value) return
+  const a = document.createElement('a')
+  a.href = previewDocUrl.value
+  a.download = previewDocName.value || 'document'
+  a.target = '_blank'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
+
+const openExternalWindow = () => {
+  if (!previewDocUrl.value) return
+  window.open(previewDocUrl.value, '_blank')
 }
 
 const getDocsList = (app) => {
