@@ -262,6 +262,16 @@ class PaymentExceptionController extends Controller
                     'payout_status'  => 'refunded',
                 ]);
 
+                if ($order->payment) {
+                    $order->payment->update(['status' => 'refunded']);
+                }
+
+                if ($order->payments) {
+                    foreach ($order->payments as $p) {
+                        $p->update(['status' => 'refunded']);
+                    }
+                }
+
                 foreach ($order->fulfillments as $fulfillment) {
                     $fulfillment->update([
                         'payout_status' => 'refunded',
@@ -283,27 +293,62 @@ class PaymentExceptionController extends Controller
                 ]);
             } elseif ($action === 'release_farmer') {
                 $order->update([
-                    'status'        => 'completed',
-                    'payout_status' => 'eligible',
+                    'status'         => 'completed',
+                    'payout_status'  => 'eligible',
+                    'payment_status' => 'paid_in_escrow',
                 ]);
 
-                foreach ($order->fulfillments as $fulfillment) {
-                    $fulfillment->update([
-                        'payout_status' => 'eligible',
-                        'status'        => 'completed',
-                        'completed_at'  => now(),
-                    ]);
+                if ($order->payment) {
+                    $order->payment->update(['status' => 'paid_in_escrow']);
+                }
 
-                    Payout::updateOrCreate(
-                        ['order_fulfillment_id' => $fulfillment->id],
-                        [
-                            'farmer_id'    => $fulfillment->farmer_id,
-                            'amount'       => $fulfillment->subtotal_amount,
-                            'status'       => 'processed',
-                            'reference'    => 'ESCROW-RELEASE-' . strtoupper(uniqid()),
-                            'processed_at' => now(),
-                        ]
-                    );
+                // If fulfillments exist on order, update fulfillments & create Payout records
+                if ($order->fulfillments && $order->fulfillments->count() > 0) {
+                    foreach ($order->fulfillments as $fulfillment) {
+                        $fulfillment->update([
+                            'payout_status' => 'eligible',
+                            'status'        => 'completed',
+                            'completed_at'  => now(),
+                        ]);
+
+                        Payout::updateOrCreate(
+                            ['order_fulfillment_id' => $fulfillment->id],
+                            [
+                                'farmer_id'    => $fulfillment->farmer_id,
+                                'amount'       => $fulfillment->subtotal_amount ?: $order->total_amount,
+                                'status'       => 'processed',
+                                'reference'    => 'ESCROW-RELEASE-' . strtoupper(uniqid()),
+                                'processed_at' => now(),
+                            ]
+                        );
+                    }
+                } else {
+                    // Fallback: If no fulfillment record exists, locate farmer from order items or fallback
+                    $farmerId = $order->items()->first()?->listing?->farmer_id;
+                    if ($farmerId) {
+                        $fulfillment = $order->fulfillments()->create([
+                            'farmer_id'         => $farmerId,
+                            'status'            => 'completed',
+                            'delivery_status'   => 'delivered',
+                            'inspection_status' => 'accepted',
+                            'payout_status'     => 'eligible',
+                            'subtotal_amount'   => $order->total_amount,
+                            'produce_amount'    => $order->total_amount,
+                            'farmer_net_payout' => $order->total_amount,
+                            'completed_at'      => now(),
+                        ]);
+
+                        Payout::updateOrCreate(
+                            ['order_fulfillment_id' => $fulfillment->id],
+                            [
+                                'farmer_id'    => $farmerId,
+                                'amount'       => $order->total_amount,
+                                'status'       => 'processed',
+                                'reference'    => 'ESCROW-RELEASE-' . strtoupper(uniqid()),
+                                'processed_at' => now(),
+                            ]
+                        );
+                    }
                 }
 
                 AuditLog::create([
