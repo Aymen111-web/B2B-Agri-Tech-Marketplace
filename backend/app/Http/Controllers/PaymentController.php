@@ -272,16 +272,23 @@ class PaymentController extends Controller
      */
     public function verifyOrderPayments($id, ChapaService $chapaService, PaymentService $paymentService): JsonResponse
     {
-        $order = Order::findOrFail($id);
-        
+        $order = Order::find($id)
+            ?? Order::where('order_number', $id)->first()
+            ?? Order::where('id', (int) preg_replace('/[^0-9]/', '', (string) $id))->first();
+
+        if (! $order) {
+            return response()->json([
+                'message' => 'Order not found.',
+            ], 404);
+        }
+
         $pendingPayment = Payment::where('order_id', $order->id)
-            ->where('status', 'pending')
             ->latest()
             ->first();
 
-        if (!$pendingPayment) {
+        if (! $pendingPayment) {
             return response()->json([
-                'message' => 'No pending payments found for this order.',
+                'message' => 'No payment record found for this order.',
             ], 404);
         }
 

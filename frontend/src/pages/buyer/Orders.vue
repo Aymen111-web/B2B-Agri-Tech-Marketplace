@@ -156,16 +156,16 @@
               </button>
 
               <!-- Payment Needed -->
-              <div v-else-if="order.status === 'awaiting_buyer_payment'" class="flex items-center gap-1.5 shrink-0">
-                <button @click="verifyPayment(order.id)" 
+              <div v-else-if="['pending_payment', 'awaiting_buyer_payment', 'placed'].includes(order.status)" class="flex items-center gap-1.5 shrink-0">
+                <button @click="verifyPayment(order)" 
                   class="px-2.5 py-1.5 bg-white dark:bg-[#161B22] text-[#0B57D0] dark:text-blue-400 border border-[#0B57D0] dark:border-blue-400 rounded-xl text-xs font-bold hover:bg-blue-50 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
-                  <RefreshCw v-if="isVerifyingPayment === order.id" class="w-3.5 h-3.5 animate-spin" />
+                  <RefreshCw v-if="isVerifyingPayment === (order.displayId || order.id)" class="w-3.5 h-3.5 animate-spin" />
                   <span v-else>Verify</span>
                 </button>
-                <button @click="handlePayment(order.id)" 
+                <button @click="handlePayment(order)" 
                   class="px-3 py-1.5 bg-[#0B57D0] text-white rounded-xl text-xs font-bold hover:bg-blue-800 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
                   <CreditCard class="w-3.5 h-3.5" />
-                  <span>{{ isProcessingPayment === order.id ? '...' : 'Pay Chapa' }}</span>
+                  <span>{{ isProcessingPayment === (order.displayId || order.id) ? '...' : 'Pay Chapa' }}</span>
                 </button>
               </div>
 
@@ -259,7 +259,7 @@ import { api } from '@/services/api'
 import OrderTimeline from '@/components/shared/OrderTimeline.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
-const { orders, confirmDelivery } = useOrders()
+const { orders, confirmDelivery, refreshOrders } = useOrders()
 
 const activeTab = ref('all')
 const searchQuery = ref('')
@@ -364,14 +364,17 @@ const submitDeliveryPin = () => {
 const isProcessingPayment = ref(null)
 const isVerifyingPayment = ref(null)
 
-const verifyPayment = async (orderId) => {
+const verifyPayment = async (order) => {
+  const targetId = typeof order === 'object' ? (order.displayId || order.id) : order
   if (isVerifyingPayment.value) return
-  isVerifyingPayment.value = orderId
+  isVerifyingPayment.value = targetId
   
   try {
-    const numericId = String(orderId).replace('ORD-', '')
-    await api.verifyPendingPaymentForOrder(numericId)
-    window.location.reload()
+    const res = await api.verifyPendingPaymentForOrder(targetId)
+    if (res && res.message) {
+      alert(res.message)
+    }
+    await refreshOrders()
   } catch (err) {
     alert(err.message || "Payment is not yet verified. Please complete payment in the Chapa tester and try again.")
   } finally {
@@ -379,14 +382,14 @@ const verifyPayment = async (orderId) => {
   }
 }
 
-const handlePayment = async (orderId) => {
+const handlePayment = async (order) => {
+  const targetId = typeof order === 'object' ? (order.displayId || order.id) : order
   if (isProcessingPayment.value) return
-  isProcessingPayment.value = orderId
+  isProcessingPayment.value = targetId
   
   try {
-    const numericId = String(orderId).replace('ORD-', '')
-    const res = await api.initiateOrderPayment(numericId)
-    if (res.checkout_url) {
+    const res = await api.initiateOrderPayment(targetId)
+    if (res && res.checkout_url) {
       window.open(res.checkout_url, '_blank')
     }
   } catch (err) {
