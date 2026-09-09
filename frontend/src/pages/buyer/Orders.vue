@@ -247,12 +247,138 @@
         </div>
       </div>
     </div>
+
+    <!-- Chapa Payment Progress & Live Verification Modal -->
+    <div v-if="activePaymentOrder" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div class="max-w-md w-full bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-6 shadow-2xl space-y-4 text-[#1E2328] dark:text-[#F0F6FC]">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#30363D] pb-3">
+          <div class="flex items-center gap-2">
+            <div :class="activePaymentStatus === 'success' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-[#1E9444] dark:text-emerald-400' : 'bg-blue-100 dark:bg-blue-950/50 text-[#0B57D0] dark:text-blue-400'" class="w-8 h-8 rounded-xl flex items-center justify-center">
+              <CheckCircle2 v-if="activePaymentStatus === 'success'" class="w-5 h-5" />
+              <CreditCard v-else class="w-4 h-4" />
+            </div>
+            <div>
+              <h3 class="text-base font-bold leading-tight">
+                {{ activePaymentStatus === 'success' ? 'Payment Verified & Secured' : 'Chapa Payment in Progress' }}
+              </h3>
+              <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">
+                {{ activePaymentStatus === 'success' ? 'Escrow funds successfully locked' : 'Waiting for confirmation in new tab' }}
+              </p>
+            </div>
+          </div>
+          <button @click="closePaymentModal" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer">
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Order Snapshot Details -->
+        <div class="p-3 bg-[#F8F9FA] dark:bg-[#21262D] rounded-xl border border-gray-100 dark:border-[#30363D] space-y-1.5 text-xs">
+          <div class="flex justify-between font-semibold text-[#5A6270] dark:text-[#8B949E]">
+            <span>{{ $t('orders.orderId') }}:</span>
+            <span class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">#{{ activePaymentOrder.displayId || activePaymentOrder.id }}</span>
+          </div>
+          <div class="flex justify-between font-semibold">
+            <span class="text-[#5A6270] dark:text-[#8B949E]">Order Total:</span>
+            <span class="text-[#0B57D0] dark:text-blue-400 font-black">{{ formatETB(activePaymentOrder.totalAmountETB || activePaymentOrder.total_amount || 0) }}</span>
+          </div>
+          <div v-if="activePaymentResult?.receipt_url || activePaymentResult?.payment?.receipt_url" class="flex justify-between font-semibold pt-1 border-t border-gray-200 dark:border-[#30363D]">
+            <span class="text-[#5A6270] dark:text-[#8B949E]">Chapa Receipt:</span>
+            <a :href="activePaymentResult.receipt_url || activePaymentResult.payment.receipt_url" target="_blank" class="text-[#0B57D0] dark:text-blue-400 hover:underline flex items-center gap-1 font-bold">
+              <span>View Online Receipt</span>
+              <ExternalLink class="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+
+        <!-- State 1: Awaiting / Verifying -->
+        <div v-if="activePaymentStatus !== 'success'" class="space-y-3 pt-1">
+          <div class="flex items-center gap-2.5 p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-xs">
+            <RefreshCw class="w-4 h-4 text-[#0B57D0] dark:text-blue-400 animate-spin shrink-0" />
+            <div class="text-[#1E2328] dark:text-[#F0F6FC] leading-relaxed">
+              <span class="font-bold block">Chapa checkout is open in another tab</span>
+              <span class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">
+                Complete your payment in the Chapa tab. We will automatically detect and lock your escrow payment here without reloading or redirecting you. Keep the receipt tab open to view or download it!
+              </span>
+            </div>
+          </div>
+
+          <div v-if="activePaymentErrorMessage" class="p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-xl text-amber-800 dark:text-amber-300 text-xs">
+            {{ activePaymentErrorMessage }}
+          </div>
+
+          <div class="flex flex-col gap-2 pt-1">
+            <button 
+              @click="checkActivePayment(true)" 
+              :disabled="activePaymentStatus === 'verifying'"
+              class="w-full py-2.5 bg-[#0B57D0] text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw :class="['w-3.5 h-3.5', activePaymentStatus === 'verifying' ? 'animate-spin' : '']" />
+              <span>{{ activePaymentStatus === 'verifying' ? 'Checking status...' : 'Check Payment Status Now' }}</span>
+            </button>
+            <div class="flex gap-2">
+              <button 
+                @click="reopenPaymentTab" 
+                class="flex-1 py-2 border border-gray-300 dark:border-[#30363D] text-[#1E2328] dark:text-[#F0F6FC] rounded-xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D] flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <ExternalLink class="w-3.5 h-3.5" />
+                <span>Re-open Tab</span>
+              </button>
+              <button 
+                @click="closePaymentModal" 
+                class="flex-1 py-2 border border-gray-300 dark:border-[#30363D] text-[#5A6270] dark:text-[#8B949E] rounded-xl font-bold text-xs hover:bg-gray-50 dark:hover:bg-[#21262D] cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- State 2: Success! -->
+        <div v-else class="space-y-3 pt-1">
+          <div class="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 text-xs">
+            <ShieldCheck class="w-5 h-5 text-[#1E9444] dark:text-emerald-400 shrink-0" />
+            <div class="text-[#1E2328] dark:text-[#F0F6FC] leading-relaxed">
+              <span class="font-bold text-[#1E9444] dark:text-emerald-400 block">Funds Protected in Escrow</span>
+              <span class="text-[11px] text-[#5A6270] dark:text-[#8B949E]">
+                Payment has been confirmed. Your produce order is active and funds will only be released to the farmer after PIN delivery handoff.
+              </span>
+            </div>
+          </div>
+
+          <div class="p-2.5 bg-blue-50/60 dark:bg-blue-950/20 rounded-xl border border-blue-100 dark:border-blue-900/30 text-[11px] text-[#5A6270] dark:text-[#8B949E] flex items-center gap-2">
+            <FileText class="w-4 h-4 text-[#0B57D0] dark:text-blue-400 shrink-0" />
+            <span>Your official Chapa receipt tab remains open in your browser so you can view, save, or download it whenever you want.</span>
+          </div>
+
+          <div class="flex gap-2 pt-1">
+            <a 
+              v-if="activePaymentResult?.receipt_url || activePaymentResult?.payment?.receipt_url"
+              :href="activePaymentResult.receipt_url || activePaymentResult.payment.receipt_url" 
+              target="_blank"
+              class="flex-1 py-2.5 bg-white dark:bg-[#161B22] border border-[#0B57D0] dark:border-blue-400 text-[#0B57D0] dark:text-blue-400 rounded-xl font-bold text-xs hover:bg-blue-50 dark:hover:bg-blue-950/30 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <ExternalLink class="w-3.5 h-3.5" />
+              <span>Chapa Receipt</span>
+            </a>
+            <button 
+              @click="closePaymentModal" 
+              class="flex-1 py-2.5 bg-[#1E9444] text-white rounded-xl font-bold text-xs hover:bg-[#0F5C2A] shadow-2xs transition-colors cursor-pointer"
+            >
+              Done / View Orders
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw } from 'lucide-vue-next'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { Store, ShieldCheck, CheckCircle2, Package, Truck, Key, Search, ChevronDown, X, CreditCard, Clock, RefreshCw, ExternalLink, FileText } from 'lucide-vue-next'
 import { useOrders } from '@/composables/useOrders'
 import { formatETB } from '@/utils/helpers'
 import { api } from '@/services/api'
@@ -364,6 +490,106 @@ const submitDeliveryPin = () => {
 const isProcessingPayment = ref(null)
 const isVerifyingPayment = ref(null)
 
+// Active payment tracking state
+const activePaymentOrder = ref(null)
+const activePaymentCheckoutUrl = ref(null)
+const activePaymentStatus = ref('awaiting') // 'awaiting' | 'verifying' | 'success'
+const activePaymentResult = ref(null)
+const activePaymentErrorMessage = ref(null)
+let paymentPollingInterval = null
+
+const stopPaymentPolling = () => {
+  if (paymentPollingInterval) {
+    clearInterval(paymentPollingInterval)
+    paymentPollingInterval = null
+  }
+}
+
+const checkActivePayment = async (isManual = false) => {
+  if (!activePaymentOrder.value) return
+  const targetId = activePaymentOrder.value.displayId || activePaymentOrder.value.id
+  if (isManual) {
+    activePaymentStatus.value = 'verifying'
+    activePaymentErrorMessage.value = null
+  }
+  
+  try {
+    const res = await api.verifyPendingPaymentForOrder(targetId)
+    const isSuccess = res && (
+      res.status === 'success' || 
+      res.message?.toLowerCase().includes('verified') || 
+      res.payment?.status === 'confirmed'
+    )
+    if (isSuccess) {
+      stopPaymentPolling()
+      activePaymentStatus.value = 'success'
+      activePaymentResult.value = res
+      
+      if (activePaymentOrder.value) {
+        activePaymentOrder.value.status = 'paid_in_escrow'
+        activePaymentOrder.value.escrowStatus = 'held'
+      }
+      await refreshOrders()
+    } else if (isManual) {
+      activePaymentStatus.value = 'awaiting'
+      activePaymentErrorMessage.value = res?.message || 'Payment is still processing on Chapa.'
+    }
+  } catch (err) {
+    if (isManual) {
+      activePaymentStatus.value = 'awaiting'
+      activePaymentErrorMessage.value = err.message || 'Payment is not yet confirmed. Please complete the steps in the Chapa tab.'
+    }
+  }
+}
+
+const startPaymentPolling = (targetId) => {
+  stopPaymentPolling()
+  let ticks = 0
+  paymentPollingInterval = setInterval(async () => {
+    ticks++
+    if (ticks > 100 || !activePaymentOrder.value || activePaymentStatus.value === 'success') {
+      stopPaymentPolling()
+      return
+    }
+    await checkActivePayment(false)
+  }, 3000)
+}
+
+const reopenPaymentTab = () => {
+  if (activePaymentCheckoutUrl.value) {
+    window.open(activePaymentCheckoutUrl.value, '_blank')
+  }
+}
+
+const closePaymentModal = () => {
+  stopPaymentPolling()
+  activePaymentOrder.value = null
+  activePaymentCheckoutUrl.value = null
+  activePaymentStatus.value = 'awaiting'
+  activePaymentResult.value = null
+  activePaymentErrorMessage.value = null
+}
+
+const handleTabFocus = () => {
+  if (activePaymentOrder.value && activePaymentStatus.value === 'awaiting') {
+    checkActivePayment(false)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('focus', handleTabFocus)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      handleTabFocus()
+    }
+  })
+})
+
+onUnmounted(() => {
+  stopPaymentPolling()
+  window.removeEventListener('focus', handleTabFocus)
+})
+
 const verifyPayment = async (order) => {
   const targetId = typeof order === 'object' ? (order.displayId || order.id) : order
   if (isVerifyingPayment.value) return
@@ -391,12 +617,32 @@ const handlePayment = async (order) => {
   if (isProcessingPayment.value) return
   isProcessingPayment.value = targetId
   
+  // Open new tab synchronously during click to prevent browser popup blockers
+  const paymentTab = window.open('about:blank', '_blank')
+  
   try {
     const res = await api.initiateOrderPayment(targetId)
     if (res && res.checkout_url) {
-      window.open(res.checkout_url, '_blank')
+      if (paymentTab && !paymentTab.closed) {
+        paymentTab.location.href = res.checkout_url
+      } else {
+        window.open(res.checkout_url, '_blank')
+      }
+      
+      const foundOrder = typeof order === 'object' ? order : (orders.value.find(o => (o.displayId || o.id) == targetId) || { id: targetId })
+      activePaymentOrder.value = foundOrder
+      activePaymentCheckoutUrl.value = res.checkout_url
+      activePaymentStatus.value = 'awaiting'
+      activePaymentResult.value = null
+      activePaymentErrorMessage.value = null
+      
+      startPaymentPolling(targetId)
+    } else {
+      if (paymentTab && !paymentTab.closed) paymentTab.close()
+      alert(res?.message || 'Payment initiation failed. Please try again.')
     }
   } catch (err) {
+    if (paymentTab && !paymentTab.closed) paymentTab.close()
     alert(err.message || 'Payment initiation failed. Please try again.')
   } finally {
     isProcessingPayment.value = null

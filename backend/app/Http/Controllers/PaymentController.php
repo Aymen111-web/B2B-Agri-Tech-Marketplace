@@ -310,8 +310,9 @@ class PaymentController extends Controller
         // Log all query params Chapa sends for debugging
         \Illuminate\Support\Facades\Log::info('Chapa callback received:', $request->query());
 
-        $frontendReturnUrl = config('services.chapa.return_url', 'http://localhost:5173/payment/success');
+        $frontendReturnUrl = config('services.chapa.return_url', 'http://localhost:5174/payment/success');
 
+        $payment = null;
         $chapaRef = $refId;
 
         if ($txRef) {

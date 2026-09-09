@@ -6,7 +6,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BuyerDashboardController;
 use App\Http\Controllers\CapabilityApplicationController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChapaWebhookController;
 use App\Http\Controllers\ListingController;
@@ -103,8 +102,7 @@ Route::middleware('auth:sanctum')->group(function () {
 ////// Payments — Buyer (authenticated, requires buyer capability) /////
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/orders/{id}/pay',     [PaymentController::class, 'initiate']);
-    Route::get('/orders/{id}/payment',  [PaymentController::class, 'show']);
+    Route::get('/orders/{id}/payment',      [PaymentController::class, 'show']);
     Route::get('/payments/verify/{txRef}',  [PaymentController::class, 'verify']);
     Route::post('/payments/cancel/{txRef}', [PaymentController::class, 'cancel']);
 });
@@ -200,15 +198,4 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
 });
 
-////// Cart Items — Buyer (authenticated, detailed cart item management) /////
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/cart-items',              [CartItemController::class, 'index']);
-    Route::post('/cart-items',             [CartItemController::class, 'store']);
-    Route::get('/cart-items/grouped',      [CartItemController::class, 'grouped']);
-    Route::get('/cart-items/breakdown',    [CartItemController::class, 'breakdown']);
-    Route::get('/cart-items/{cartItem}',   [CartItemController::class, 'show']);
-    Route::put('/cart-items/{cartItem}',   [CartItemController::class, 'update']);
-    Route::delete('/cart-items/clear',     [CartItemController::class, 'clear']);
-    Route::delete('/cart-items/{cartItem}',[CartItemController::class, 'destroy']);
-});

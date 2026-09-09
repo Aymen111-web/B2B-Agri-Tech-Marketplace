@@ -284,5 +284,3 @@ class OrderController extends Controller
         return OrderResource::collection($orders)->response();
     }
 }
-
-

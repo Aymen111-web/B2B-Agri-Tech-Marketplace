@@ -260,7 +260,7 @@ export function mapBackendUserToFrontend(rawUser) {
         status: rawUser.account_status || 'verified',
         region: rawUser.region || 'Addis Ababa',
         avatar: rawUser.profile_photo_url || rawUser.profile_photo_path
-            ? (rawUser.profile_photo_url || `http://127.0.0.1:8000/storage/${rawUser.profile_photo_path}`)
+            ? (rawUser.profile_photo_url || `${API_BASE_URL.replace(/\/api\/?$/, '')}/storage/${rawUser.profile_photo_path}`)
             : undefined,
         createdAt: rawUser.created_at ? new Date(rawUser.created_at) : new Date(),
     }

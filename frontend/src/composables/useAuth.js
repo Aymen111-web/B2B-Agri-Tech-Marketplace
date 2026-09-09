@@ -1,46 +1,5 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { api, setAuthToken, clearAuthToken, getAuthToken, mapBackendUserToFrontend, normalizeEthiopianPhone } from '@/services/api'
-
-const INITIAL_BUYER = {
-    id: 'buyer-1',
-    name: 'Alemayehu Tadesse',
-    email: 'buyer@addissupply.et',
-    phone: '+251 911 234 567',
-    role: 'buyer',
-    status: 'verified',
-    region: 'Addis Ababa',
-    companyName: 'Addis Supply Co.',
-    businessType: 'wholesaler',
-    totalOrdered: 340000,
-    createdAt: new Date('2024-01-15'),
-}
-
-const INITIAL_FARMER = {
-    id: 'farmer-1',
-    name: 'Dawit Bekele',
-    email: 'dawit@sidamafarm.et',
-    phone: '+251 912 345 678',
-    role: 'farmer',
-    status: 'verified',
-    region: 'SNNPR',
-    farmSize: 14.5,
-    totalEarned: 890000,
-    rating: 4.9,
-    reviewCount: 38,
-    crops: ['Coffee', 'Teff', 'Spices'],
-    createdAt: new Date('2023-11-10'),
-}
-
-const INITIAL_ADMIN = {
-    id: 'admin-1',
-    name: 'AgriMarket Admin',
-    email: 'admin@agrimarket.et',
-    phone: '+251 911 000 000',
-    role: 'admin',
-    status: 'verified',
-    region: 'Addis Ababa',
-    createdAt: new Date('2023-01-01'),
-}
 
 // Shared reactive state (singleton across app)
 const user = ref(null)
@@ -63,17 +22,9 @@ function loadUserFromStorage() {
         try {
             return JSON.parse(savedUser)
         } catch {
-            // ignore
+            // ignore corrupt data
         }
     }
-    const token = getAuthToken()
-    const savedRole = localStorage.getItem('agri_role')
-    if (!token && !savedRole) {
-        return null
-    }
-    if (savedRole === 'farmer') return { ...INITIAL_FARMER }
-    if (savedRole === 'admin') return { ...INITIAL_ADMIN }
-    if (savedRole === 'buyer') return { ...INITIAL_BUYER }
     return null
 }
 
@@ -94,7 +45,7 @@ export function useAuth() {
         user.value = loadUserFromStorage()
         initialized = true
 
-        // Check backend for current user if token exists
+        // Refresh from backend if token exists
         const token = getAuthToken()
         if (token) {
             api.fetchCurrentUser()
@@ -105,7 +56,7 @@ export function useAuth() {
                     }
                 })
                 .catch(() => {
-                    // Token expired or invalid - keep local state
+                    // Token expired or invalid — keep local state until next login
                 })
         }
     }
@@ -230,18 +181,11 @@ export function useAuth() {
         syncUser({ ...user.value, role: newRole, activeRole: newRole })
     }
 
-    const login = (role) => {
-        let fallbackUser = { ...INITIAL_BUYER }
-        if (role === 'farmer') fallbackUser = { ...INITIAL_FARMER }
-        if (role === 'admin') fallbackUser = { ...INITIAL_ADMIN }
-        syncUser(fallbackUser)
-    }
-
     const logout = async () => {
         try {
             await api.logout()
         } catch {
-            // ignore
+            // ignore network errors on logout
         }
         localStorage.removeItem('agri_active_role')
         localStorage.removeItem('agri_cart_items')
@@ -273,7 +217,6 @@ export function useAuth() {
         registerUser,
         updateUserProfile,
         switchRole,
-        login,
         logout,
         isLogoutModalOpen,
         openLogoutModal,

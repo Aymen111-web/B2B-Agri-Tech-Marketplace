@@ -7,10 +7,26 @@ use App\Models\OrderFulfillment;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class ChapaService
 {
+    /**
+     * Get a configured HTTP client for Chapa API requests.
+     */
+    protected function client(): \Illuminate\Http\Client\PendingRequest
+    {
+        $secretKey = config('services.chapa.secret_key');
+        $verifySsl = config('services.chapa.verify_ssl', false);
+
+        $client = Http::withToken($secretKey);
+
+        if (! $verifySsl || app()->environment('local', 'testing')) {
+            $client = $client->withoutVerifying();
+        }
+
+        return $client;
+    }
+
     /**
      * Format phone number to Chapa's required 10-digit format (09xxxxxxxx or 07xxxxxxxx).
      */
@@ -90,7 +106,7 @@ class ChapaService
 
         if ($secretKey) {
             try {
-                $response = Http::withToken($secretKey)
+                $response = $this->client()
                     ->post('https://api.chapa.co/v1/subaccount', $payload);
 
                 if ($response->successful()) {
@@ -127,7 +143,10 @@ class ChapaService
         $secretKey = config('services.chapa.secret_key');
         $phone = $this->formatPhoneNumber($user->phone);
 
-        $email = filter_var($user->email, FILTER_VALIDATE_EMAIL) ? $user->email : 'buyer@gmail.com';
+        $email = filter_var($user->email, FILTER_VALIDATE_EMAIL) ? $user->email : null;
+        if (! $email || str_ends_with($email, '@example.com')) {
+            $email = 'buyer@gmail.com';
+        }
         $orderNumClean = preg_replace('/[^A-Za-z0-9\-]/', '', (string) $order->order_number);
         $amount = $amountOverride !== null ? (float) $amountOverride : (float) $order->total_amount;
         if ($amount > 1000000) {
@@ -159,7 +178,7 @@ class ChapaService
 
         if ($secretKey) {
             try {
-                $response = Http::withToken($secretKey)
+                $response = $this->client()
                     ->post('https://api.chapa.co/v1/transaction/initialize', $payload);
 
                 if ($response->successful()) {
@@ -218,7 +237,10 @@ class ChapaService
         $secretKey = config('services.chapa.secret_key');
         $phone = $this->formatPhoneNumber($buyer->phone);
 
-        $email = filter_var($buyer->email, FILTER_VALIDATE_EMAIL) ? $buyer->email : 'buyer@gmail.com';
+        $email = filter_var($buyer->email, FILTER_VALIDATE_EMAIL) ? $buyer->email : null;
+        if (! $email || str_ends_with($email, '@example.com')) {
+            $email = 'buyer@gmail.com';
+        }
         $farmerNameClean = preg_replace('/[^A-Za-z0-9 ]/', '', $farmer->first_name ?: 'Farmer');
 
         $payload = [
@@ -247,7 +269,7 @@ class ChapaService
 
         if ($secretKey) {
             try {
-                $response = Http::withToken($secretKey)
+                $response = $this->client()
                     ->post('https://api.chapa.co/v1/transaction/initialize', $payload);
 
                 if ($response->successful()) {
@@ -309,7 +331,7 @@ class ChapaService
         }
 
         try {
-            $response = Http::withToken($secretKey)
+            $response = $this->client()
                 ->get("https://api.chapa.co/v1/transaction/verify/{$txRef}");
 
             if ($response->successful()) {
@@ -363,7 +385,7 @@ class ChapaService
         }
 
         try {
-            $response = Http::withToken($secretKey)
+            $response = $this->client()
                 ->put("https://api.chapa.co/v1/transaction/cancel/{$txRef}");
 
             if ($response->successful()) {
@@ -404,7 +426,7 @@ class ChapaService
         }
 
         try {
-            $response = Http::withToken($secretKey)
+            $response = $this->client()
                 ->get('https://api.chapa.co/v1/currency_supported');
 
             if ($response->successful()) {

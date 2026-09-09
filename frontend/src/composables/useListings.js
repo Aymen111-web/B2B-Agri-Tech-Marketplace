@@ -1,44 +1,37 @@
 import { ref, onMounted, watch } from 'vue'
 import { api, getAuthToken } from '@/services/api'
 
-const DEFAULT_PRODUCE = []
+// Resolve storage base URL from env (falls back to same origin /storage)
+const STORAGE_BASE_URL = (() => {
+    const base = import.meta.env.VITE_API_BASE_URL || ''
+    // Strip /api suffix if present, keep just the origin
+    return base.replace(/\/api\/?$/, '')
+})()
+
+function storageUrl(path) {
+    if (!path) return null
+    if (path.startsWith('http') || path.startsWith('blob:') || path.startsWith('data:')) return path
+    return `${STORAGE_BASE_URL}/storage/${path.replace(/^\/?storage\//, '')}`
+}
 
 function mapRawListingToFrontend(item) {
     const farmerObj = item.farmer || {}
     const farmerFirstName = farmerObj.first_name || ''
     const farmerSecondName = farmerObj.second_name || ''
-    const farmerFullName = `${farmerFirstName} ${farmerSecondName}`.trim() || farmerObj.name || 'Dawit Bekele'
+    const farmerFullName = `${farmerFirstName} ${farmerSecondName}`.trim() || farmerObj.name || 'Unknown Farmer'
 
     let imagesList = []
     if (Array.isArray(item.images) && item.images.length > 0) {
         imagesList = item.images.map(img => {
-            if (typeof img === 'string') {
-                return img.startsWith('http') || img.startsWith('blob:') || img.startsWith('data:')
-                    ? img
-                    : `http://127.0.0.1:8000/storage/${img.replace(/^\/?storage\//, '')}`
-            }
-            if (img instanceof File || img instanceof Blob) {
-                return URL.createObjectURL(img)
-            }
-            if (img && img.image_path) {
-                return img.image_path.startsWith('http') || img.image_path.startsWith('blob:') || img.image_path.startsWith('data:')
-                    ? img.image_path
-                    : `http://127.0.0.1:8000/storage/${img.image_path.replace(/^\/?storage\//, '')}`
-            }
-            if (img && img.url) {
-                return img.url.startsWith('http') || img.url.startsWith('blob:') || img.url.startsWith('data:')
-                    ? img.url
-                    : `http://127.0.0.1:8000/storage/${img.url.replace(/^\/?storage\//, '')}`
-            }
+            if (typeof img === 'string') return storageUrl(img)
+            if (img instanceof File || img instanceof Blob) return URL.createObjectURL(img)
+            if (img && img.image_path) return storageUrl(img.image_path)
+            if (img && img.url) return storageUrl(img.url)
             return null
         }).filter(Boolean)
     }
 
-    let primaryImg = item.image_url || (item.image_path
-        ? (item.image_path.startsWith('http') || item.image_path.startsWith('blob:') || item.image_path.startsWith('data:')
-            ? item.image_path
-            : `http://127.0.0.1:8000/storage/${item.image_path.replace(/^\/?storage\//, '')}`)
-        : null)
+    let primaryImg = item.image_url || (item.image_path ? storageUrl(item.image_path) : null)
 
     if (primaryImg && (primaryImg instanceof File || primaryImg instanceof Blob)) {
         primaryImg = URL.createObjectURL(primaryImg)
@@ -58,11 +51,11 @@ function mapRawListingToFrontend(item) {
             id: String(item.farmer.id || 'farmer-1'),
             name: farmerFullName,
             email: item.farmer.email || 'farmer@agri.et',
-            phone: item.farmer.phone || '+251 912 345 678',
+            phone: item.farmer.phone || '',
             role: 'farmer', status: 'verified', region: item.farmer.region || 'SNNPR',
             bank_code: farmerObj.bank_code || farmerObj.bank_name || 'CBE',
             bank_name: farmerObj.bank_name || 'Commercial Bank of Ethiopia',
-            account_number: farmerObj.account_number || farmerObj.account_number_masked || '1000123456789',
+            account_number: farmerObj.account_number || farmerObj.account_number_masked || '',
             account_name: farmerObj.account_name || farmerFullName,
             farmSize: item.farmer.farmSize || 0, totalEarned: 0, rating: 0, reviewCount: 0, crops: [], createdAt: new Date(),
         } : { name: 'Unknown Farmer', role: 'farmer', region: 'Unknown' },
@@ -71,7 +64,7 @@ function mapRawListingToFrontend(item) {
         category: item.category?.slug || item.category || 'grains',
         grade: item.grade || item.quality_grade || 'Grade 1',
         region: item.region || item.farmer?.region || 'Ethiopia',
-        zone: item.zone || 'Zone 1',
+        zone: item.zone || '',
         process: item.process || 'Natural',
         pricePerKg: Number(item.price_per_unit ?? item.pricePerKg ?? 50),
         availableQty: Number(item.quantity_available ?? item.availableQty ?? 1000),
@@ -79,7 +72,7 @@ function mapRawListingToFrontend(item) {
         harvestDate: item.harvest_date ? new Date(item.harvest_date) : new Date(),
         description: item.description || '',
         primaryImage: primaryImg,
-        images: imagesList.length > 0 ? imagesList : (item.image_path ? [`http://127.0.0.1:8000/storage/${item.image_path}`] : (item.images || [])),
+        images: imagesList.length > 0 ? imagesList : (item.image_path ? [storageUrl(item.image_path)] : (item.images || [])),
         isActive: item.status === 'active' || item.isActive !== false,
         isVerified: true,
         createdAt: item.created_at ? new Date(item.created_at) : new Date(),
@@ -108,19 +101,11 @@ function addDeletedListingId(id) {
     } catch { /* ignore */ }
 }
 
-function removeDeletedListingId(id) {
-    if (!id) return
-    try {
-        const ids = getDeletedListingIds().filter(i => String(i) !== String(id))
-        localStorage.setItem('agri_deleted_listing_ids', JSON.stringify(ids))
-    } catch { /* ignore */ }
-}
-
 export function useListings() {
     const listings = ref([])
     const isLoading = ref(false)
 
-    // Load from localStorage or use default produce list
+    // Load from localStorage on init
     const saved = localStorage.getItem('agri_listings')
     const deletedIds = getDeletedListingIds()
     if (saved) {
@@ -134,14 +119,10 @@ export function useListings() {
                         harvestDate: new Date(item.harvestDate),
                         createdAt: new Date(item.createdAt),
                     }))
-            } else {
-                listings.value = DEFAULT_PRODUCE.filter(item => !deletedIds.includes(String(item.id)))
             }
         } catch {
-            listings.value = DEFAULT_PRODUCE.filter(item => !deletedIds.includes(String(item.id)))
+            listings.value = []
         }
-    } else {
-        listings.value = DEFAULT_PRODUCE.filter(item => !deletedIds.includes(String(item.id)))
     }
 
     const refreshListings = async () => {
@@ -196,51 +177,50 @@ export function useListings() {
         const primaryUploadedImg = newListingData.primaryImage || (stringImages.length > 0 ? stringImages[0] : null)
 
         if (token) {
+            const formData = new FormData()
+            formData.append('title', newListingData.cropName || 'Produce Batch')
+
+            const categoryMap = {
+                'grains': 1,
+                'cereals-grains': 1,
+                'oilseeds': 2,
+                'coffee': 3,
+                'vegetables': 4,
+                'fruits': 5,
+                'honey-bee-products': 6,
+                'dairy-products': 7,
+                'spices': 8,
+                'pulses': 1,
+                'roots': 4,
+            }
+            formData.append('category_id', categoryMap[newListingData.category] || 1)
+
+            if (newListingData.description) formData.append('description', newListingData.description)
+            formData.append('unit', 'kg')
+            formData.append('price_per_unit', newListingData.pricePerKg || 1)
+            formData.append('quantity_available', newListingData.availableQty || 1)
+            if (newListingData.minOrderQty) formData.append('minimum_order_quantity', newListingData.minOrderQty)
+
+            if (newListingData.harvestDate) {
+                try {
+                    const d = new Date(newListingData.harvestDate)
+                    if (!isNaN(d.getTime())) {
+                        formData.append('harvest_date', d.toISOString().split('T')[0])
+                    }
+                } catch { /* ignore */ }
+            }
+            if (newListingData.grade) formData.append('quality_grade', newListingData.grade)
+            if (newListingData.region) formData.append('region', newListingData.region)
+            if (newListingData.zone) formData.append('zone', newListingData.zone)
+            if (newListingData.process) formData.append('process', newListingData.process)
+
+            if (filesToUpload && filesToUpload.length > 0) {
+                filesToUpload.forEach((file) => {
+                    formData.append('images[]', file)
+                })
+            }
+
             try {
-                const formData = new FormData()
-                formData.append('title', newListingData.cropName || 'Produce Batch')
-
-                const categoryMap = {
-                    'grains': 1,
-                    'cereals-grains': 1,
-                    'oilseeds': 2,
-                    'coffee': 3,
-                    'vegetables': 4,
-                    'fruits': 5,
-                    'honey-bee-products': 6,
-                    'dairy-products': 7,
-                    'spices': 8,
-                    'pulses': 1,
-                    'roots': 4,
-                }
-                const catId = categoryMap[newListingData.category] || 1
-                formData.append('category_id', catId)
-
-                if (newListingData.description) formData.append('description', newListingData.description)
-                formData.append('unit', 'kg')
-                formData.append('price_per_unit', newListingData.pricePerKg || 1)
-                formData.append('quantity_available', newListingData.availableQty || 1)
-                if (newListingData.minOrderQty) formData.append('minimum_order_quantity', newListingData.minOrderQty)
-
-                if (newListingData.harvestDate) {
-                    try {
-                        const d = new Date(newListingData.harvestDate)
-                        if (!isNaN(d.getTime())) {
-                            formData.append('harvest_date', d.toISOString().split('T')[0])
-                        }
-                    } catch { /* ignore */ }
-                }
-                if (newListingData.grade) formData.append('quality_grade', newListingData.grade)
-                if (newListingData.region) formData.append('region', newListingData.region)
-                if (newListingData.zone) formData.append('zone', newListingData.zone)
-                if (newListingData.process) formData.append('process', newListingData.process)
-
-                if (filesToUpload && filesToUpload.length > 0) {
-                    filesToUpload.forEach((file) => {
-                        formData.append('images[]', file)
-                    })
-                }
-
                 const res = await api.createListing(formData)
                 const rawObj = res?.listing || res?.data || res
                 if (rawObj) {
@@ -254,6 +234,7 @@ export function useListings() {
             }
         }
 
+        // Offline / no-token fallback: create a local listing
         const mappedImages = (await Promise.all((newListingData.images || []).map(async img => {
             if (img instanceof File || img instanceof Blob) {
                 return new Promise((resolve) => {
@@ -263,7 +244,7 @@ export function useListings() {
                     reader.readAsDataURL(img)
                 })
             }
-            return typeof img === 'string' ? img : null;
+            return typeof img === 'string' ? img : null
         }))).filter(Boolean)
 
         const finalImages = mappedImages.length > 0
@@ -375,4 +356,3 @@ export function useListings() {
         filterListings,
     }
 }
-

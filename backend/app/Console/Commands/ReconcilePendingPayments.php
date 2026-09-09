@@ -37,8 +37,12 @@ class ReconcilePendingPayments extends Command
                     continue;
                 }
 
-                $response = Http::withToken($chapaSecret)
-                    ->get("https://api.chapa.co/v1/transaction/verify/{$payment->chapa_tx_ref}");
+                $client = Http::withToken($chapaSecret);
+                if (! config('services.chapa.verify_ssl', false) || app()->environment('local', 'testing')) {
+                    $client = $client->withoutVerifying();
+                }
+
+                $response = $client->get("https://api.chapa.co/v1/transaction/verify/{$payment->chapa_tx_ref}");
 
                 if ($response->successful()) {
                     $data   = $response->json();
