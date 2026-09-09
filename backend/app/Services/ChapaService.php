@@ -130,6 +130,16 @@ class ChapaService
         $email = filter_var($user->email, FILTER_VALIDATE_EMAIL) ? $user->email : 'buyer@gmail.com';
         $orderNumClean = preg_replace('/[^A-Za-z0-9\-]/', '', (string) $order->order_number);
         $amount = $amountOverride !== null ? (float) $amountOverride : (float) $order->total_amount;
+        if ($amount > 1000000) {
+            if (config('app.env') !== 'production') {
+                $amount = 999999.00;
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'Transaction amount (' . number_format($amount, 2) . ' ETB) exceeds Chapa single transaction limit of 1,000,000 ETB.',
+                ];
+            }
+        }
 
         $payload = [
             'amount'        => $amount,
@@ -163,9 +173,7 @@ class ChapaService
                 }
 
                 $errBody = $response->json();
-                $errMsg = is_array($errBody) && isset($errBody['message']) 
-                    ? (is_array($errBody['message']) ? json_encode($errBody['message']) : $errBody['message']) 
-                    : 'Chapa API request failed with status ' . $response->status();
+                $errMsg = $this->parseChapaErrorMessage($errBody, $response->status());
 
                 Log::warning('Chapa order payment initialization failed:', [
                     'order_id' => $order->id,
@@ -253,9 +261,7 @@ class ChapaService
                 }
 
                 $errBody = $response->json();
-                $errMsg = is_array($errBody) && isset($errBody['message']) 
-                    ? (is_array($errBody['message']) ? json_encode($errBody['message']) : $errBody['message']) 
-                    : 'Chapa API request failed with status ' . $response->status();
+                $errMsg = $this->parseChapaErrorMessage($errBody, $response->status());
 
                 Log::warning('Chapa direct payment initialization failure:', [
                     'fulfillment_id' => $fulfillment->id,
@@ -409,5 +415,30 @@ class ChapaService
         }
 
         return ['status' => 'error', 'currencies' => ['ETB']];
+    }
+
+    /**
+     * Helper to safely parse and flatten Chapa error response messages.
+     */
+    protected function parseChapaErrorMessage(mixed $errBody, int $status): string
+    {
+        if (is_array($errBody)) {
+            if (isset($errBody['message'])) {
+                if (is_array($errBody['message'])) {
+                    $flattened = [];
+                    array_walk_recursive($errBody['message'], function ($val) use (&$flattened) {
+                        if (is_string($val)) {
+                            $flattened[] = $val;
+                        }
+                    });
+                    if (! empty($flattened)) {
+                        return implode(' ', array_unique($flattened));
+                    }
+                } elseif (is_string($errBody['message'])) {
+                    return $errBody['message'];
+                }
+            }
+        }
+        return 'Chapa API request failed with status ' . $status;
     }
 }

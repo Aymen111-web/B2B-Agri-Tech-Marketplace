@@ -77,7 +77,7 @@ class PaymentController extends Controller
 
         if (! $res['success'] || empty($res['checkout_url'])) {
             return response()->json([
-                'message' => 'Unable to initiate payment with the payment gateway.',
+                'message' => $res['message'] ?? 'Unable to initiate payment with the payment gateway.',
             ], 502);
         }
 
