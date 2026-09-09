@@ -197,7 +197,7 @@ export function useOrders() {
                 const now = new Date()
                 return {
                     ...order,
-                    status: 'delivered',
+                    status: 'completed',
                     escrowStatus: 'released',
                     deliveredAt: now,
                     completedAt: now,
