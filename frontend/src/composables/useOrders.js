@@ -1,8 +1,6 @@
 import { ref, onMounted, watch } from 'vue'
 import { api, getAuthToken } from '@/services/api'
 
-const INITIAL_ORDERS = []
-
 function getCurrentUserData() {
     try {
         const saved = localStorage.getItem('agri_user_data')
