@@ -529,13 +529,17 @@ const submitDispute = async () => {
   isSubmittingDispute.value = true
   try {
     const targetOrder = selectedOrderForDispute.value
-    const rawPaymentId = targetOrder.payment_id || targetOrder.displayId || targetOrder.id
-    
-    await api.createPaymentException({
-      payment_id: Number(rawPaymentId) || 1,
-      type: disputeType.value,
+    const orderIdNum = Number(targetOrder.displayId || targetOrder.id)
+    const paymentIdNum = targetOrder.payment_id ? Number(targetOrder.payment_id) : null
+
+    const payload = {
+      type: disputeType.value || 'quality_mismatch',
       description: disputeDescription.value
-    })
+    }
+    if (paymentIdNum) payload.payment_id = paymentIdNum
+    if (orderIdNum) payload.order_id = orderIdNum
+    
+    await api.createPaymentException(payload)
 
     showAlert({
       title: 'Dispute Claim Logged',
