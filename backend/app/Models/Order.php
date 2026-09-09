@@ -30,16 +30,19 @@ class Order extends Model
         'delivery_pin',
         'delivery_pin_verified_at',
         'reservation_expires_at',
+        'produce_amount',
+        'platform_fee',
+        'fee_rate',
         'total_amount',
         'currency',
         'placed_at',
-        'reservation_expires_at',
-        'delivery_pin',
-        'delivery_pin_verified_at',
     ];
 
     protected $casts = [
         'buyer_id' => 'integer',
+        'produce_amount' => 'decimal:2',
+        'platform_fee' => 'decimal:2',
+        'fee_rate' => 'decimal:4',
         'total_amount' => 'decimal:2',
         'placed_at' => 'datetime',
         'reservation_expires_at' => 'datetime',
