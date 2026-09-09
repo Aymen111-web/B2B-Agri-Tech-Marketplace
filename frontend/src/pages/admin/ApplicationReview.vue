@@ -369,7 +369,9 @@
 
           <!-- PDF Document Preview -->
           <template v-else-if="previewDocType === 'pdf'">
-            <iframe :src="previewDocUrl" class="w-full h-[500px] rounded-xl border border-gray-200 dark:border-[#30363D]"></iframe>
+            <div class="w-full h-[500px] flex flex-col items-center justify-center">
+              <iframe :src="previewDocUrl" class="w-full h-full rounded-xl border border-gray-200 dark:border-[#30363D]"></iframe>
+            </div>
           </template>
 
           <!-- Other Files / Fallback -->
@@ -573,7 +575,7 @@ const openDoc = (doc, app = null) => {
     previewDocType.value = 'other'
   }
 
-  // Handle Base64 Data URLs cleanly as Blob URLs
+  // Handle Base64 Data URLs and HTTP URLs cleanly as Blob URLs
   if (url.startsWith('data:')) {
     try {
       const arr = url.split(',')
@@ -589,6 +591,17 @@ const openDoc = (doc, app = null) => {
       previewDocUrl.value = URL.createObjectURL(blob)
     } catch (e) {
       console.error('Failed to parse base64 document blob:', e)
+      previewDocUrl.value = url
+    }
+  } else if (url.startsWith('http://') || url.startsWith('https://')) {
+    try {
+      const resp = await fetch(url)
+      if (!resp.ok) throw new Error(`HTTP error ${resp.status}`)
+      const rawBlob = await resp.blob()
+      const pdfBlob = new Blob([rawBlob], { type: previewDocType.value === 'pdf' ? 'application/pdf' : rawBlob.type })
+      previewDocUrl.value = URL.createObjectURL(pdfBlob)
+    } catch (err) {
+      console.warn('Direct blob fetch failed, falling back to direct URL:', err)
       previewDocUrl.value = url
     }
   } else {
