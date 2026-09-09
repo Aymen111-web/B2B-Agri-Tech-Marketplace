@@ -374,6 +374,10 @@ const verifyPayment = async (order) => {
     if (res && res.message) {
       alert(res.message)
     }
+    if (typeof order === 'object') {
+      order.status = 'paid_in_escrow'
+      order.escrowStatus = 'held'
+    }
     await refreshOrders()
   } catch (err) {
     alert(err.message || "Payment is not yet verified. Please complete payment in the Chapa tester and try again.")
