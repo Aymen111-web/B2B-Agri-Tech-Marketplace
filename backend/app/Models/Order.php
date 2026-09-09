@@ -10,6 +10,9 @@ class Order extends Model
     public const STATUS_PENDING_FARMER_APPROVAL  = 'pending_farmer_approval';
     public const STATUS_AWAITING_BUYER_PAYMENT   = 'awaiting_buyer_payment';
     public const STATUS_PAID_IN_ESCROW           = 'paid_in_escrow';
+    public const STATUS_DISPATCHED               = 'dispatched';
+    public const STATUS_IN_TRANSIT               = 'in_transit';
+    public const STATUS_BUYER_RECEIVED           = 'buyer_received';
     public const STATUS_PROCESSING               = 'processing';
     public const STATUS_PARTIALLY_FULFILLED      = 'partially_fulfilled';
     public const STATUS_COMPLETED                = 'completed';

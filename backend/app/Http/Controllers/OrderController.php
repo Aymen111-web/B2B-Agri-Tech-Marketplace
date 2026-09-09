@@ -93,8 +93,29 @@ class OrderController extends Controller
 
         $itemsToReserve = [];
 
-        // 1. Single Separate Item Checkout
-        if ($request->has('listing_id')) {
+        // 1. Direct Multi-Item Array Checkout
+        if ($request->has('items') && is_array($request->input('items')) && count($request->input('items')) > 0) {
+            foreach ($request->input('items') as $reqItem) {
+                $listingId = $reqItem['listing_id'] ?? $reqItem['id'] ?? null;
+                $quantityKg = max(1, (int) ($reqItem['quantity_kg'] ?? $reqItem['quantity'] ?? 1));
+                if ($listingId) {
+                    $listing = \App\Models\Listing::find($listingId);
+                    if ($listing) {
+                        $itemsToReserve[] = [
+                            'listing_id'     => $listing->id,
+                            'quantity'       => $quantityKg,
+                            'price_snapshot' => $listing->price_per_unit,
+                        ];
+                    }
+                }
+            }
+
+            if (empty($itemsToReserve)) {
+                return response()->json(['message' => 'None of the requested produce listings were found.'], 404);
+            }
+        }
+        // 2. Single Separate Item Checkout
+        elseif ($request->has('listing_id')) {
             $listingId  = $request->input('listing_id');
             $quantityKg = max(1, (int) $request->input('quantity_kg', 1000));
 

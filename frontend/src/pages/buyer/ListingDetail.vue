@@ -16,12 +16,14 @@
           <LanguageToggle />
           <ThemeToggle />
           <router-link 
+            v-if="!isAuthenticated"
             to="/login" 
             class="px-4 py-2.5 rounded-xl border border-[#E2E4E7] hover:border-[#1E9444] text-[#1E2328] hover:text-[#1E9444] text-xs font-extrabold transition-all cursor-pointer bg-white"
           >
             {{ t('login') }}
           </router-link>
           <router-link 
+            v-if="!isAuthenticated"
             to="/register?role=buyer" 
             class="px-4 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-black transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
