@@ -107,11 +107,11 @@ const firstName = computed(() => {
 const dashboardStats = ref({
   active_orders: 0,
   total_procurement_etb: 0,
-  regional_hubs_count: 30,
-  primary_unions_count: 12,
-  verified_farmers_count: 2840,
+  regional_hubs_count: 0,
+  primary_unions_count: 0,
+  verified_farmers_count: 0,
   pending_handoffs_count: 0,
-  active_contracts_count: 5,
+  active_contracts_count: 0,
   cart_items_count: 0,
 })
 
@@ -130,14 +130,14 @@ onMounted(async () => {
     if (data) {
       if (data.stats) {
         dashboardStats.value = {
-          active_orders: data.stats.active_orders ?? 3,
-          total_procurement_etb: data.stats.total_procurement_etb ?? 340000,
-          regional_hubs_count: data.stats.regional_hubs_count ?? 30,
-          primary_unions_count: data.stats.primary_unions_count ?? 12,
-          verified_farmers_count: data.stats.verified_farmers_count ?? 2840,
-          pending_handoffs_count: data.stats.pending_handoffs_count ?? 1,
-          active_contracts_count: data.stats.active_contracts_count ?? 5,
-          cart_items_count: data.stats.cart_items_count ?? 0,
+          active_orders: data.stats.active_orders || 0,
+          total_procurement_etb: data.stats.total_procurement_etb || 0,
+          regional_hubs_count: data.stats.regional_hubs_count || 0,
+          primary_unions_count: data.stats.primary_unions_count || 0,
+          verified_farmers_count: data.stats.verified_farmers_count || 0,
+          pending_handoffs_count: data.stats.pending_handoffs_count || 0,
+          active_contracts_count: data.stats.active_contracts_count || 0,
+          cart_items_count: data.stats.cart_items_count || 0,
         }
       }
       if (data.featured_listings && Array.isArray(data.featured_listings)) {
