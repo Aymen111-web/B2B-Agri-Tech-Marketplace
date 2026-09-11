@@ -219,6 +219,18 @@ export const api = {
         return request('/payment-exceptions/my')
     },
 
+    async getNotifications() {
+        return request('/notifications')
+    },
+
+    async markAllNotificationsRead() {
+        return request('/notifications/mark-all-read', { method: 'POST' })
+    },
+
+    async markNotificationRead(id) {
+        return request(`/notifications/${id}/read`, { method: 'POST' })
+    },
+
     async logout() {
         try {
             return await request('/auth/logout', { method: 'POST' })
