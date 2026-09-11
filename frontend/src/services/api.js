@@ -257,7 +257,7 @@ export function mapBackendUserToFrontend(rawUser) {
         })
     }
 
-    if (!activeCapabilities.includes('buyer') && role !== 'admin') {
+    if (activeCapabilities.length === 0 && role !== 'admin') {
         activeCapabilities.push('buyer')
     }
 
