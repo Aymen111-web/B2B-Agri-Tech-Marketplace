@@ -104,4 +104,17 @@ class User extends Authenticatable
     {
         return ! empty($this->chapa_subaccount_id) && ! empty($this->account_number);
     }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(PlatformSubscription::class);
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        return $this->subscriptions()
+            ->where('status', 'active')
+            ->where('expires_at', '>', now())
+            ->exists();
+    }
 }
