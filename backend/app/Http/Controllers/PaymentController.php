@@ -40,7 +40,7 @@ class PaymentController extends Controller
             ], 422);
         }
 
-        $payableAmount = (float) $acceptedFulfillments->sum('subtotal_amount');
+        $payableAmount = (float) $acceptedFulfillments->sum('subtotal_amount') + (float) $acceptedFulfillments->sum('platform_fee');
         if ($payableAmount <= 0) {
             $payableAmount = (float) $order->total_amount;
         }
@@ -172,7 +172,7 @@ class PaymentController extends Controller
             'order_fulfillment_id' => $fulfillment->id,
             'chapa_tx_ref'         => $txRef,
             'chapa_checkout_url'   => $res['checkout_url'],
-            'amount'               => $fulfillment->subtotal_amount,
+            'amount'               => (float) $fulfillment->subtotal_amount + (float) $fulfillment->platform_fee,
             'currency'             => 'ETB',
             'status'               => 'pending',
         ]);
