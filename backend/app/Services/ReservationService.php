@@ -30,7 +30,7 @@ class ReservationService
             $order = Order::create([
                 'order_number'           => 'ORD-' . date('Y') . '-' . str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT),
                 'buyer_id'               => $buyerId,
-                'status'                 => 'pending_farmer_approval',
+                'status'                 => 'pending_payment',
                 'payment_status'         => 'pending',
                 'delivery_status'        => 'pending',
                 'inspection_status'      => 'pending',
@@ -41,7 +41,7 @@ class ReservationService
                 'total_amount'           => 0,
                 'currency'               => 'ETB',
                 'delivery_pin'           => $deliveryPin,
-                'reservation_expires_at' => now()->addMinutes(config('marketplace.reservation_minutes', 1440)),
+                'reservation_expires_at' => now()->addMinutes(config('marketplace.reservation_minutes', 120)),
                 'placed_at'              => now(),
             ]);
 
@@ -133,7 +133,7 @@ class ReservationService
      */
     public function releaseExpiredReservations(): int
     {
-        $expiredOrders = Order::where('status', 'pending_farmer_approval')
+        $expiredOrders = Order::where('status', 'pending_payment')
             ->where('reservation_expires_at', '<=', now())
             ->get();
 
@@ -168,7 +168,7 @@ class ReservationService
      */
     public function isExpired(Order $order): bool
     {
-        return $order->status === 'pending_farmer_approval'
+        return $order->status === 'pending_payment'
             && $order->reservation_expires_at
             && $order->reservation_expires_at->isPast();
     }
@@ -178,7 +178,7 @@ class ReservationService
      */
     public function expireReservation(Order $order): bool
     {
-        if ($order->status !== 'pending_farmer_approval') {
+        if ($order->status !== 'pending_payment') {
             return false;
         }
 

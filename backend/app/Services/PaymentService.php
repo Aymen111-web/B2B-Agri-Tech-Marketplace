@@ -48,25 +48,26 @@ class PaymentService
             // Do not instantly complete fulfillments for marketplace escrow flow!
             // The farmer still needs to deliver the goods.
             if ($payment->order_fulfillment_id) {
-                $fulfillment = \App\Models\OrderFulfillment::with('farmer')->find($payment->order_fulfillment_id);
+                $fulfillment = \App\Models\OrderFulfillment::find($payment->order_fulfillment_id);
                 if ($fulfillment && in_array($fulfillment->status, ['accepted', 'pending'])) {
                     $fulfillment->update([
                         'status' => 'paid_in_escrow',
                     ]);
-                    if ($fulfillment->farmer) {
-                        $fulfillment->farmer->notify(new \App\Notifications\FarmerPaymentConfirmed($order, (float) $fulfillment->farmer_net_payout));
-                    }
+                    $fulfillment->farmer->notify(new \App\Notifications\PaymentConfirmedNotification([
+                        'order_number' => $order->order_number,
+                        'amount' => $fulfillment->farmer_net_payout
+                    ]));
                 }
             } else {
-                $order->loadMissing('fulfillments.farmer');
                 foreach ($order->fulfillments as $fulfillment) {
                     if (in_array($fulfillment->status, ['accepted', 'pending'])) {
                         $fulfillment->update([
                             'status' => 'paid_in_escrow',
                         ]);
-                        if ($fulfillment->farmer) {
-                            $fulfillment->farmer->notify(new \App\Notifications\FarmerPaymentConfirmed($order, (float) $fulfillment->farmer_net_payout));
-                        }
+                        $fulfillment->farmer->notify(new \App\Notifications\PaymentConfirmedNotification([
+                            'order_number' => $order->order_number,
+                            'amount' => $fulfillment->farmer_net_payout
+                        ]));
                     }
                 }
             }

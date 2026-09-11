@@ -164,12 +164,12 @@
                 <span>Dispute Escrow</span>
               </button>
 
-              <!-- Payment After Receipt -->
-              <div v-else-if="['buyer_received', 'delivered', 'pending_payment'].includes(order.status)" class="flex items-center gap-1.5 shrink-0">
+              <!-- Payment Needed -->
+              <div v-else-if="['pending_payment', 'awaiting_buyer_payment', 'placed'].includes(order.status)" class="flex items-center gap-1.5 shrink-0">
                 <button @click="verifyPayment(order)" 
                   class="px-2.5 py-1.5 bg-white dark:bg-[#161B22] text-[#0B57D0] dark:text-blue-400 border border-[#0B57D0] dark:border-blue-400 rounded-xl text-xs font-bold hover:bg-blue-50 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
                   <RefreshCw v-if="isVerifyingPayment === (order.displayId || order.id)" class="w-3.5 h-3.5 animate-spin" />
-                  <span v-else>Verify Payment</span>
+                  <span v-else>Verify</span>
                 </button>
                 <button @click="handlePayment(order)" 
                   class="px-3 py-1.5 bg-[#0B57D0] text-white rounded-xl text-xs font-bold hover:bg-blue-800 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer">
@@ -359,7 +359,7 @@ const filterTabs = [
 ]
 
 const activeShipmentsCount = computed(() => {
-  return orders.value.filter(o => ['pending_farmer_approval', 'placed', 'confirmed', 'dispatched', 'in_transit'].includes(o.status)).length
+  return orders.value.filter(o => ['placed', 'confirmed', 'dispatched', 'in_transit'].includes(o.status)).length
 })
 
 const completedOrdersCount = computed(() => {
@@ -380,7 +380,7 @@ const filteredOrders = computed(() => {
   let result = orders.value
 
   if (activeTab.value === 'active') {
-    result = result.filter(o => ['pending_farmer_approval', 'placed', 'confirmed', 'dispatched', 'in_transit'].includes(o.status))
+    result = result.filter(o => ['placed', 'confirmed', 'dispatched', 'in_transit'].includes(o.status))
   } else if (activeTab.value === 'completed') {
     result = result.filter(o => ['delivered', 'completed'].includes(o.status))
   }
@@ -428,16 +428,15 @@ const statusBadgeClass = (status) => {
 
 const formatStatusLabel = (status) => {
   const map = {
-    delivered: 'Delivered (Verify Payment)',
+    delivered: 'Completed Handoff',
     completed: 'Completed Handoff',
     paid_in_escrow: 'Paid in Escrow',
     awaiting_buyer_payment: 'Awaiting Payment',
     pending_payment: 'Pending Payment',
-    pending_farmer_approval: 'Pending Approval',
     in_transit: 'In Transit',
     dispatched: 'Dispatched',
   }
-  return map[status] || (status || 'pending_farmer_approval').replace(/_/g, ' ')
+  return map[status] || (status || 'placed').replace(/_/g, ' ')
 }
 
 const openDeliveryModal = (order) => {

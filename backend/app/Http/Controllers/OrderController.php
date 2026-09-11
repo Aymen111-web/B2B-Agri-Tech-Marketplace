@@ -67,7 +67,7 @@ class OrderController extends Controller
         $this->authorize('view', $order);
 
         // Lazily check and expire reservation if past due
-        if ($this->reservationService->isExpired($order) && $order->status === 'pending_farmer_approval') {
+        if ($this->reservationService->isExpired($order) && $order->status === 'pending_payment') {
             $this->reservationService->expireReservation($order);
             $order->refresh();
         }
@@ -228,9 +228,9 @@ class OrderController extends Controller
 
         $this->authorize('cancel', $order);
 
-        if ($order->status !== 'pending_farmer_approval') {
+        if ($order->status !== 'pending_payment') {
             return response()->json([
-                'message' => 'Only unapproved orders can be cancelled.',
+                'message' => 'Only orders with pending payment can be cancelled.',
             ], 422);
         }
 

@@ -161,10 +161,10 @@
         </div>
       </div>
 
-      <!-- Post-Delivery Payment Trust Banner -->
+      <!-- Chapa Escrow Protection Banner -->
       <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E] flex items-center gap-2 bg-[#EDFAF2] dark:bg-emerald-950/40 p-3.5 rounded-xl border border-[#C3EFCF] dark:border-emerald-800/60">
-        <ShieldCheck class="w-4 h-4 text-[#1E9444] dark:text-emerald-400 shrink-0" />
-        <span class="font-bold">Trust & Transparency: Secure payment is collected via Chapa ONLY after physical delivery and inspection.</span>
+        <Lock class="w-4 h-4 text-[#1E9444] dark:text-emerald-400 shrink-0" />
+        <span>{{ $t('checkout.termsAcceptance') }}</span>
       </p>
 
       <!-- Pay Action Button -->

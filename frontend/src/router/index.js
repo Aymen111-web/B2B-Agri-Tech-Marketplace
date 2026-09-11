@@ -133,9 +133,9 @@ router.beforeEach((to, from, next) => {
 
         const allowed = to.meta.allowedRoles
         if (allowed) {
-            const isAllowed = allowed.includes(userRole) || 
-                              (userRole === 'admin') || 
-                              allowed.some(r => capabilities.includes(r))
+            const isAllowed = allowed.includes(userRole) ||
+                (userRole === 'admin') ||
+                allowed.some(r => capabilities.includes(r))
 
             if (!isAllowed) {
                 if (capabilities.includes('farmer') || userRole === 'farmer') return next('/farmer')

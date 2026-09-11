@@ -14,6 +14,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderFulfillmentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentExceptionController;
+use App\Http\Controllers\PayoutController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -123,6 +125,14 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/payment-exceptions/{id}',             [PaymentExceptionController::class, 'show']);
 });
 
+////// Notifications /////
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications',                       [NotificationController::class, 'index']);
+    Route::post('/notifications/mark-all-read',        [NotificationController::class, 'markAllAsRead']);
+    Route::post('/notifications/{id}/read',            [NotificationController::class, 'markAsRead']);
+});
+
 ////// Admin — Payment Exceptions /////
 
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
@@ -151,7 +161,24 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/users/{userId}/activate',    [UserController::class, 'activate']);
 });
 
+////// Payouts — Farmer (authenticated, requires farmer capability) /////
 
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
+    Route::get('/payouts',                [PayoutController::class, 'index']);
+    Route::get('/payouts/summary',        [PayoutController::class, 'summary']);
+    Route::get('/payouts/pending',        [PayoutController::class, 'pending']);
+    Route::get('/payouts/processed',      [PayoutController::class, 'processed']);
+    Route::get('/payouts/monthly-report', [PayoutController::class, 'monthlyReport']);
+    Route::get('/payouts/{payout}',       [PayoutController::class, 'show']);
+});
+
+////// Admin — Payouts /////
+
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/payouts',                    [PayoutController::class, 'history']);
+    Route::post('/payouts',                   [PayoutController::class, 'store']);
+    Route::patch('/payouts/{payout}/status',  [PayoutController::class, 'updateStatus']);
+});
 
 ////// Audit Logs — Authenticated user's own activity /////
 
