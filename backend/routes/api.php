@@ -53,7 +53,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 // Listings — Farmer (authenticated, requires farmer capability)////////
 
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/listings/my',        [ListingController::class, 'my']);
     Route::post('/listings',          [ListingController::class, 'store']);
     Route::put('/listings/{id}',      [ListingController::class, 'update']);
@@ -66,7 +66,7 @@ Route::get('/listings/{id}', [ListingController::class, 'show']);
 
 ////// Cart — Buyer (authenticated, requires buyer capability) /////
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/cart',          [CartController::class, 'index']);
     Route::post('/cart',         [CartController::class, 'store']);
     Route::put('/cart/{id}',     [CartController::class, 'update']);
@@ -76,7 +76,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 ////// Orders — Buyer (authenticated, requires buyer capability) /////
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/buyer/dashboard/stats',            [BuyerDashboardController::class, 'stats']);
     Route::get('/orders',                           [OrderController::class, 'index']);
     Route::get('/orders/{id}',                      [OrderController::class, 'show']);
@@ -89,7 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 ////// Fulfillments — Farmer & Buyer /////
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/fulfillments',                          [OrderFulfillmentController::class, 'index']);
     Route::get('/fulfillments/{id}',                     [OrderFulfillmentController::class, 'show']);
     Route::post('/fulfillments/{id}/accept',             [OrderFulfillmentController::class, 'accept']);
@@ -102,7 +102,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 ////// Payments — Buyer (authenticated, requires buyer capability) /////
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/orders/{id}/payment',  [PaymentController::class, 'show']);
     Route::get('/payments/verify/{txRef}',  [PaymentController::class, 'verify']);
     Route::post('/payments/cancel/{txRef}', [PaymentController::class, 'cancel']);
@@ -117,7 +117,7 @@ Route::get('/payments/currencies',                  [PaymentController::class, '
 
 ////// Payment Exceptions — Authenticated users (buyer/farmer) /////
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/payment-exceptions',                 [PaymentExceptionController::class, 'store']);
     Route::post('/payment-exceptions/{id}/respond',    [PaymentExceptionController::class, 'respondToException']);
     Route::get('/payment-exceptions/my',               [PaymentExceptionController::class, 'my']);
@@ -154,7 +154,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
 ////// Payouts — Farmer (authenticated, requires farmer capability) /////
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/payouts',                [PayoutController::class, 'index']);
     Route::get('/payouts/summary',        [PayoutController::class, 'summary']);
     Route::get('/payouts/pending',        [PayoutController::class, 'pending']);
@@ -202,7 +202,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
 ////// Cart Items — Buyer (authenticated, detailed cart item management) /////
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/cart-items',              [CartItemController::class, 'index']);
     Route::post('/cart-items',             [CartItemController::class, 'store']);
     Route::get('/cart-items/grouped',      [CartItemController::class, 'grouped']);
