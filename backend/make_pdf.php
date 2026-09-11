@@ -6,7 +6,7 @@ if (!file_exists($dir)) {
 
 // Valid minimal PDF 1.4 binary structure
 function createValidPdf($title, $filename) {
-    $stream = "BT\n/F1 16 Tf\n50 700 Td\n({$title}) Tj\n50 670 Td\n(B2B Agri-Tech Marketplace - Verified Official Record) Tj\nET";
+    $stream = "BT\n/F1 16 Tf\n50 700 Td\n({$title}) Tj\n50 670 Td\n(AgriGate by Qelem Meda Technologies - Verified Official Record) Tj\nET";
     $streamLength = strlen($stream);
 
     $objects = [];

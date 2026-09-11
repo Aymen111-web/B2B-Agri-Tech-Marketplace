@@ -79,7 +79,7 @@ class PayoutService
             'beneficiary_name'=> "{$farmer->first_name} {$farmer->second_name}",
             'reference'      => $payout->reference,
             'bank_code'      => $farmer->bank_code,
-            // (Optional) 'title' => "B2B Agri-Tech Payout"
+            // (Optional) 'title' => "AgriGate Payout"
         ];
 
         try {

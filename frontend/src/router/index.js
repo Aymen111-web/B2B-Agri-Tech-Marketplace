@@ -7,6 +7,7 @@ import FarmerLayout from '@/components/layout/FarmerLayout.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 
 // Auth Pages
+import Welcome from '@/pages/public/Welcome.vue'
 import Login from '@/pages/auth/Login.vue'
 import Register from '@/pages/auth/Register.vue'
 import CapabilityApplication from '@/pages/auth/CapabilityApplication.vue'
@@ -20,7 +21,7 @@ import BuyerOrders from '@/pages/buyer/Orders.vue'
 import BuyerProfile from '@/pages/buyer/BuyerProfile.vue'
 import Cart from '@/pages/buyer/Cart.vue'
 import PaymentSuccess from '@/pages/buyer/PaymentSuccess.vue'
-import LandingPage from '@/pages/LandingPage.vue'
+
 
 // Farmer Pages
 import FarmerDashboard from '@/pages/farmer/Dashboard.vue'
@@ -51,9 +52,7 @@ function getUserRole() {
 }
 
 const routes = [
-    { path: '/', name: 'Landing', component: LandingPage },
-    { path: '/marketplace', name: 'PublicMarketplace', component: Marketplace },
-    { path: '/listing/:id', name: 'PublicListingDetail', component: ListingDetail },
+    { path: '/', name: 'Welcome', component: Welcome },
     { path: '/login', name: 'Login', component: Login },
     { path: '/register', name: 'Register', component: Register },
     { path: '/apply', name: 'CapabilityApplication', component: CapabilityApplication },

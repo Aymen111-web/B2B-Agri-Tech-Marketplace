@@ -9,7 +9,7 @@
             <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">My Produce Listings</h1>
             <Sparkles class="w-5 h-5 text-[#E69500]" />
           </div>
-          <p class="text-xs text-[#C3EFCF] mt-1 font-medium">Manage and track your active crop inventory on QMT Marketplace</p>
+          <p class="text-xs text-[#C3EFCF] mt-1 font-medium">Manage and track your active crop inventory on AgriGate</p>
         </div>
         <router-link to="/farmer/listings/new" class="px-4 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-extrabold flex items-center gap-1.5 shadow-xs transition-colors shrink-0 cursor-pointer">
           <Plus class="w-4 h-4 stroke-[2.5]" /><span>Post New Listing</span>

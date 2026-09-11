@@ -1,7 +1,7 @@
 {
-    "name": "AgriMarket Ethiopia - B2B Digital Marketplace",
-    "short_name": "AgriMarket",
-    "description": "B2B Digital Marketplace for Ethiopian Agriculture connecting farmers with commercial buyers.",
+    "name": "AgriGate - B2B Digital Marketplace",
+    "short_name": "AgriGate",
+    "description": "AgriGate - B2B Digital Marketplace for Ethiopian Agriculture connecting farmers with commercial buyers.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#F8F9FA",

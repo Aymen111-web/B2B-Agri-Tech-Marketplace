@@ -1,5 +1,5 @@
 /**
- * Image helper utility for B2B Agri-Tech Marketplace.
+ * Image helper utility for AgriGate.
  * Category images are mapped from the dedicated assets provided by their name.
  * IMPORTANT: Crop listings only display uploaded produce photos, NOT category photos!
  */
@@ -38,10 +38,10 @@ export function getCropImage(itemOrName) {
 
     // If an object with an uploaded image URL is provided, return uploaded image
     if (typeof itemOrName === 'object') {
-        const path = itemOrName.primaryImage || 
-                     itemOrName.image_url || 
-                     itemOrName.image_path || 
-                     (Array.isArray(itemOrName.images) && itemOrName.images.length > 0 ? itemOrName.images[0] : null)
+        const path = itemOrName.primaryImage ||
+            itemOrName.image_url ||
+            itemOrName.image_path ||
+            (Array.isArray(itemOrName.images) && itemOrName.images.length > 0 ? itemOrName.images[0] : null)
         if (path) {
             if (typeof path === 'string') {
                 if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) {
