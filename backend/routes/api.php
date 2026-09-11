@@ -98,7 +98,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/fulfillments/{id}/reject',             [OrderFulfillmentController::class, 'reject']);
     Route::post('/fulfillments/{id}/complete',           [OrderFulfillmentController::class, 'complete']);
     Route::post('/fulfillments/{id}/confirm-received',   [OrderFulfillmentController::class, 'confirmReceived']);
-    Route::post('/fulfillments/{id}/pay',                [PaymentController::class, 'initiateFulfillmentPayment']);
 });
 
 ////// Payments — Buyer (authenticated, requires buyer capability) /////
