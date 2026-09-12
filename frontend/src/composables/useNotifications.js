@@ -1,13 +1,40 @@
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watchEffect, onMounted } from 'vue'
 import { useOrders } from '@/composables/useOrders'
 import { api } from '@/services/api'
 import { useAuth } from '@/composables/useAuth'
 
 const readNotificationIds = ref(new Set(JSON.parse(localStorage.getItem('qelem_read_notifications') || '[]')))
+const dbNotifications = ref([])
+const dbUnreadCount = ref(0)
 
 export function useNotifications() {
     const { orders, refreshOrders } = useOrders()
     const { user } = useAuth()
+
+    const fetchDbNotifications = async () => {
+        try {
+            const res = await api.getNotifications()
+            if (res && res.notifications) {
+                dbNotifications.value = res.notifications.map(n => ({
+                    id: n.id,
+                    title: n.data.title || 'System Alert',
+                    message: n.data.message || 'You have a new notification.',
+                    type: n.data.type || 'system',
+                    isRead: n.read_at !== null,
+                    timestamp: n.created_at || new Date().toISOString(),
+                    orderId: n.data.order_number || null,
+                    displayId: n.data.order_number || null,
+                }))
+                dbUnreadCount.value = res.unread_count || 0
+            }
+        } catch (e) {
+            console.warn('Failed to fetch DB notifications', e)
+        }
+    }
+
+    onMounted(() => {
+        if (user.value) fetchDbNotifications()
+    })
 
     const notifications = computed(() => {
         if (!orders.value || orders.value.length === 0) return []
@@ -92,21 +119,43 @@ export function useNotifications() {
             }
         })
 
-        return list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        const allList = [...list, ...dbNotifications.value]
+        return allList.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     })
 
     const unreadCount = computed(() => {
-        return notifications.value.filter(n => !n.isRead).length
+        const localUnread = notifications.value.filter(n => !n.isRead && typeof n.id === 'string' && n.id.includes('-')).length
+        return localUnread + dbUnreadCount.value
     })
 
-    const markAsRead = (id) => {
-        readNotificationIds.value.add(id)
-        localStorage.setItem('qelem_read_notifications', JSON.stringify([...readNotificationIds.value]))
+    const markAsRead = async (id) => {
+        const idStr = String(id)
+        if (idStr.includes('-')) {
+            readNotificationIds.value.add(idStr)
+            localStorage.setItem('qelem_read_notifications', JSON.stringify([...readNotificationIds.value]))
+        } else {
+            // Wait to run it asynchronously to not block the UI
+            api.markNotificationRead(idStr).then(() => {
+                fetchDbNotifications()
+            })
+            // Optimistic update
+            const item = dbNotifications.value.find(n => n.id === idStr)
+            if (item) item.isRead = true
+            dbUnreadCount.value = Math.max(0, dbUnreadCount.value - 1)
+        }
     }
 
-    const markAllAsRead = () => {
-        notifications.value.forEach(n => readNotificationIds.value.add(n.id))
+    const markAllAsRead = async () => {
+        notifications.value.forEach(n => {
+            const idStr = String(n.id)
+            if (idStr.includes('-')) {
+                readNotificationIds.value.add(idStr)
+            }
+        })
         localStorage.setItem('qelem_read_notifications', JSON.stringify([...readNotificationIds.value]))
+
+        await api.markAllNotificationsRead()
+        await fetchDbNotifications()
     }
 
     const submitDisputeReplyFromNotification = async (disputeId, replyText) => {
@@ -120,6 +169,9 @@ export function useNotifications() {
         markAsRead,
         markAllAsRead,
         submitDisputeReplyFromNotification,
-        refreshNotifications: refreshOrders
+        refreshNotifications: () => {
+            refreshOrders()
+            fetchDbNotifications()
+        }
     }
 }

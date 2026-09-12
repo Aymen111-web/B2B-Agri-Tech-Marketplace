@@ -33,7 +33,7 @@
             <div>
               <div class="flex items-center gap-1.5 text-xs font-black text-[#0B57D0] dark:text-blue-400">
                 <ShieldCheck class="w-4 h-4" />
-                <span>QMT-AGRIGATE B2B ESCROW</span>
+                <span>AGRIGATE B2B ESCROW</span>
               </div>
               <span class="text-[10px] text-gray-400 dark:text-gray-500 block mt-0.5">{{ $t('Commercial Procurement Receipt') }}</span>
             </div>

@@ -9,6 +9,7 @@ use App\Models\Listing;
 use App\Models\Order;
 use App\Models\OrderFulfillment;
 use App\Services\InspectionService;
+use App\Services\PayoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +19,8 @@ use InvalidArgumentException;
 class OrderFulfillmentController extends Controller
 {
     public function __construct(
-        protected InspectionService $inspectionService = new InspectionService()
+        protected InspectionService $inspectionService = new InspectionService(),
+        protected PayoutService $payoutService = new PayoutService()
     ) {}
 
     /**
@@ -279,6 +281,16 @@ class OrderFulfillmentController extends Controller
                 'completed_at'    => now(),
             ]);
         });
+
+        // Trigger Escrow Release (Chapa Bank Transfer)
+        try {
+            $payoutResult = $this->payoutService->releaseEscrow($fulfillment);
+            if (!$payoutResult['success']) {
+                \Illuminate\Support\Facades\Log::warning("Escrow release failed during complete()", ['reason' => $payoutResult['message']]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Escrow release crashed", ['error' => $e->getMessage()]);
+        }
 
         $this->syncOrderStatus($fulfillment->order_id);
 

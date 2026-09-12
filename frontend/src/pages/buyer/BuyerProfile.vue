@@ -369,7 +369,17 @@ const triggerPhotoUpload = () => {
 const handlePhotoChange = async (e) => {
   const file = e.target.files?.[0]
   if (file) {
-    customPhotoUrl.value = URL.createObjectURL(file)
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      const base64Data = event.target.result
+      customPhotoUrl.value = base64Data
+      if (user.value) {
+        user.value.avatar = base64Data
+        localStorage.setItem('agri_user_data', JSON.stringify(user.value))
+      }
+    }
+    reader.readAsDataURL(file)
+
     try {
       const formData = new FormData()
       formData.append('profile_photo', file)

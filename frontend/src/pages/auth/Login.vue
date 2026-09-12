@@ -4,8 +4,7 @@
       <div class="h-[5px] w-full bg-gradient-to-r from-[#0B57D0] via-[#F3A712] to-[#E69500]" />
       <div class="p-6 md:p-8 space-y-6">
         <!-- Top Navigation Row: Back Button (Top-Left) & Color Dots (Top-Right) -->
-        <div class="flex items-center justify-between -mt-1 -mb-1">
-          <BackButton to="/" />
+        <div class="flex items-center justify-end -mt-1 -mb-1">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-[#0B57D0]" />
             <span class="w-2.5 h-2.5 rounded-full bg-[#F3A712]" />
@@ -87,7 +86,6 @@ import { Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import { useLanguage } from '@/composables/useLanguage'
 import QelemMedaLogo from '@/components/common/QelemMedaLogo.vue'
-import BackButton from '@/components/common/BackButton.vue'
 
 const router = useRouter()
 const { loginWithCredentials } = useAuth()

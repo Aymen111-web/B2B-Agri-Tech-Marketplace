@@ -57,6 +57,10 @@ class PaymentService
                         'status'        => 'paid_in_escrow',
                         'payout_status' => 'locked',
                     ]);
+                    $fulfillment->farmer->notify(new \App\Notifications\PaymentConfirmedNotification([
+                        'order_number' => $order->order_number,
+                        'amount' => $fulfillment->farmer_net_payout
+                    ]));
                 }
             } else {
                 foreach ($order->fulfillments as $fulfillment) {
@@ -65,6 +69,10 @@ class PaymentService
                             'status'        => 'paid_in_escrow',
                             'payout_status' => 'locked',
                         ]);
+                        $fulfillment->farmer->notify(new \App\Notifications\PaymentConfirmedNotification([
+                            'order_number' => $order->order_number,
+                            'amount' => $fulfillment->farmer_net_payout
+                        ]));
                     }
                 }
             }

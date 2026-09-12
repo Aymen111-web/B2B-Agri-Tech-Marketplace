@@ -21,12 +21,14 @@
             <span class="font-bold block text-[#1E2328] dark:text-[#F0F6FC]">{{ t('phoneNumber') }}</span>
             <span class="text-[#5A6270] dark:text-[#8B949E]">{{ user?.phone || 'Not provided' }}</span>
           </div>
-          <div class="p-3 bg-[#F8F9FA] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl flex items-center justify-between">
+          <div class="p-3 bg-[#F8F9FA] dark:bg-[#21262D] border border-transparent dark:border-[#30363D] rounded-xl flex items-center justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-[#30363D] transition-colors" @click="smsEnabled = !smsEnabled">
             <div>
               <span class="font-bold block text-[#1E2328] dark:text-[#F0F6FC]">{{ t('smsNotifications') }}</span>
-              <span class="text-[#5A6270] dark:text-[#8B949E]">{{ t('smsAlertsDesc') }}</span>
+              <span class="text-[10px] text-[#5A6270] dark:text-[#8B949E]">{{ t('smsAlertsDesc') }}</span>
             </div>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 font-bold text-[10px]">{{ t('enabled') }}</span>
+            <button type="button" :class="['relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none', smsEnabled ? 'bg-[#1E9444]' : 'bg-gray-300 dark:bg-[#5A6270]']">
+              <span aria-hidden="true" :class="['pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out', smsEnabled ? 'translate-x-4' : 'translate-x-0']" />
+            </button>
           </div>
         </div>
         <button @click="isSettingsOpen = false" class="w-full py-2.5 rounded-xl bg-[#1E9444] text-white font-bold text-xs hover:bg-[#0F5C2A] cursor-pointer">
@@ -220,6 +222,7 @@ const { t } = useLanguage()
 const isSidebarOpen = ref(true)
 const isProfileMenuOpen = ref(false)
 const isSettingsOpen = ref(false)
+const smsEnabled = ref(true)
 const dropdownRef = ref(null)
 
 const isFarmerTheme = computed(() => props.theme === 'farmerDark' || user.value?.role === 'farmer' || route.path.startsWith('/farmer'))

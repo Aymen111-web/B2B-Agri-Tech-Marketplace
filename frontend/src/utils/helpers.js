@@ -1,7 +1,7 @@
 export function formatETB(amount) {
-    if (amount === undefined || amount === null || isNaN(amount)) return 'ETB 0'
+    if (amount === undefined || amount === null || isNaN(amount)) return '0.00 Br'
     const val = Number(amount) || 0
-    return `ETB ${val.toLocaleString('en-US')}`
+    return `${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Br`
 }
 
 export function formatDate(date) {

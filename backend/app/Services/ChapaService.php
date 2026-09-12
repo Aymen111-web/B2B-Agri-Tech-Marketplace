@@ -245,7 +245,7 @@ class ChapaService
         $farmerNameClean = preg_replace('/[^A-Za-z0-9 ]/', '', $farmer->first_name ?: 'Farmer');
 
         $payload = [
-            'amount'        => (float) $fulfillment->subtotal_amount,
+            'amount'        => (float) $fulfillment->subtotal_amount + (float) $fulfillment->platform_fee,
             'currency'      => 'ETB',
             'email'         => $email,
             'first_name'    => preg_replace('/[^A-Za-z0-9]/', '', $buyer->first_name ?: 'Buyer'),
@@ -256,18 +256,9 @@ class ChapaService
             'return_url'    => (config('services.chapa.return_url') ?: 'http://localhost:5174/payment/success') . (str_contains(config('services.chapa.return_url', ''), '?') ? '&' : '?') . "fulfillment_id={$fulfillment->id}&tx_ref=" . urlencode($txRef),
             'customization' => [
                 'title'       => 'AgriMarket ET',
-                'description' => "Direct Settlement {$farmerNameClean}",
+                'description' => "Order Payment {$farmerNameClean}",
             ],
         ];
-
-        // Attach subaccounts split ONLY if valid real subaccount ID exists
-        if (! empty($farmer->chapa_subaccount_id) && ! str_starts_with($farmer->chapa_subaccount_id, 'SUB-')) {
-            $payload['subaccounts'] = [
-                'id'          => $farmer->chapa_subaccount_id,
-                'split_type'  => 'percentage',
-                'split_value' => 0,
-            ];
-        }
 
         if ($secretKey) {
             try {

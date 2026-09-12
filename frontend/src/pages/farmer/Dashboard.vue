@@ -24,7 +24,7 @@
             <Sparkles class="w-3 h-3 text-[#E69500]" /> {{ $t('farmer.totalEarned') }}
           </span>
           <span class="text-xl font-black text-[#E69500] block leading-tight mt-0.5">
-            {{ formatETB(farmer?.totalEarned || 0) }}
+            {{ formatETB(totalEarnedETB) }}
           </span>
         </div>
       </div>
@@ -52,7 +52,7 @@
         <div class="flex items-start justify-between">
           <div>
             <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('farmer.regionalDepots') }}</span>
-            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">0</h3>
+            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ regionalDepotsCount }}</h3>
           </div>
           <div class="w-9 h-9 rounded-xl bg-[#0B57D0]/10 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 border border-blue-100 dark:border-blue-800/60 flex items-center justify-center shrink-0">
             <Building2 class="w-4 h-4" />
@@ -78,7 +78,7 @@
         <div class="flex items-start justify-between">
           <div>
             <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('Verified Buyers') }}</span>
-            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">0</h3>
+            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ verifiedBuyersCount }}</h3>
           </div>
           <div class="w-9 h-9 rounded-xl bg-[#0B57D0]/10 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 border border-blue-100 dark:border-blue-800/60 flex items-center justify-center shrink-0">
             <Users class="w-4 h-4" />
@@ -104,7 +104,7 @@
         <div class="flex items-start justify-between">
           <div>
             <span class="text-[11px] font-bold text-[#5A6270] dark:text-[#8B949E] uppercase tracking-wider">{{ $t('SMS Dispatch Notifications') }}</span>
-            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">0</h3>
+            <h3 class="text-2xl sm:text-3xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ smsDispatchCount }}</h3>
           </div>
           <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
             <Smartphone class="w-4 h-4" />
@@ -179,17 +179,34 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Plus, Truck, ChevronRight, Zap, Building2, UserCheck, Users, PackageCheck, Smartphone, ShieldCheck, Sparkles } from 'lucide-vue-next'
 import { useAuth } from '@/composables/useAuth'
 import { useListings } from '@/composables/useListings'
 import { useOrders } from '@/composables/useOrders'
+import { api } from '@/services/api'
 import { formatETB } from '@/utils/helpers'
 
 const { user } = useAuth()
 const farmer = computed(() => user.value)
 const { listings } = useListings()
 const { orders } = useOrders()
+
+const payoutSummary = ref({
+  total_paid_out: 0,
+  pending_escrow_amount: 0,
+})
+
+onMounted(async () => {
+    try {
+        const data = await api.fetchPayoutSummary()
+        if (data && data.summary) {
+            payoutSummary.value = data.summary
+        }
+    } catch {
+       // fallback silently
+    }
+})
 
 const farmerListings = computed(() => {
   if (!farmer.value) return []
@@ -211,6 +228,38 @@ const farmerOrders = computed(() => {
   )
 })
 
-const pendingPayoutETB = computed(() => farmerOrders.value.filter(o => o.escrowStatus === 'held').reduce((sum, o) => sum + (o.totalAmountETB || 0), 0) || 0)
+const totalEarnedETB = computed(() => {
+    if (payoutSummary.value.total_paid_out > 0) return payoutSummary.value.total_paid_out;
+    return farmerOrders.value.filter(o => o.status === 'delivered').reduce((sum, o) => sum + (o.totalAmountETB || 0), 0) || (farmer.value?.totalEarned || 0);
+})
+
+const pendingPayoutETB = computed(() => {
+    if (payoutSummary.value.pending_escrow_amount > 0) return payoutSummary.value.pending_escrow_amount;
+    return farmerOrders.value.filter(o => o.escrowStatus === 'held').reduce((sum, o) => sum + (o.totalAmountETB || 0), 0) || 0;
+})
+
 const receivedOrdersCount = computed(() => farmerOrders.value.length || 0)
+
+const verifiedBuyersCount = computed(() => {
+    const buyers = new Set()
+    farmerOrders.value.forEach(o => {
+        if (o.buyerId) buyers.add(o.buyerId)
+        if (o.buyer?.id) buyers.add(o.buyer?.id)
+    })
+    return buyers.size
+})
+
+const regionalDepotsCount = computed(() => {
+    const depots = new Set()
+    farmerOrders.value.forEach(o => {
+        if (o.buyer?.deliveryHub) depots.add(o.buyer.deliveryHub)
+        if (o.deliveryHub) depots.add(o.deliveryHub)
+    })
+    return depots.size || 1
+})
+
+const smsDispatchCount = computed(() => {
+    return farmerOrders.value.filter(o => o.status !== 'pending').length * 2
+})
+
 </script>

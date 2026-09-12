@@ -375,7 +375,17 @@ const handlePhotoChange = async (e) => {
       file = await compressImageFile(file, 800, 800, 0.8)
     } catch { /* fallback */ }
 
-    customPhotoUrl.value = URL.createObjectURL(file)
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      const base64Data = event.target.result
+      customPhotoUrl.value = base64Data
+      if (user.value) {
+        user.value.avatar = base64Data
+        localStorage.setItem('agri_user_data', JSON.stringify(user.value))
+      }
+    }
+    reader.readAsDataURL(file)
+
     try {
       const formData = new FormData()
       formData.append('profile_photo', file)

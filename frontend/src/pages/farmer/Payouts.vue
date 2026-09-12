@@ -1,526 +1,194 @@
 <template>
-  <div class="w-full flex flex-col min-h-full pb-8 max-w-5xl mx-auto space-y-5">
-    <!-- HEADER BANNER -->
-    <div class="bg-gradient-to-r from-[#062E15] via-[#0F5C2A] to-[#0B57D0] text-white p-6 rounded-3xl shadow-sm relative overflow-hidden">
-      <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#E69500]/20 rounded-full blur-2xl pointer-events-none" />
-      <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-[#0B57D0]/30 rounded-full blur-2xl pointer-events-none" />
-
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">{{ $t('farmer.payoutsHubTitle') }}</h1>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-400 text-black uppercase tracking-wider">{{ $t('badges.escrowProtected') }}</span>
-          </div>
-          <p class="text-xs text-[#C3EFCF] mt-1 font-medium">{{ $t('farmer.payoutsHubSub') }}</p>
-        </div>
-
-        <button 
-          @click="showAccountModal = true" 
-          class="px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-white text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer"
-        >
-          <CreditCard class="w-4 h-4 text-[#E69500]" />
-          <span>{{ $t('Payout Account Settings') }}</span>
-        </button>
+  <div class="space-y-6 pb-6 max-w-5xl mx-auto flex flex-col">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E4E7] dark:border-[#30363D] pb-4">
+      <div>
+        <h1 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] tracking-tight">
+          Earnings & Payouts 💰
+        </h1>
+        <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-0.5">
+          Track your marketplace settlements, pending escrow releases, and history.
+        </p>
       </div>
     </div>
 
-    <!-- STAT CARDS -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <!-- Available for Withdrawal -->
-      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-[#1E9444]" />
-        <div class="flex items-start justify-between">
-          <div>
-            <span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">{{ $t('farmer.availableBalance') }}</span>
-            <h3 class="text-2xl font-black text-[#1E9444] dark:text-emerald-400 mt-1">{{ formatETB(availableBalanceETB) }}</h3>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#1E9444] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/40 flex items-center justify-center shrink-0">
-            <Wallet class="w-5 h-5" />
+    <!-- Summary Metrics -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- Total Paid Out -->
+      <div class="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-[#161B22] border border-emerald-200 dark:border-emerald-800/50 rounded-3xl p-5 shadow-2xs relative overflow-hidden">
+        <div class="flex items-center justify-between relative z-10">
+          <span class="text-xs font-black uppercase text-emerald-800 dark:text-emerald-400 tracking-wider">Total Released</span>
+          <div class="w-8 h-8 rounded-xl bg-emerald-200/50 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-700 dark:text-emerald-300">
+            <CheckCircle2 class="w-4 h-4" />
           </div>
         </div>
-        <div class="flex items-center justify-between pt-1 border-t border-gray-100 dark:border-[#30363D]">
-          <span class="text-[11px] text-[#5A6270] dark:text-[#8B949E] font-medium">{{ $t('Escrow Released') }}</span>
-          <button 
-            @click="handleWithdraw" 
-            :disabled="availableBalanceETB <= 0" 
-            class="px-3 py-1 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
-          >
-            {{ $t('Withdraw Now') }}
-          </button>
-        </div>
+        <p class="text-3xl font-black text-[#1E9444] dark:text-emerald-400 mt-2 relative z-10 tracking-tight">
+          {{ formatETB(summary.total_paid_out) }}
+        </p>
+        <p class="text-[11px] font-bold text-emerald-700 dark:text-emerald-500 mt-1 relative z-10">Successfully transferred to your account</p>
       </div>
 
-      <!-- Locked in Escrow -->
-      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-[#F5B73A]" />
-        <div class="flex items-start justify-between">
-          <div>
-            <span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">{{ $t('farmer.pendingEscrow') }}</span>
-            <h3 class="text-2xl font-black text-[#1E2328] dark:text-[#F0F6FC] mt-1">{{ formatETB(pendingEscrowETB) }}</h3>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-800/40 flex items-center justify-center shrink-0">
-            <Lock class="w-5 h-5" />
+      <!-- Pending Escrow Payouts -->
+      <div class="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-[#161B22] border border-amber-200 dark:border-amber-800/50 rounded-3xl p-5 shadow-2xs relative overflow-hidden">
+        <div class="flex items-center justify-between relative z-10">
+          <span class="text-xs font-black uppercase text-amber-800 dark:text-amber-400 tracking-wider">Pending Release</span>
+          <div class="w-8 h-8 rounded-xl bg-amber-200/50 dark:bg-amber-900/50 flex items-center justify-center text-amber-700 dark:text-amber-300">
+            <Clock class="w-4 h-4" />
           </div>
         </div>
-        <div class="flex items-center justify-between pt-1 border-t border-gray-100 dark:border-[#30363D]">
-          <span class="text-[11px] text-[#5A6270] dark:text-[#8B949E] font-medium">{{ pendingEscrowOrdersCount }} {{ $t('active escrow orders') }}</span>
-          <span class="text-[10px] font-bold text-amber-700 dark:text-amber-400">{{ $t('Awaiting Buyer Confirm') }}</span>
-        </div>
-      </div>
-
-      <!-- Total Lifetime Earnings -->
-      <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-5 shadow-xs relative overflow-hidden flex flex-col justify-between space-y-3">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-[#0B57D0]" />
-        <div class="flex items-start justify-between">
-          <div>
-            <span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">{{ $t('farmer.lifetimeEarnings') }}</span>
-            <h3 class="text-2xl font-black text-[#0B57D0] dark:text-blue-400 mt-1">{{ formatETB(totalLifetimeEarned) }}</h3>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 border border-blue-100 dark:border-blue-800/40 flex items-center justify-center shrink-0">
-            <CheckCircle2 class="w-5 h-5" />
-          </div>
-        </div>
-        <div class="flex items-center justify-between pt-1 border-t border-gray-100 dark:border-[#30363D]">
-          <span class="text-[11px] text-[#5A6270] dark:text-[#8B949E] font-medium">{{ $t('Disbursed to Bank') }}</span>
-          <span class="text-[10px] font-bold text-blue-700 dark:text-blue-400">{{ $t('Verified Direct Deposit') }}</span>
-        </div>
+        <p class="text-3xl font-black text-[#E69500] mt-2 relative z-10 tracking-tight">
+          {{ formatETB(summary.pending_payout) }}
+        </p>
+        <p class="text-[11px] font-bold text-amber-700 dark:text-amber-500 mt-1 relative z-10">Awaiting PIN verification delivery</p>
       </div>
     </div>
 
-    <!-- PAYOUT ACCOUNT DISPLAY BAR -->
-    <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-[#062E15] text-[#E69500] flex items-center justify-center font-bold shrink-0">
-          <BuildingBank class="w-5 h-5" />
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h4 class="text-xs font-extrabold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('Connected Withdrawal Account') }}</h4>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 text-[10px] font-bold">{{ $t('Active') }}</span>
-          </div>
-          <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-0.5">
-            {{ payoutAccount.provider }} ({{ payoutAccount.accountName }}) · <span class="font-mono font-bold">{{ maskAccount(payoutAccount.accountNumber) }}</span>
-          </p>
-        </div>
+    <!-- Payout History List -->
+    <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl shadow-xs overflow-hidden">
+      <div class="px-5 py-4 border-b border-[#E2E4E7] dark:border-[#30363D] bg-gray-50/50 dark:bg-[#21262D]">
+        <h3 class="text-sm font-black text-[#1E2328] dark:text-[#F0F6FC] flex items-center gap-2">
+          <Wallet class="w-4 h-4 text-[#0B57D0] dark:text-blue-400" />
+          <span>Payout History</span>
+        </h3>
       </div>
-      <button 
-        @click="showAccountModal = true" 
-        class="text-xs font-bold text-[#1E9444] dark:text-emerald-400 hover:text-[#0F5C2A] dark:hover:text-emerald-300 flex items-center gap-1 cursor-pointer self-start sm:self-auto"
-      >
-        <span>{{ $t('Change Method') }}</span>
-        <ChevronRight class="w-4 h-4" />
-      </button>
-    </div>
-
-    <!-- TRANSACTIONS & ESCROW LIST -->
-    <div class="bg-white dark:bg-[#161B22] border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-5 shadow-xs space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 dark:border-[#30363D] pb-3">
-        <div>
-          <h3 class="text-sm sm:text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('farmer.payoutHistory') }}</h3>
-          <p class="text-xs text-[#5A6270] dark:text-[#8B949E]">{{ $t('Detailed status of all order funds, escrow holds, and completed disbursements') }}</p>
-        </div>
-
-        <!-- FILTER TABS -->
-        <div class="flex items-center gap-1.5 bg-[#F8F9FA] dark:bg-[#21262D] p-1 rounded-xl border border-gray-200 dark:border-[#30363D] self-start sm:self-auto">
-          <button 
-            v-for="tab in filterTabs" 
-            :key="tab.value" 
-            @click="activeFilter = tab.value"
-            :class="[
-              'px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer',
-              activeFilter === tab.value ? 'bg-white dark:bg-[#161B22] text-[#1E2328] dark:text-[#F0F6FC] shadow-2xs border border-gray-200 dark:border-[#30363D]' : 'text-[#5A6270] dark:text-[#8B949E] hover:text-[#1E2328] dark:hover:text-[#F0F6FC]'
-            ]"
-          >
-            {{ $t(tab.label) }}
-          </button>
-        </div>
+      
+      <!-- Loading State -->
+      <div v-if="isLoading" class="p-8 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center gap-2">
+        <Loader2 class="w-6 h-6 animate-spin text-[#0B57D0]" />
+        <span class="text-xs font-bold">Loading payouts...</span>
       </div>
 
-      <!-- EMPTY STATE -->
-      <div v-if="filteredPayouts.length === 0" class="text-center py-12 text-[#5A6270] dark:text-[#8B949E] border border-dashed border-gray-200 dark:border-[#30363D] rounded-xl p-6">
-        <Receipt class="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-        <p class="text-sm font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('No payout records found') }}</p>
-        <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-1">{{ $t('Order payouts will appear here when buyers place produce orders with escrow.') }}</p>
+      <!-- Empty State -->
+      <div v-else-if="payouts.length === 0" class="p-10 text-center">
+        <div class="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
+          <FileText class="w-5 h-5 text-gray-400" />
+        </div>
+        <p class="text-sm font-bold text-[#1E2328] dark:text-[#F0F6FC]">No payouts yet</p>
+        <p class="text-xs text-[#5A6270] dark:text-[#8B949E] mt-1">Your payout history will appear here once orders are completed.</p>
       </div>
 
-      <!-- LIST OF PAYOUT ITEMS -->
-      <div v-else class="space-y-3">
-        <div 
-          v-for="item in filteredPayouts" 
-          :key="item.id" 
-          class="border border-[#E2E4E7] dark:border-[#30363D] rounded-2xl p-4 hover:border-[#1E9444] dark:hover:border-emerald-500 transition-all bg-[#F8F9FA] dark:bg-[#21262D]/60 space-y-3"
-        >
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-200/60 dark:border-[#30363D] pb-3">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-white dark:bg-[#161B22] border border-gray-200 dark:border-[#30363D] flex items-center justify-center text-xl shrink-0 shadow-2xs">
-                {{ item.cropEmoji || '🌾' }}
-              </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <h4 class="text-xs font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ $t(item.cropName) || $t('Produce Order') }}</h4>
-                  <span class="text-[11px] font-mono text-[#5A6270] dark:text-[#8B949E] bg-white dark:bg-[#161B22] px-2 py-0.5 rounded border border-gray-200 dark:border-[#30363D]">#{{ item.orderId }}</span>
+      <!-- Data State -->
+      <div v-else class="overflow-x-auto">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+          <thead class="text-[10px] uppercase font-black tracking-wider text-[#5A6270] dark:text-[#8B949E] bg-[#F8F9FA] dark:bg-[#0D1117]">
+            <tr>
+              <th class="px-5 py-3 border-b border-[#E2E4E7] dark:border-[#30363D]">Date/Ref</th>
+              <th class="px-5 py-3 border-b border-[#E2E4E7] dark:border-[#30363D]">Order Details</th>
+              <th class="px-5 py-3 border-b border-[#E2E4E7] dark:border-[#30363D]">Status</th>
+              <th class="px-5 py-3 border-b border-[#E2E4E7] dark:border-[#30363D] text-right">Amount (ETB)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#E2E4E7] dark:divide-[#30363D]">
+            <tr v-for="payout in payouts" :key="payout.id" class="hover:bg-gray-50 dark:hover:bg-[#21262D] transition-colors">
+              <td class="px-5 py-4">
+                <div class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ formatDate(payout.created_at) }}</div>
+                <div class="text-[10px] font-mono text-[#5A6270] dark:text-[#8B949E] mt-0.5">{{ payout.reference }}</div>
+              </td>
+              <td class="px-5 py-4">
+                <div class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">
+                  {{ payout.fulfillment?.items?.[0]?.listing?.title || 'B2B Produce Order' }}
                 </div>
-                <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E] mt-0.5">
-                  {{ $t('orders.buyer') }}: <span class="font-bold text-gray-800 dark:text-gray-200">{{ item.buyerName }}</span> · {{ $t('Chapa Escrow Ref') }}: <span class="font-mono text-gray-600 dark:text-gray-400">{{ item.escrowRef }}</span>
-                </p>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-              <div class="text-right">
-                <span class="text-xs font-black text-[#1E2328] dark:text-[#F0F6FC] block">{{ formatETB(item.amountETB) }}</span>
-                <span class="text-[10px] text-[#5A6270] dark:text-[#8B949E] font-medium">{{ formatDate(item.date) }}</span>
-              </div>
-              <span :class="['px-3 py-1 rounded-full text-xs font-black capitalize border', getStatusClass(item.status)]">
-                {{ $t(getStatusLabel(item.status)) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- ESCROW & PAYOUT DETAILS FOOTER -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#5A6270] dark:text-[#8B949E] bg-white dark:bg-[#161B22] p-2.5 rounded-xl border border-gray-200/80 dark:border-[#30363D]">
-            <div class="flex items-center gap-2">
-              <ShieldCheck class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>{{ $t('Release Condition:') }} <strong class="text-gray-800 dark:text-gray-200">{{ item.releaseCondition }}</strong></span>
-            </div>
-            
-            <div class="flex items-center gap-2 self-end sm:self-auto">
-              <span v-if="item.status === 'released'" class="text-emerald-700 dark:text-emerald-400 font-bold flex items-center gap-1">
-                <CheckCircle2 class="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> {{ $t('Funds Ready in Wallet') }}
-              </span>
-              <span v-else-if="item.status === 'paid'" class="text-blue-700 dark:text-blue-400 font-bold flex items-center gap-1">
-                <BuildingBank class="w-4 h-4 text-blue-600 dark:text-blue-400" /> {{ $t('Paid to') }} {{ payoutAccount.provider }}
-              </span>
-              <span v-else class="text-amber-700 dark:text-amber-400 font-bold flex items-center gap-1">
-                <Clock class="w-4 h-4 text-amber-600 dark:text-amber-400" /> {{ $t('orders.escrowLocked') }}
-              </span>
-            </div>
-          </div>
-        </div>
+                <div class="text-[10px] font-bold text-[#0B57D0] dark:text-blue-400 mt-0.5">
+                  Order #{{ payout.fulfillment?.order?.order_number || 'N/A' }}
+                </div>
+              </td>
+              <td class="px-5 py-4">
+                <span :class="['px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider', statusBadgeClass(payout.status)]">
+                  {{ payout.status }}
+                </span>
+                <div v-if="payout.processed_at" class="text-[10px] font-medium text-gray-500 dark:text-gray-400 mt-1">
+                  Cleared: {{ formatDate(payout.processed_at) }}
+                </div>
+              </td>
+              <td class="px-5 py-4 text-right">
+                <span class="font-black text-[#1E9444] dark:text-emerald-400 text-sm tracking-tight">
+                  +{{ formatETB(payout.amount) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </div>
 
-    <!-- WITHDRAWAL MODAL -->
-    <div v-if="showWithdrawModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-[#161B22] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-gray-100 dark:border-[#30363D]">
-        <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#30363D] pb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <Wallet class="w-4 h-4" />
-            </div>
-            <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('farmer.requestWithdrawal') }}</h3>
-          </div>
-          <button @click="showWithdrawModal = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold cursor-pointer">✕</button>
-        </div>
-
-        <div class="space-y-3 text-xs">
-          <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl p-4 space-y-1">
-            <span class="text-[#5A6270] dark:text-[#8B949E] block font-medium">{{ $t('farmer.withdrawalAmount') }}</span>
-            <p class="text-2xl font-black text-[#1E9444] dark:text-emerald-400">{{ formatETB(availableBalanceETB) }}</p>
-          </div>
-
-          <div class="bg-gray-50 dark:bg-[#21262D] border border-gray-200 dark:border-[#30363D] rounded-xl p-3 space-y-1">
-            <span class="text-[#5A6270] dark:text-[#8B949E] block font-medium">{{ $t('farmer.payoutMethod') }}</span>
-            <p class="font-bold text-[#1E2328] dark:text-[#F0F6FC]">{{ payoutAccount.provider }} - {{ payoutAccount.accountName }}</p>
-            <p class="font-mono text-gray-600 dark:text-[#8B949E]">{{ payoutAccount.accountNumber }}</p>
-          </div>
-
-          <p class="text-[11px] text-[#5A6270] dark:text-[#8B949E] leading-relaxed">
-            {{ $t('Funds will be transferred directly via Instant Interbank API. Settlement takes 1-5 minutes for Telebirr / CBE Birr.') }}
-          </p>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 dark:border-[#30363D]">
-          <button @click="showWithdrawModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-[#5A6270] dark:text-[#8B949E] hover:bg-gray-100 dark:hover:bg-[#21262D] cursor-pointer">
-            {{ $t('Cancel') }}
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="px-5 py-3 border-t border-[#E2E4E7] dark:border-[#30363D] bg-gray-50 dark:bg-[#0D1117] flex items-center justify-between">
+        <span class="text-xs font-bold text-[#5A6270] dark:text-[#8B949E]">
+          Page {{ currentPage }} of {{ totalPages }}
+        </span>
+        <div class="flex gap-2">
+          <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1"
+            class="px-3 py-1.5 rounded-lg border border-[#E2E4E7] dark:border-[#30363D] text-xs font-extrabold text-[#1E2328] dark:text-[#F0F6FC] disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-[#21262D]">
+            Prev
           </button>
-          <button 
-            @click="confirmWithdrawal" 
-            :disabled="isProcessingWithdrawal" 
-            class="px-5 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shadow-xs"
-          >
-            <Loader2 v-if="isProcessingWithdrawal" class="w-4 h-4 animate-spin" />
-            <span>{{ isProcessingWithdrawal ? $t('Processing Disbursement...') : $t('farmer.requestWithdrawal') }}</span>
+          <button @click="changePage(currentPage + 1)" :disabled="currentPage >= totalPages"
+            class="px-3 py-1.5 rounded-lg border border-[#E2E4E7] dark:border-[#30363D] text-xs font-extrabold text-[#1E2328] dark:text-[#F0F6FC] disabled:opacity-50 hover:bg-gray-100 dark:hover:bg-[#21262D]">
+            Next
           </button>
         </div>
       </div>
-    </div>
-
-    <!-- ACCOUNT SETTINGS MODAL -->
-    <div v-if="showAccountModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-[#161B22] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-gray-100 dark:border-[#30363D]">
-        <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#30363D] pb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#0B57D0] dark:text-blue-400 flex items-center justify-center">
-              <CreditCard class="w-4 h-4" />
-            </div>
-            <h3 class="text-base font-black text-[#1E2328] dark:text-[#F0F6FC]">{{ $t('Payout Account Settings') }}</h3>
-          </div>
-          <button @click="showAccountModal = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold cursor-pointer">✕</button>
-        </div>
-
-        <form @submit.prevent="saveAccountSettings" class="space-y-3 text-xs">
-          <div>
-            <label class="block font-bold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('farmer.payoutMethod') }}</label>
-            <select v-model="editAccountForm.provider" class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-[#30363D] bg-white dark:bg-[#21262D] text-[#1E2328] dark:text-[#F0F6FC] font-medium focus:ring-2 focus:ring-[#1E9444] focus:outline-none">
-              <option value="Commercial Bank of Ethiopia (CBE)">Commercial Bank of Ethiopia (CBE)</option>
-              <option value="Telebirr Mobile Money">Telebirr Mobile Money</option>
-              <option value="CBE Birr">CBE Birr</option>
-              <option value="Awash International Bank">Awash International Bank</option>
-              <option value="Dashen Bank">Dashen Bank</option>
-              <option value="Bank of Abyssinia">Bank of Abyssinia</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block font-bold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('marketplace.holder') }}</label>
-            <input 
-              v-model="editAccountForm.accountName" 
-              type="text" 
-              required 
-              placeholder="e.g. Dawit Bekele" 
-              class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-[#30363D] bg-white dark:bg-[#21262D] text-[#1E2328] dark:text-[#F0F6FC] placeholder:text-gray-400 dark:placeholder:text-[#8B949E] font-medium focus:ring-2 focus:ring-[#1E9444] focus:outline-none" 
-            />
-          </div>
-
-          <div>
-            <label class="block font-bold text-[#1E2328] dark:text-[#F0F6FC] mb-1">{{ $t('Account Number / Telebirr Phone') }}</label>
-            <input 
-              v-model="editAccountForm.accountNumber" 
-              type="text" 
-              required 
-              placeholder="1000123456789 or +251 912 345 678" 
-              class="w-full p-2.5 rounded-xl border border-gray-300 dark:border-[#30363D] bg-white dark:bg-[#21262D] text-[#1E2328] dark:text-[#F0F6FC] placeholder:text-gray-400 dark:placeholder:text-[#8B949E] font-mono font-bold focus:ring-2 focus:ring-[#1E9444] focus:outline-none" 
-            />
-          </div>
-
-          <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 dark:border-[#30363D]">
-            <button type="button" @click="showAccountModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-[#5A6270] dark:text-[#8B949E] hover:bg-gray-100 dark:hover:bg-[#21262D] cursor-pointer">
-              {{ $t('Cancel') }}
-            </button>
-            <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#1E9444] hover:bg-[#0F5C2A] text-white text-xs font-bold transition-all cursor-pointer shadow-xs">
-              {{ $t('Save Account Details') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- TOAST NOTIFICATION -->
-    <div 
-      v-if="toastMessage" 
-      class="fixed bottom-6 right-6 z-50 bg-[#062E15] text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-xl border border-emerald-500/30 flex items-center gap-2 animate-bounce"
-    >
-      <CheckCircle2 class="w-4 h-4 text-[#E69500]" />
-      <span>{{ $t(toastMessage) }}</span>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { 
-  Wallet, Lock, CheckCircle2, CreditCard, ShieldCheck, 
-  Receipt, Clock, ChevronRight, Loader2, Landmark as BuildingBank 
-} from 'lucide-vue-next'
-import { useAuth } from '@/composables/useAuth'
-import { useOrders } from '@/composables/useOrders'
+import { ref, onMounted } from 'vue'
+import { Wallet, CheckCircle2, Clock, FileText, Loader2 } from 'lucide-vue-next'
 import { api } from '@/services/api'
-import { formatETB, formatDate } from '@/utils/helpers'
 
-const { user } = useAuth()
-const farmer = computed(() => user.value)
-const { orders } = useOrders()
+const summary = ref({ total_paid_out: 0, pending_payout: 0 })
+const payouts = ref([])
+const isLoading = ref(true)
+const currentPage = ref(1)
+const totalPages = ref(1)
 
-const activeFilter = ref('all')
-const showWithdrawModal = ref(false)
-const showAccountModal = ref(false)
-const isProcessingWithdrawal = ref(false)
-const toastMessage = ref('')
-
-const filterTabs = [
-  { label: 'All Payouts', value: 'all' },
-  { label: 'Pending Escrow', value: 'pending' },
-  { label: 'Released Funds', value: 'released' },
-  { label: 'Paid Out', value: 'paid' },
-]
-
-// Payout Account state stored in localStorage or default
-const defaultAccount = {
-  provider: 'Commercial Bank of Ethiopia (CBE)',
-  accountName: farmer.value?.name || 'Dawit Bekele',
-  accountNumber: '1000492817264',
+const formatETB = (val) => {
+  return Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-const payoutAccount = ref({ ...defaultAccount })
-const editAccountForm = ref({ ...defaultAccount })
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  return new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric'
+  })
+}
+
+const statusBadgeClass = (status) => {
+  const map = {
+    processed: 'bg-emerald-100/50 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    pending: 'bg-amber-100/50 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+    failed: 'bg-rose-100/50 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300',
+  }
+  return map[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+}
+
+const fetchData = async (page = 1) => {
+  isLoading.value = true
+  try {
+    const summaryRes = await api.getPayoutSummary()
+    if (summaryRes?.summary) {
+      summary.value = summaryRes.summary
+    }
+
+    const res = await api.getPayouts(page)
+    if (res?.data) {
+      payouts.value = res.data
+      currentPage.value = res.meta?.current_page || 1
+      totalPages.value = res.meta?.last_page || 1
+    }
+  } catch (error) {
+    console.error('Failed to load payouts:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const changePage = (newPage) => {
+  if (newPage > 0 && newPage <= totalPages.value) {
+    fetchData(newPage)
+  }
+}
 
 onMounted(() => {
-  const savedAcc = localStorage.getItem('agri_farmer_payout_account')
-  if (savedAcc) {
-    try {
-      payoutAccount.value = JSON.parse(savedAcc)
-      editAccountForm.value = { ...payoutAccount.value }
-    } catch { /* ignore */ }
-  } else if (farmer.value?.name) {
-    payoutAccount.value.accountName = farmer.value.name
-    editAccountForm.value.accountName = farmer.value.name
-  }
-
-  fetchBackendPayouts()
+  fetchData(1)
 })
-
-const backendPayouts = ref([])
-async function fetchBackendPayouts() {
-  try {
-    const res = await api.fetchPayouts()
-    if (res && res.data && Array.isArray(res.data)) {
-      backendPayouts.value = res.data
-    }
-  } catch {
-    // API optional fallback
-  }
-}
-
-// Compute payouts from local orders + backend payouts
-const farmerOrders = computed(() => {
-  return orders.value.filter(o => o.farmerId === farmer.value?.id || o.farmer?.name === farmer.value?.name || true)
-})
-
-const payoutRecords = computed(() => {
-  const list = []
-
-  // Map orders into payout entries
-  farmerOrders.value.forEach(order => {
-    let status = 'pending'
-    if (order.escrowStatus === 'released' || order.status === 'completed' || order.status === 'delivered') {
-      status = 'released'
-    }
-
-    list.push({
-      id: `PAY-${order.id}`,
-      orderId: order.id,
-      cropName: order.listing?.cropName || 'Produce Batch',
-      cropEmoji: order.listing?.cropEmoji || '🌾',
-      buyerName: order.buyer?.name || 'Commercial Buyer',
-      escrowRef: order.escrowReference || `CHP-TX-${Math.floor(10000000 + Math.random() * 90000000)}`,
-      amountETB: Number(order.totalAmountETB || 0),
-      status: status,
-      releaseCondition: 'Buyer Delivery Confirmation & Produce Quality Inspection',
-      date: order.completedAt || order.placedAt || new Date(),
-    })
-  })
-
-  // Add historical paid items if available
-  if (list.length === 0) {
-    list.push(
-      {
-        id: 'PAY-ORD-8919',
-        orderId: 'ORD-8919',
-        cropName: 'Bale Durum Wheat',
-        cropEmoji: '🌾',
-        buyerName: 'Addis Supply Co.',
-        escrowRef: 'CHP-TX-77610092',
-        amountETB: 140000,
-        status: 'paid',
-        releaseCondition: 'Delivered & Inspected Grade A Wheat',
-        date: new Date('2024-02-14T16:25:00'),
-      },
-      {
-        id: 'PAY-ORD-8921',
-        orderId: 'ORD-8921',
-        cropName: 'Sidama Washed Coffee G1',
-        cropEmoji: '☕',
-        buyerName: 'Addis Supply Co.',
-        escrowRef: 'CHP-TX-88901234',
-        amountETB: 170000,
-        status: 'pending',
-        releaseCondition: 'Awaiting Final Buyer Receipt',
-        date: new Date('2024-02-28T10:30:00'),
-      }
-    )
-  }
-
-  return list
-})
-
-const availableBalanceETB = computed(() => {
-  return payoutRecords.value
-    .filter(p => p.status === 'released')
-    .reduce((sum, p) => sum + p.amountETB, 0)
-})
-
-const pendingEscrowETB = computed(() => {
-  return payoutRecords.value
-    .filter(p => p.status === 'pending')
-    .reduce((sum, p) => sum + p.amountETB, 0)
-})
-
-const pendingEscrowOrdersCount = computed(() => {
-  return payoutRecords.value.filter(p => p.status === 'pending').length
-})
-
-const totalLifetimeEarned = computed(() => {
-  const base = farmer.value?.totalEarned || 890000
-  const paid = payoutRecords.value
-    .filter(p => p.status === 'paid' || p.status === 'released')
-    .reduce((sum, p) => sum + p.amountETB, 0)
-  return Math.max(base, paid)
-})
-
-const filteredPayouts = computed(() => {
-  if (activeFilter.value === 'all') return payoutRecords.value
-  return payoutRecords.value.filter(p => p.status === activeFilter.value)
-})
-
-function getStatusClass(status) {
-  if (status === 'released') return 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
-  if (status === 'paid') return 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60'
-  return 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60'
-}
-
-function getStatusLabel(status) {
-  if (status === 'released') return 'Escrow Released'
-  if (status === 'paid') return 'Paid Out'
-  return 'Held in Escrow'
-}
-
-function maskAccount(accNum) {
-  if (!accNum) return ''
-  if (accNum.length <= 4) return accNum
-  return '•••• ' + accNum.slice(-4)
-}
-
-function handleWithdraw() {
-  if (availableBalanceETB.value <= 0) return
-  showWithdrawModal.value = true
-}
-
-async function confirmWithdrawal() {
-  isProcessingWithdrawal.value = true
-  await new Promise(r => setTimeout(r, 1200))
-  
-  // Mark released items as paid
-  payoutRecords.value.forEach(p => {
-    if (p.status === 'released') p.status = 'paid'
-  })
-
-  isProcessingWithdrawal.value = false
-  showWithdrawModal.value = false
-  triggerToast(`Successfully requested withdrawal to ${payoutAccount.value.provider}`)
-}
-
-function saveAccountSettings() {
-  payoutAccount.value = { ...editAccountForm.value }
-  localStorage.setItem('agri_farmer_payout_account', JSON.stringify(payoutAccount.value))
-  showAccountModal.value = false
-  triggerToast('Payout account updated successfully')
-}
-
-function triggerToast(msg) {
-  toastMessage.value = msg
-  setTimeout(() => {
-    toastMessage.value = ''
-  }, 4000)
-}
 </script>
